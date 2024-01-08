@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Event</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill-emoji@0.1.8/dist/quill-emoji.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-emoji@0.1.8/dist/quill-emoji.js"></script>
+</head>
+<body>
+    <div class="container py-5" 
+    x-data="{ 
+        isFixed: false,
+        isTwoDates: false,
+        selectedCategories: [],
+        orari: [],
+        toggleDate() {
+            if (!this.isTwoDates) {
+            this.$refs.datepicker_a.value = '';
+            $(this.$refs.datepicker_a).datepicker('update');
+            }
+        },
+        addOrario() {
+            this.orari.push({ 
+                fields: {
+                    orario_da: '',
+                    orario_a: '',
+                    giorni: []
+                } 
+            });
+        },
+        removeOrario(index) {
+            this.orari.splice(index, 1);
+        },
+        toggleDay(orario, day) {
+            const dayIndex = orario.fields.giorni.indexOf(day);
+            if (dayIndex === -1) {
+                orario.fields.giorni.push(day);
+            } else {
+                orario.fields.giorni.splice(dayIndex, 1);
+            }
+        },
+        validateCategories() {
+            if (this.selectedCategories.length === 0) {
+                alert('Seleziona almeno una categoria.');
+                return;
+            }
+            document.getElementById('submitBtn').click();
+        },
+        toggleIsFixed() {
+            this.selectedCategories = []
+        },
+    }">
+
+<form  x-ref="form" method="post" action="{% url 'iniziative:crea-nuovo-evento' %}"  enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input type="hidden" name="orari" :value="JSON.stringify(orari)">
+    <div class="row d-flex justify-content-end">
+        <h1 class="text-center mb-4 mr-4">Nuovo evento</h1>
+        <button type="submit" class="btn btn-primary mb-4" x-on:click.prevent="validateCategories()">Salva</button>
+    </div>
+    <input type="submit" id="submitBtn" style="display: none;">
+
+    <div class="form-row">
+        <div class="col-md-8">
+            <h2 class="mb-3">Evento</h2>    
+
+            <div class="form-group ">
+                <label >Nome Evento*</label>
+                <input type="text" class="form-control" required name="nome">
+            </div>
+
+            <div class="form-group ">
+                <label >Link al sito web o alla pagina social</label>
+                <input type="text" class="form-control" name="website">
+            </div>
+            
+            <div class="form-row">
+
+                <div class="col-md-8">
+                    <label>Descrizione</label>
+                    <div x-data="wysiwyg()" x-init="init()">
+                        <div x-ref="editor"></div>
+                        <input type="hidden" name="descrizione" x-model="content">
+                    </div>
+                                
+                </div>
+                
+                <div class="form-row col-md-4"> 
+                    <div class="form-group col-md-12">
+                        <label>Data da*</label>
+                        <input type="text" name="data_da"  class="form-control datepicker" required>
+                    </div>
+                    <div class="custom-control custom-switch mb-4">
+                        <input type="checkbox" class="custom-control-input" id="dateToggle" x-model="isTwoDates" x-on:click="toggleDate()">
+                        <label class="custom-control-label" for="dateToggle">Attiva data di fine</label>
+                    </div>
+                    <div class="form-group col-md-12" x-show="isTwoDates">
+                        <label>Data a</label>
+                        <input x-ref="datepicker_a" type="text" name="data_a"  class="form-control datepicker" >
+                    </div>
+                </div>
+            </div>
+
+
+
+            
+
+        </div>
+
+
+        <div class="form-group col-md-4">
+            <div class="card">
+
+
+                <div class="card-body">
+                    <h2 class="card-title">Locandina o Foto*</h2>
+                    <div class="text-center">
+                        {% if evento.copertina %}
+                            <img src="{{ evento.copertina.url }}" alt="{{ evento.nome }}" class="img-thumbnail mb-3" style="width: 250px;">
+                        {% endif %}
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" name="copertina" accept=".jpg, .jpeg, .png" required>
+                            <label class="custom-file-label">Choose file...</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.is_superuser %}
+                <div class="custom-control custom-switch mb-4">
+                    <input type="checkbox" class="custom-control-input" id="fixedToggle" x-model="isFixed" name="is_fixed" x-on:click="toggleIsFixed">
+                    <label class="custom-control-label" for="fixedToggle">Evento ricorrente</label>
+                </div>
+            {% endif %}
+
+        </div>
+
+    <div class="form-group col-md-3">
+        <h2 class="mt-5 mb-3">Dove</h2>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label>Città/Borgo/Paese*  <span style="opacity: 0.5;">(es. Sulmona)</span></label>
+                <input type="text" class="form-control" name="nome_luogo" value="{{evento.luogo.nome}}" required>
+            </div>
+
+            <div class="form-group col-md-12">
+                <label>Luogo/Struttura/Edificio <span style="opacity: 0.5;">(es. Stadio Comunale)</span></label>
+                <input type="text" class="form-control" name="edificio" value="{{evento.luogo.edificio}}">
+            </div>
+
+
+            <div class="form-group col-md-12">
+                <label>Indirizzo <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>    
+                <input type="text" class="form-control" name="indirizzo" value="{{evento.luogo.indirizzo}}">
+            </div>
+
+            <!-- <div class="form-group col-md-6">
+                <label>Cap</label>
+                <input type="number" class="form-control" name="cap" value="{{evento.luogo.cap}}">
+            </div> -->
+
+            <div class="form-group col-md-12">
+                <label>Provincia*</label>
+                <select class="form-control" name="provincia" required>
+                    <option value="" disabled selected>-- Seleziona una provincia --</option>
+                    {% for province_value, province_name in provincia_choices %}
+                        <option value="{{ province_value }}">{{ province_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group col-md-3">
+        <h2 class="mt-5 mb-3">Categorie*</h2>
+        <div class="form-group col-md-12">
+            <label>Seleziona una o piu categorie (max 4)</label>
+            {% for category in all_categories %}
+                <div class="custom-checkbox" x-show="!isFixed">
+                    <input 
+                        type="checkbox"    
+                        id="category_{{ category.id }}" 
+                        name="new_categories" 
+                        value="{{ category.id }}"
+                        x-model="selectedCategories"
+                        onclick="checkCategoryLimit()"
+                        >
+                    <label for="category_{{ category.id }}">{{ category.name }}</label>
+                </div>
+            {% endfor %}
+
+            {% for category in all_categories_fixed %}
+                <div class="custom-checkbox" x-show="isFixed">
+                    <input 
+                        type="checkbox"    
+                        id="category_{{ category.id }}" 
+                        name="new_categories" 
+                        value="{{ category.id }}"
+                        x-model="selectedCategories"
+                        onclick="checkCategoryLimit()"
+                        >
+                    <label for="category_{{ category.id }}">{{ category.name }}</label>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-group col-md-6">
+
+        <h2 class="mt-5 mb-3">Orari</h2>
+        <div>
+            <template x-for="(orario, index) in orari" :key="index">
+                <div class="form-row orarioRow"> 
+                    <div class="form-group col-md-3">
+                        <span @click="removeOrario(index)"><i class="fa fa-times" aria-hidden="true" style="color: rgb(197, 59, 59);"></i></span>
+                        <label>Orario da</label>
+                        <input type="time" class="form-control" x-model="orario.fields.orario_da">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Orario a</label>
+                        <input type="time" class="form-control" x-model="orario.fields.orario_a">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <div class="d-flex">
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(1)?'badge-warning':'badge-light'" @click="toggleDay(orario, 1)">Lun</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(2)?'badge-warning':'badge-light'" @click="toggleDay(orario, 2)">Mar</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(3)?'badge-warning':'badge-light'" @click="toggleDay(orario, 3)">Mer</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(4)?'badge-warning':'badge-light'" @click="toggleDay(orario, 4)">Gio</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(5)?'badge-warning':'badge-light'" @click="toggleDay(orario, 5)">Ven</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(6)?'badge-warning':'badge-light'" @click="toggleDay(orario, 6)">Sab</span>
+                            <span class="badge mr-1 p-2" :class="orario?.fields?.giorni.includes(7)?'badge-warning':'badge-light'" @click="toggleDay(orario, 7)">Dom</span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </template>
+          <button type="button" @click="addOrario()" class="btn btn-secondary float-right">Nuovo Orario</button>
+        </div>
+            
+
+    </div>
+    </div>
+</form>
+    </div>
+    <script>
+        document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+            var fileName = e.target.files[0].name;
+            var fileLabel = e.target.nextElementSibling;
+            fileLabel.innerHTML = fileName;
+        });
+    </script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            });
+        });
+    </script>
+
+    <script>
+        function wysiwyg() {
+            return {
+                content: ``,
+                quill: null,
+                init() {
+                    const toolbarOptions = [
+                        ['bold', 'italic', 'underline', 'strike'],  // Basic style buttons
+                        ['blockquote', 'code-block'],  // Blockquote and code block
+
+                        [{ 'header': 1 }, { 'header': 2 }],  // Heading sizes
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],  // Lists
+                        [{ 'script': 'sub'}, { 'script': 'super' }],  // Subscript/superscript
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],  // Outdent/Indent
+                        [{ 'direction': 'rtl' }],  // Text direction
+
+                        [{ 'size': ['small', false, 'large', 'huge'] }],  // Font size
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],  // Header levels
+
+                        [{ 'color': [] }, { 'background': [] }],  // Font color and background color
+                        [{ 'font': [] }],  // Font family
+                        [{ 'align': [] }],  // Text align
+
+                        ['link', 'image'],  // Link, image, video, and formula
+                        ['emoji'],  // Emoji
+
+                        ['clean']  // Removes formatting
+                    ];
+
+                    this.quill = new Quill(this.$refs.editor, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: toolbarOptions,
+                            'emoji-toolbar': true,
+                            'emoji-textarea': true,
+                        }
+                    });
+
+                    // Set initial value of the editor
+                    this.quill.root.innerHTML = this.content;
+
+                    // Update content on editor change
+                    this.quill.on('text-change', () => {
+                        this.content = this.quill.root.innerHTML;
+                    });
+                },
+            }
+        }
+
+            function checkCategoryLimit() {
+                var checkboxes = document.querySelectorAll('input[name="new_categories"]');
+                var checkedCount = 0;
+        
+                checkboxes.forEach(function(checkbox) {
+                    if (checkbox.checked) {
+                        checkedCount++;
+                    }
+                });
+        
+                if (checkedCount >= 4) {
+                    checkboxes.forEach(function(checkbox) {
+                        if (!checkbox.checked) {
+                            checkbox.disabled = true;
+                        }
+                    });
+                } else {
+                    checkboxes.forEach(function(checkbox) {
+                        checkbox.disabled = false;
+                    });
+                }
+            }
+    </script>
+
+</body>
+</html>
+

@@ -1,4 +1,8 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.http import HttpResponseRedirect
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import AccessToken
 from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -6,72 +10,210 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.conf import settings
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
 from accounts.models import Profile
-from accounts.serializers import UserSerializer, ProfileSerializer, UserGetSerializer
-from django.http import HttpResponseRedirect
+from accounts.serializers import UserSerializer, ProfileSerializer, UserGetSerializer, CustomTokenObtainPairSerializer
+from django.shortcuts import reverse
+from django.utils.safestring import mark_safe
+from .forms import LoginForm
+from django.contrib.auth import authenticate, login, logout, password_validation
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from datetime import datetime, timedelta
+import jwt, os, re, requests
+from accounts.models import AccessToken
 
 
-def send_link(request, user, token):
-    context = {
-        'token': token,
-        'url': settings.SITE_URL,
-        'user': user
-    }
-    message_txt = render_to_string('registration-link.txt', context)
-    message_html = render_to_string('registration-link.html', context)
 
-    send_mail(
-        subject='Fanta20 conferma account',
-        message=message_txt,
-        html_message=message_html,
-        from_email=settings.EMAIL_SENDER,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
-
-    return Response({'message': 'ok'})
-
-def confirm_account(request):
+def login_as(request):
     token = request.GET.get('token')
-
-    profile = Profile.objects.get(token=token)
-
-    if profile.token == token:
-        # Token is valid, confirm the user's account
-        profile.user.is_active = True
-        profile.user.save()
-        # Redirect to some success page or login page
-        return redirect('https://fanta20.it/register-success')
+    
+    if token:
+        return login_with_token(request, token)
     else:
-        return redirect('https://fanta20.it/registrazione-fallita')
-        # Token is invalid, handle the error or redirect to some error page
+        messages.warning(request, "Token non trovato nell'intestazione")
+        return redirect('accounts:login')
+
+def validate_and_extract_token(token):
+    try:
+        # Decode token using the same secret key used for encoding
+        decoded_data = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+        return decoded_data
+    except:
+        return None
+    
+def login_with_token(request, token):
+    
+    user_data = validate_and_extract_token(token)
+    print(user_data)
+
+    if user_data:
+        username = user_data.get('username')
+        print(username)
+        try:
+            user = User.objects.get(username=username)
+
+            if user:
+                login(request, user)
+                messages.success(request, f'Benvenuto {username}')
+                return redirect('iniziative:lista-eventi')
+            else:
+                messages.warning(request, "Autenticazione fallita")
+                return redirect('accounts:login')
+
+        except User.DoesNotExist:
+            messages.warning(request, "Utente non trovato")
+            return redirect('accounts:login')
+
+    else:
+        messages.warning(request, "Token non valido")
+        return redirect('accounts:login')
+
+
+def generate_tokens(data):
+    access_token_payload = {
+        'username': data['username'],
+        'exp': datetime.utcnow() + timedelta(days=1000)
+    }
+
+    access_token = jwt.encode(access_token_payload, settings.SECRET_KEY, algorithm='HS256')
+    return access_token, access_token_payload
+
 
 @api_view(['POST'])
-def register(request):
-    user_serializer = UserSerializer(data=request.data)
-    if user_serializer.is_valid():
-        user = user_serializer.save()
+def login_api(request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        try:
+            user = authenticate(request, username=User.objects.get(
+                email=username), password=password)
 
-        token = default_token_generator.make_token(user)
-        profile_serializer = ProfileSerializer(
-            data={'user': user.id, 'name': user.first_name, 'surname': user.last_name, 'token': token, 'email': user.email })
-        if profile_serializer.is_valid():
-            profile = profile_serializer.save()
-            user_serializer = UserGetSerializer(user)
-            send_link(request, user, token)
+        except:
+            user = authenticate(request, username=username, password=password)
 
-            return Response(user_serializer.data, status=status.HTTP_201_CREATED)
+        if user is not None:
+            tokens_data = {
+            'username': username,
+            }
+
+            access_token, access_token_payload = generate_tokens(tokens_data)
+            expires_at = datetime.utcfromtimestamp(int(access_token_payload['exp'].timestamp()))
+
+            if isinstance(access_token, bytes):
+                print('here')
+                access_token = access_token.decode('utf-8')
+        # Store the refresh token
+            AccessToken.objects.create(user=user, token=access_token, expires_at=expires_at)
+
         else:
-            user.delete()
-            return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Login failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserGetSerializer(user)
+
+        return Response({'access_token': access_token, "user": serializer.data})
+
+
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        email = request.POST['email']
+        password = request.POST['password']
+        password_confirm = request.POST['password_confirm']
+
+        if password != password_confirm:
+            messages.warning(request, 'Attenzione, le due password non coincidono')
+            return render(request, 'accounts/register.html', {'title': 'register'})
+
+        if User.objects.filter(username=username).exists():
+            messages.warning(request, 'Attenzione, Username già esistente, hai dimenticato la password? Recuperala')
+            return render(request, 'accounts/register.html', {'title': 'register'})
+
+        if User.objects.filter(email=email).exists():
+            reset_password_link = '/password-reset/'  # Replace this with your reset password link
+            message = f'Attenzione, Email già esistente, hai dimenticato la password? <a href="{reset_password_link}">Recuperala</a>'
+            messages.warning(request, mark_safe(message))
+            return render(request, 'accounts/register.html', {'title': 'register'})
+
+        else:
+            # Create user and profile if all validation checks pass
+            try:
+                user = User.objects.create(email=email, first_name=first_name, last_name=last_name, username=username)
+                user.set_password(password)
+                user.save()
+            except Exception as e:
+                print(e)
+
+            messages.success(
+                request, f'Account creato correttamente')
+            # message_txt = render_to_string('accounts/user-register.txt')
+            # message_html = render_to_string('accounts/user-register.html')
+            # send_mail(
+            #     'Perfetto! Account {} è stato creato con successo!'.format(
+            #         user.username),
+            #     message_txt,
+            #     f'{settings.EMAIL_SENDGRID}',
+            #     # destinatario
+            #     [user.email],
+            #     html_message=message_html,
+            #     fail_silently=False,
+            # )
+            return HttpResponseRedirect(reverse('accounts:login'))
+
+
+    return render(request, 'accounts/register.html', {
+        'title': 'register',
+    })
+
+
+
+def login_user(request):
+    if request.method == 'POST':
+        form = LoginForm()
+        username = request.POST['username']
+        password = request.POST['password']
+        try:
+            user = authenticate(request, username=User.objects.get(
+                email=username), password=password)
+
+        except:
+            user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            messages.success(
+                request, f'Benvenuto {username}')
+            return redirect('iniziative:lista-eventi')
+
+        else:
+            messages.warning(request, "username o password non corretta")
+
+    else:
+        form = LoginForm()
+
+    return render(request, 'accounts/login.html', {
+        'title': 'Login',
+        'form': form
+    })
+
+def reset_password(request):
+
+    return render(request, 'accounts/recover_password.html', {})
+
+def logout_user(request):
+    logout(request)
+    messages.success(
+        request, 'Utente disconnesso con successo')
+    return redirect('accounts:login')
+
+def recover_password(request):
+    return render(request, 'confirm-password.html')
 
 def create_tinyurl(request, url):
     if request.method == 'POST':
@@ -108,59 +250,77 @@ def create_tinyurl(request, url):
 
     return Response({'error': 'Invalid request method'})
 
-def recover_password(request):
-    return render(request, 'confirm-password.html')
-
 @api_view(['POST'])
 def password_reset_request(request):
     email = request.data.get('email')
-    profile = get_object_or_404(Profile, email=email)
+    
+    # Check if the user exists
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # If user does not exist, handle it gracefully
+        messages.error(request, "Nessun utente trovato con questa email.")
+        return render(request, 'accounts/password_reset_request.html', {
+            'title': 'Password Reset Request'
+        })
 
-    token = default_token_generator.make_token(profile.user)
-    uid = urlsafe_base64_encode(force_bytes(profile.pk))
-
-    reset_link = f'https://fanta20.it/recover-password?uid={uid}&token={token}'
-
+    # If user exists, continue with password reset process
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = f'{settings.SITE_URL}/password/reset/confirm/{uid}/{token}/'
 
     shortened_url = create_tinyurl(request, reset_link)
-    print(f'short {shortened_url}')
+    send_reset_email(user, shortened_url)
 
-    send_reset_email(profile, shortened_url)
+    messages.success(request, "Il link per il recupero password è stato inviato via email")
 
-    return Response({
-                    'message': 'Password reset link has been sent to your email.',
-                    'uid': uid,
-                    'token': token,
-                     }, status=status.HTTP_200_OK)
+    return render(request, 'accounts/auth/password_reset_done.html', {
+        'title': 'Recover Password'
+    })
+
+@api_view(['GET'])
+def password_reset_confirm(request, uidb64, token):
+    context = {
+        'uidb64': uidb64,
+        'token': token
+    }
+    return render(request, 'accounts/auth/password_reset_confirm.html', context)
 
 
 @api_view(['POST'])
-def password_reset_confirm(request):
+def password_reset_new(request):
     try:
         uidb64 = request.data.get('uidb64')
         token = request.data.get('token')
-        uid = force_text(urlsafe_base64_decode(uidb64))
-        profile = Profile.objects.get(pk=uid)
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
 
-        user = profile.user
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        return HttpResponseRedirect('https://fanta20.it/reset-password-fail/')
+        return HttpResponseRedirect(f'{settings.SITE_URL}/reset-password-fail/')
 
     if default_token_generator.check_token(user, token):
         # Handle the password reset here
         # For example, you can update the user's password and log them in.
-        new_password = request.data.get('new_password')
+        new_password = request.data.get('new_password2')
+        print(f'new password', new_password)
 
         user.set_password(new_password)
 
         user.save()
-        return HttpResponseRedirect('https://fanta20.it/reset-password-success/')
+
+        #return HttpResponseRedirect('https://acf.abruzzocosafare.it/reset-password-success/')
+        return HttpResponseRedirect(f'{settings.SITE_URL}/reset-password-done/')
     else:
-        return HttpResponseRedirect('https://fanta20.it/reset-password-fail/')
+        return HttpResponseRedirect(f'{settings.SITE_URL}/reset-password-fail/')
+    
 def send_reset_email(user, reset_link):
     context = {
+        'token': 'asdas',
         'reset_link': reset_link,
+        'url': settings.SITE_URL,
+        'user': user
     }
+
     message_txt = render_to_string('password_reset_link.txt', context)
     message_html = render_to_string('password_reset_link.html', context)
 
@@ -172,3 +332,7 @@ def send_reset_email(user, reset_link):
         recipient_list=[user.email],
         fail_silently=False,
     )
+
+def password_reset_done(request):
+    return render(request, 'accounts/auth/password_reset_complete.html')
+    

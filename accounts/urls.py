@@ -1,16 +1,20 @@
-from django.urls import path, re_path
+from django.urls import path
 from . import views
-from django.conf import settings
-from django.conf.urls.static import static
-from django.urls import reverse_lazy
-from django.contrib.auth import views as auth_views
-from .forms import CaptchaPasswordResetForm, NewResetForm
 
 app_name = 'accounts'
 urlpatterns = [
-    #path('login/', views.login_user, name='login'),
-    #path('download-list/', views.download_list, name="download-list"),
-    #path('download_file/<int:order_id>/<str:filename>/',views.download_file, name="download-file"),
+    path('register/', views.register, name='register'),
+    path('login/', views.login_user, name='login'),
+    path('logout/', views.logout_user, name='logout'),
+    path('login-as/', views.login_as, name='login-as'),
+
+    path('reset-password/', views.reset_password, name='reset_password'),
+
+    path('password/test/', views.recover_password, name='password_reset_request'),
+    path('password/reset/', views.password_reset_request, name='password_reset_request'),
+    path('password/reset/confirm/<str:uidb64>/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('password-confirm-done/', views.password_reset_new, name='password_reset_confirm_done'),
+    path('reset-password-done/', views.password_reset_done, name='password_reset_done')
 
 ]
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
