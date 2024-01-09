@@ -10,7 +10,9 @@ urlpatterns = [
         path('', views.worksites_lists, name='worksites-lists'),
         path('worksites-lists-api/', views.worksites_list_api, name='worksites-lists-api'),
         path('worksite-detail/<int:id>', views.worksite_detail, name='worksite-detail'),
+
         path('add-worksite/', views.add_worksite, name='add-worksite'),
+        path('edit-worksite/', views.edit_worksite, name='edit-worksite'),
         path('add-new-worksite/', views.add_new_worksite, name='add-new-worksite'),
         path('delete_worksite/', views.delete_worksite, name='delete-worksite'),
         # path('lista-eventi-ricorrenti/', views.lista_eventi_ricorrenti, name='lista-eventi-ricorrenti'),

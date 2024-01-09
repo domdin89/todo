@@ -18,15 +18,13 @@
 <body>
     <div class="container py-5">
 
-        <form  x-ref="form" method="post" action=""  enctype="multipart/form-data">
+        <form  x-ref="form" method="post" action="{% url 'worksites:edit-worksite' %}"  enctype="multipart/form-data">
             {% csrf_token %}
 
-            <input type="hidden" name="id_evento" value="{{worksite.id}}">
-            <input type="hidden" name="id_luogo" value="{{worksite.luogo.id}}">
-            <input type="hidden" name="orari" :value="JSON.stringify(orari)">
+            <input type="hidden" name="worksite_id" value="{{worksite.id}}">
             <div class="row d-flex justify-content-end">
-                <h1 class="text-center mb-4 mr-4">{{evento.nome}}</h1>
-                <button type="submit" class="btn btn-primary mb-4" x-on:click.prevent="validateCategories()">Salva</button>
+                <h1 class="text-center mb-4 mr-4">{{worksite.name}}</h1>
+                <button type="submit" class="btn btn-primary mb-4">Salva</button>
             </div>
 
             <div class="form-row">
@@ -35,7 +33,7 @@
 
                     <div class="form-group ">
                         <label >Nome del Cantiere*</label>
-                        <input type="text" class="form-control" required name="nome" value="{{worksite.name}}">
+                        <input type="text" class="form-control" required name="name" value="{{worksite.name}}">
                     </div>
                     
 
@@ -48,10 +46,10 @@
                             <h2 class="card-title">Foto</h2>
                             <div class="text-center">
                                 {% if worksite.image %}
-                                    <img src="{{ worksite.image.url }}" alt="{{ worksite.name }}" class="img-thumbnail mb-3" style="width: 250px;">
+                                    <img src="{{ worksite.image }}" alt="{{ worksite.name }}" class="img-thumbnail mb-3" style="width: 250px;">
                                 {% endif %}
                                 <div class="custom-file">
-                                    <input type="file" class="custom-file-input" name="copertina" accept=".jpg, .jpeg, .png" required>
+                                    <input type="file" class="custom-file-input" name="image">
                                     <label class="custom-file-label">Choose file...</label>
                                 </div>
                             </div>
@@ -62,17 +60,17 @@
                 </div>
 
             <div class="form-group col-md-8">
-                <h2 class="mt-5 mb-3">Dove</h2>
+                <h2 class="mt-5 mb-3">Città</h2>
                 <div class="form-row">
                     <div class="form-group col-md-12">
                         <label>Città*  <span style="opacity: 0.5;">(es. Sulmona)</span></label>
-                        <input type="text" class="form-control" name="nome_luogo" value="{{worksite.city}}" required>
+                        <input type="text" class="form-control" name="city" value="{{worksite.city}}" required>
                     </div>
 
 
                     <div class="form-group col-md-12">
                         <label>Indirizzo <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>
-                        {% if evento.address%}
+                        {% if worksite.address%}
                         <input type="text" class="form-control" name="address" value="{{worksite.address}}">
                         {% else %}
                         <input type="text" class="form-control" name="address">
@@ -80,8 +78,8 @@
                     </div>
 
                     <div class="form-group col-md-12">
-                        <label>Regione <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>
-                        {% if evento.address%}
+                        <label>Regione <span style="opacity: 0.5;">(es. Abruzzo)</span></label>
+                        {% if worksite.region%}
                         <input type="text" class="form-control" name="region" value="{{worksite.region}}">
                         {% else %}
                         <input type="text" class="form-control" name="region">

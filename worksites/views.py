@@ -213,6 +213,40 @@ def add_new_worksite(request):
     except Exception as e:
         print(f"Adding worksite Error occurred: {e}")
         return HttpResponse(f"An error occurred: {e}", status=500)  # HTTP 500 Internal Server Error
+    
+
+@login_required(login_url='accounts:login')
+def edit_worksite(request):
+    try:
+        worksite_id = request.POST.get('worksite_id')
+        worksite = Worksites.objects.get(id=worksite_id)
+
+        if request.method == "POST":
+            worksite.name = request.POST.get('name')
+            worksite.address = request.POST.get('address')
+            worksite.region = request.POST.get('region')
+            worksite.city = request.POST.get('city')
+            worksite.date = request.POST.get('date')
+            worksite.user = request.user.profile
+
+            # Handle image upload
+            image = request.FILES.get('image')
+            if image:
+                # Add your image processing logic here if necessary
+                worksite.image = image
+            # else:
+            #     Handle default image logic here
+
+            # Save updated fields
+            worksite.save(update_fields=['name', 'address', 'region', 'image', 'city', 'date', 'user'])
+
+            messages.success(request, "Cantiere modificato con successo")
+            return redirect('worksites:worksites-lists')
+
+    except Exception as e:
+        print(f"Editing worksite Error occurred: {e}")
+        return HttpResponse(f"An error occurred: {e}", status=500)
+
 
 @login_required
 def delete_worksite(request):
