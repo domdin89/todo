@@ -1,75 +1,32 @@
-{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Eventi</title>
+    <title>Bacheca</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" >
 </head>
 <body x-data="dataTable()" x-init="fetchData()">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg sticky-top" style="background-color: #117ce7;">
-        <a class="navbar-brand text-white" href="/">Abruzzo cosa fare</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            Menu
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item {% if request.path == '/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/">Home</a>
-                </li>
-                <!-- Only display if the user is authenticated and a superuser -->
-                {% if user.is_authenticated and user.is_superuser %}
-                {% url 'iniziative:lista-eventi-prossimi' as eventi_url %}
-                <li class="nav-item {% if request.path == '/lista-eventi-da-approvare/' %}active-page{% endif %}">
-                    <a class="nav-link text-warning" href="/lista-eventi-da-approvare/">Da approvare</a>
-                </li>
-                <li class="nav-item {% if request.path == '/lista-eventi-ricorrenti/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/lista-eventi-ricorrenti/">Eventi ricorrenti</a>
-                </li>
-                <li class="nav-item {% if request.path == eventi_url %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="{{ eventi_url }}">Prossimi Eventi</a>
-                </li>
-
-                
-                <li class="nav-item {% if request.path == '/display_csv/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/display_csv/">Copia Eventi</a>
-                </li>
-
-                <li class="nav-item {% if request.path == '/lista-utenti/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/lista-utenti/">Lista Utenti</a>
-                </li>
-
-                <li class="nav-item {% if request.path == '/admin' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/admin" target="blank">Admin Panel</a>
-                </li>
-                {% endif %}
-
-
-            </ul>            
-            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light ml-3">Logout</a>
-        </div>
-    </nav>
-    <!-- End of Navbar -->
+   
+        <!-- NAVBAR -->
+  {% include 'menu.html' %}
 
     <div class="container-fluid">
 
         <!-- Button and Search Bar -->
         <div class="row my-3">
             <div class="col-md-12 ">
-                <a href="{% url 'iniziative:nuovo-evento' %}" class="btn btn-primary float-right">Aggiungi nuovo evento</a>
+                <a href="{% url 'worksites:add-worksite' %}" class="btn btn-primary float-right">Inserisci Aggiornamento</a>
             </div>
         </div>
-
+{% comment %} 
         <div class="search-bar-wrapper">
             <input type="text" class="search-input" x-model="searchQuery" @input.debounce.500ms="fetchData()" type="text" placeholder="Cerca per nome evento o data (YYYY-MM-DD) ...">
-        </div>
+        </div> {% endcomment %}
 
         <div class="pagination">
-            <span x-text="'Show ' +events.length +' results of ' + total_count + ' total'"></span>
+            <span x-text="'Show ' +boards.length +' results of ' + total_count + ' total'"></span>
             <button @click="previous()" :disabled="currentPage <= 1" class="btn btn-primary">Precedente</button>
         
             <!-- If we are beyond page 3, show a jump to the first page -->
@@ -109,115 +66,81 @@
                         </span>
                     </th>
                     <th scope="col"></th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('name')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Cantiere
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'name'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'name' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'name' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('region')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Appartamento
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'region'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'region' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'region' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('city')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Titolo
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'city'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'city' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'city' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
                     <th scope="col" class="sortable" @click="toggleOrdering('nome')">
                         <span style="display: flex;gap: 4px;align-items: center;">
-                            Evento
-                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'nome'" ></ion-icon>
+                            Testo
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'name'" ></ion-icon>
                             <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'nome' && orderDirection === 'asc'"></ion-icon>
                             <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'nome' && orderDirection === 'desc'"></ion-icon>
                         </span>
                     </th>
-                    <th scope="col">Categorie</th>
-                    <th scope="col">Luogo</th>
-                    <th scope="col" class="sortable"  @click="toggleOrdering('data_da')">
-                        Da
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'data_da'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'data_da' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'data_da' && orderDirection === 'desc'"></ion-icon>
+                    <th scope="col" class="sortable" @click="toggleOrdering('nome')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Autore
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'name'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'nome' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'nome' && orderDirection === 'desc'"></ion-icon>
+                        </span>
                     </th>
-                    <th scope="col" class="sortable"  @click="toggleOrdering('data_a')">
-                        A
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'data_a'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'data_a' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'data_a' && orderDirection === 'desc'"></ion-icon>
+                    <th scope="col" class="sortable"  @click="toggleOrdering('date')">
+                        Data
+                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'date'" ></ion-icon>
+                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'date' && orderDirection === 'asc'"></ion-icon>
+                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'date' && orderDirection === 'desc'"></ion-icon>
                     </th>
-                    <th scope="col" class="sortable">
-                        Stato
-                    </th>
-                    <th scope="col">Azioni</th>
-                    {% if user.is_authenticated and user.is_superuser %}
-                    <th scope="col" @click="toggleOrdering('author')">
-                        Utente
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'author'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'author' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'author' && orderDirection === 'desc'"></ion-icon>
-                    </th>
-                    <th scope="col" @click="toggleOrdering('views_count')">
-                        Views
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'views_count'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'views_count' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'views_count' && orderDirection === 'desc'"></ion-icon>
-                    </th>
-                    {% endif %}
                 </tr>
             </thead>
             <tbody>
-                <template x-for="evento in events" :key="evento.id">
+                <template x-for="board in boards" :key="board.id">
                     <tr>
-                        <td x-text="evento.id"></td>
+                         <!-- 
                         <td>
-                            <template x-if="evento?.copertina">
-                                <img x-bind:src="evento?.copertina" alt="Copertina" class="img-thumbnail cover-img">
+                            <span class="event-name"><a :href="'/worksite-detail/'+worksite?.id"><span x-text="board?.id"></span></a></span><br> 
+                        </td>
+                        -->
+                        <td x-text="board.id"></td>
+                        <td>
+                            <template x-if="board?.image">
+                                <img x-bind:src="board?.image" alt="Immagine" class="img-thumbnail cover-img">
                             </template>
                         </td>
-                        <td >
-                            
-                            <span x-text="evento?.website ? 'sito: '+truncate(evento?.website, 40): 'sito: '"></span><br>                        
-                            <span class="event-name"><a :href="'/dettaglio-evento/'+evento?.id "><span x-text="evento?.nome"></span></a></span><br>
-                            <template x-if="evento?.descrizione" >
-                                <span class="smallFont" x-html="truncate(evento?.descrizione, 60)"></span>
-                            </template>                        
-                        </td>
+                        <td x-text="board.worksite.name"></td>
+                        <td x-text="board.apartment.name"></td>
+                        <td x-text="board.title"></td>
+                        <td x-text="board.body"></td>
+                        <td x-text="board.author"></td>
+                        <td x-text="board.date"></td>
+                        <!-- 
                         <td>
-    
-                            <template x-for="cat in evento.categorie" :key="cat.categoria.name">
-                                <div style="display: inline-flex" class="border p-2 rounded">
-                                    <img x-show="cat.categoria.image" :src="cat.categoria.image" alt="icon" class="category-icon">
-                                    <span x-text="cat.categoria.name"></span>
-                                </div>
-                            </template>
-                        
-                        </td>
-                        <td>
-                            <span x-text="evento.luogo.provincia"></span><br>  
-                            <span x-text="evento.luogo.edificio"></span><br>             
-                            <span x-text="evento.luogo.indirizzo"></span><br>     
-                            <span x-text="evento.luogo.nome"></span><br>             
-                            <span x-text="evento.luogo.cap"></span><br>             
-                        </td>
-                        <td x-text="evento.data_da"></td>
-                        <td x-text="evento.data_a"></td>
-                        <td>
-                            <template x-if="evento.approved">
-                                <span class="badge badge-success">Approvato</span></template>
-
-                            <template x-if="!evento.approved && !evento.denied">
-                                <span class="badge badge-warning">In attesa di approvazione..</span></template>
-
-                            <template x-if="evento.denied">
-                                <span class="badge badge-danger">Non approvato</span><br>
-                                <span>Motivo: 
-                                    <span x-text="evento.note"></span>
-                                </span>
-                            </template>
-                        </td>
-                        <td>
-                            <a href="javascript:void(0);" @click="confirmActionSuccess('/approve_event/?id='+evento.id)" class="btn btn-outline-success btn-sm float-right">
-                                <ion-icon name="checkmark-done-outline" style="font-size: 0.8rem;"></ion-icon>Approva
-                            </a>
-                            <a href="javascript:void(0);" @click="confirmAction('/decline_event/?id='+evento.id)" class="btn btn-outline-danger btn-sm float-right">
+                            <a href="javascript:void(0);" @click="confirmAction('/delete_board/?id='+worksite.id)" class="btn btn-outline-danger btn-sm float-right">
                                 <ion-icon name="trash-bin-outline"></ion-icon>
-                                Non approvare
+                                elimina cantiere
                             </a>
-                        </td>
-                        {% if user.is_authenticated and user.is_superuser %}
-                        <td>                        
-                            <template x-if="!evento?.author?.is_superuser && evento?.author">
-                                <span x-text="evento?.author?.first_name+' '+evento?.author?.last_name"></span>
-                            </template>
-                        </td>
-                        <td x-text="evento.views_count"></td>
-                        {% endif %}
+                        </td>-->
                     </tr>
                     
                 </template>
@@ -225,7 +148,7 @@
         </table> 
 
         <div class="pagination">
-            <span x-text="'Show ' +events.length +' results of ' + total_count + ' total'"></span>
+            <span x-text="'Show ' +boards.length +' results of ' + total_count + ' total'"></span>
             <button @click="previous()" :disabled="currentPage <= 1" class="btn btn-primary">Precedente</button>
         
             <!-- If we are beyond page 3, show a jump to the first page -->
@@ -277,38 +200,15 @@
             };
         }
         
-
         function confirmAction(link) {
-            var userInput = window.prompt("Sei sicuro di non voler approvare l'evento? Inserisci il motivo:", "");
-
-            if (userInput === null) {
-                return; // Termina la funzione se non è stato inserito alcun testo
-            }
-
-            if (userInput.trim() === "") {
-                alert("Devi inserire un commento per procedere.");
-                return; // Termina la funzione se non è stato inserito alcun testo
-            }
-
-            window.location.href = link + "&comment=" + encodeURIComponent(userInput);
-        }
-
-        function confirmActionSuccess(link) {
-            var userConfirmed = window.confirm("Sei sicuro di voler approvare l'evento?");
-
-            if (userConfirmed) {
-                // L'utente ha cliccato "OK"
+            if (confirm("Sei sicuro di voler eliminare questo cantiere?")) {
                 window.location.href = link;
             }
-            // Se l'utente clicca "Annulla", la funzione termina senza fare nulla
         }
-
-
-
 
         function dataTable() {
             return {
-                events: [],
+                boards: [],
                 currentPage: 1,
                 totalPages: 1, // A new property to keep track of the total pages
                 itemsPerPage: 10, // This can vary depending on your API setup or preference
@@ -328,7 +228,7 @@
                 },
 
                 fetchData(page = this.currentPage) {
-                    let url = `/api/lista_eventi_da_approvare/?page=${page}`;
+                    let url = `/boards-lists-api/?page=${page}`;
                     
                     if (this.orderByField) {
                         let orderSign = this.orderDirection === "asc" ? "" : "-"; // Add a "-" prefix for descending
@@ -342,7 +242,7 @@
                     fetch(url)
                     .then(response => response.json())
                     .then(data => {
-                        this.events = data.results;
+                        this.boards = data.results;
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
                         this.total_count = data.total_count;  

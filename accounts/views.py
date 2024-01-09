@@ -17,15 +17,14 @@ import requests
 from django.contrib import messages
 from django.contrib.auth.models import User
 from accounts.models import Profile
-from accounts.serializers import UserSerializer, ProfileSerializer, UserGetSerializer, CustomTokenObtainPairSerializer
+from accounts.serializers import UserSerializer, ProfileSerializer, UserGetSerializer
 from django.shortcuts import reverse
 from django.utils.safestring import mark_safe
 from .forms import LoginForm
-from django.contrib.auth import authenticate, login, logout, password_validation
+from django.contrib.auth import authenticate, login, logout
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from datetime import datetime, timedelta
 import jwt, os, re, requests
-from accounts.models import AccessToken
 
 
 
@@ -189,7 +188,7 @@ def login_user(request):
             login(request, user)
             messages.success(
                 request, f'Benvenuto {username}')
-            return redirect('iniziative:lista-eventi')
+            return redirect('worksites:worksites-lists')
 
         else:
             messages.warning(request, "username o password non corretta")

@@ -16,56 +16,14 @@
     <script src="https://cdn.jsdelivr.net/npm/quill-emoji@0.1.8/dist/quill-emoji.js"></script>
 </head>
 <body>
-    <div class="container py-5" 
-    x-data="{ 
-        isFixed: false,
-        isTwoDates: false,
-        selectedCategories: [],
-        orari: [],
-        toggleDate() {
-            if (!this.isTwoDates) {
-            this.$refs.datepicker_a.value = '';
-            $(this.$refs.datepicker_a).datepicker('update');
-            }
-        },
-        addOrario() {
-            this.orari.push({ 
-                fields: {
-                    orario_da: '',
-                    orario_a: '',
-                    giorni: []
-                } 
-            });
-        },
-        removeOrario(index) {
-            this.orari.splice(index, 1);
-        },
-        toggleDay(orario, day) {
-            const dayIndex = orario.fields.giorni.indexOf(day);
-            if (dayIndex === -1) {
-                orario.fields.giorni.push(day);
-            } else {
-                orario.fields.giorni.splice(dayIndex, 1);
-            }
-        },
-        validateCategories() {
-            if (this.selectedCategories.length === 0) {
-                alert('Seleziona almeno una categoria.');
-                return;
-            }
-            document.getElementById('submitBtn').click();
-        },
-        toggleIsFixed() {
-            this.selectedCategories = []
-        },
-    }">
+    <div class="container py-5" >
 
 <form  x-ref="form" method="post" action="{% url 'worksites:add-new-worksite' %}"  enctype="multipart/form-data">
     {% csrf_token %}
 
     <input type="hidden" name="orari" :value="JSON.stringify(orari)">
     <div class="row d-flex justify-content-end">
-        <h1 class="text-center mb-4 mr-4">Nuovo evento</h1>
+        <h1 class="text-center mb-4 mr-4">Nuovo Cantiere</h1>
         <button type="submit" class="btn btn-primary mb-4">Salva</button>
     </div>
     <input type="submit" id="submitBtn" style="display: none;">

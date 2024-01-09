@@ -8,40 +8,8 @@
 </head>
 <body x-data="dataTable()" x-init="fetchData()">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg sticky-top" style="background-color: #117ce7;">
-        <a class="navbar-brand text-white" href="/">Falone Costruzioni</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            Menu
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item {% if request.path == '/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ eventi_url }}">Prossimi Eventi</a>
-                </li>
-                
-                <li class="nav-item {% if request.path == '/display_csv/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/display_csv/">Copia Eventi</a>
-                </li>
-
-                <li class="nav-item {% if request.path == '/lista-utenti/' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/lista-utenti/">Lista Utenti</a>
-                </li>
-
-                <li class="nav-item {% if request.path == '/admin' %}active-page{% endif %}">
-                    <a class="nav-link text-white" href="/admin" target="blank">Admin Panel</a>
-                </li>
-
-
-            </ul>            
-            <a href="" class="btn btn-outline-light ml-3">Logout</a>
-        </div>
-    </nav>
-    <!-- End of Navbar -->
+        <!-- NAVBAR -->
+  {% include 'menu.html' %}
 
     <div class="container-fluid">
 

@@ -34,7 +34,6 @@ import uuid
 from django.core.files import File
 from django.conf import settings
 from urllib.parse import unquote
-from django.core.paginator import Paginator
 from collections import defaultdict
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger

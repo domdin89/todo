@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 class Apartments(models.Model):  
     worksite = models.ForeignKey(
         Worksites, on_delete=models.CASCADE, blank=True, null=True, )
-    
+    name = models.CharField(max_length=250, blank=True, null=True, )
     surface = models.CharField(max_length=100, blank=True, null=True, )
     note = models.CharField(max_length=100, blank=True, null=True, )
     owner = models.CharField(max_length=100, blank=True, null=True, )
@@ -16,7 +16,7 @@ class Apartments(models.Model):
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.worksite.name} {self.surface}"
+        return f"{self.name} {self.worksite.name} {self.surface}"
 
 
 class UserApartments(models.Model):  

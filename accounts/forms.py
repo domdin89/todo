@@ -6,8 +6,7 @@ from django.forms import PasswordInput, TextInput
 
 from .models import Profile
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.core import validators
-from captcha.fields import CaptchaField
+from django.contrib import messages
 
 class CaptchaPasswordResetForm(PasswordResetForm):
     pass
