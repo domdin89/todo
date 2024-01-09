@@ -137,11 +137,11 @@
                     </th>
                     <th scope="col">Azioni</th>
                     {% if user.is_authenticated and user.is_superuser %}
-                    <th scope="col" @click="toggleOrdering('author')">
+                    <th scope="col" @click="toggleOrdering('user')">
                         Utente
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'author'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'author' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'author' && orderDirection === 'desc'"></ion-icon>
+                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'user'" ></ion-icon>
+                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'user' && orderDirection === 'asc'"></ion-icon>
+                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'user' && orderDirection === 'desc'"></ion-icon>
                     </th>
                     {% endif %}
                 </tr>
@@ -156,7 +156,7 @@
                             </template>
                         </td>
                         <td>
-                            <span x-text="worksite.name"></span><br>  
+                                <span class="event-name"><a :href="'/worksite-detail/'+worksite?.id"><span x-text="worksite?.name"></span></a></span><br> 
                         </td>
                         <td x-text="worksite.region"></td>
                         <td x-text="worksite.city"></td>
@@ -171,11 +171,11 @@
                         </td>
                         {% if user.is_authenticated and user.is_superuser %}
                         <td>                        
-                            <template x-if="!evento?.author?.is_superuser && evento?.author">
-                                <span x-text="evento?.author?.first_name+' '+evento?.author?.last_name"></span>
+                            <template x-if="!worksite?.user?.is_superuser && worksite?.user">
+                                <span x-text="worksite?.user?.first_name+' '+worksite?.user?.last_name"></span>
                             </template>
                         </td>
-                        <td x-text="evento.views_count"></td>
+                        <td x-text="worksite.views_count"></td>
                         {% endif %}
                     </tr>
                     
@@ -279,6 +279,7 @@
                     .then(response => response.json())
                     .then(data => {
                         this.worksites = data.results;
+                        console.log(this.worksites)
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
                         this.total_count = data.total_count;  

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill-emoji@0.1.8/dist/quill-emoji.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-emoji@0.1.8/dist/quill-emoji.js"></script>
+</head>
+<body>
+    <div class="container py-5">
+
+        <form  x-ref="form" method="post" action=""  enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="hidden" name="id_evento" value="{{worksite.id}}">
+            <input type="hidden" name="id_luogo" value="{{worksite.luogo.id}}">
+            <input type="hidden" name="orari" :value="JSON.stringify(orari)">
+            <div class="row d-flex justify-content-end">
+                <h1 class="text-center mb-4 mr-4">{{evento.nome}}</h1>
+                <button type="submit" class="btn btn-primary mb-4" x-on:click.prevent="validateCategories()">Salva</button>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-8">
+                    <h2 class="mb-3">Modifica Cantiere</h2>    
+
+                    <div class="form-group ">
+                        <label >Nome del Cantiere*</label>
+                        <input type="text" class="form-control" required name="nome" value="{{worksite.name}}">
+                    </div>
+                    
+
+                </div>
+    
+
+                <div class="form-group col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Foto</h2>
+                            <div class="text-center">
+                                {% if worksite.image %}
+                                    <img src="{{ worksite.image.url }}" alt="{{ worksite.name }}" class="img-thumbnail mb-3" style="width: 250px;">
+                                {% endif %}
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" name="copertina" accept=".jpg, .jpeg, .png" required>
+                                    <label class="custom-file-label">Choose file...</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+     
+                </div>
+
+            <div class="form-group col-md-8">
+                <h2 class="mt-5 mb-3">Dove</h2>
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label>Città*  <span style="opacity: 0.5;">(es. Sulmona)</span></label>
+                        <input type="text" class="form-control" name="nome_luogo" value="{{worksite.city}}" required>
+                    </div>
+
+
+                    <div class="form-group col-md-12">
+                        <label>Indirizzo <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>
+                        {% if evento.address%}
+                        <input type="text" class="form-control" name="address" value="{{worksite.address}}">
+                        {% else %}
+                        <input type="text" class="form-control" name="address">
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Regione <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>
+                        {% if evento.address%}
+                        <input type="text" class="form-control" name="region" value="{{worksite.region}}">
+                        {% else %}
+                        <input type="text" class="form-control" name="region">
+                        {% endif %}
+                    </div>
+
+                
+                </div>
+            </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            });
+        });
+    </script>
+
+        <script>
+            document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+                var fileName = e.target.files[0].name;
+                var fileLabel = e.target.nextElementSibling;
+                fileLabel.innerHTML = fileName;
+            });
+        </script>
+</body>
+</html>
+

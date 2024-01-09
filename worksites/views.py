@@ -130,6 +130,7 @@ def worksites_list_api(request):
         #categorie_eventi = CategorieEvento.objects.filter(evento__author=request.user).select_related('evento', 'categoria').order_by('-evento__id')
 
     paginator = Paginator(worksites, per_page=10)
+    
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
@@ -148,6 +149,18 @@ def worksites_list_api(request):
     return JsonResponse(data)
 
 
+@login_required(login_url='accounts:login')
+def worksite_detail(request, id):
+    
+    worksite = Worksites.objects.get(id=id)
+
+    context = {
+        'worksite': worksite,
+    }
+
+    return render(request, 'worksite-detail.html', context)
+
+
 
 @login_required(login_url='accounts:login')
 def add_worksite(request):
@@ -160,6 +173,7 @@ def add_new_worksite(request):
         if request.method == "POST":
             name = request.POST.get('name')
             address = request.POST.get('address')
+            region = request.POST.get('region')
             image = request.FILES.get('image')
             # if image:
             #     compressed_copertina_file = compress_image(image)
@@ -185,6 +199,7 @@ def add_new_worksite(request):
             Worksites.objects.create(
                 name=name,
                 address=address,
+                region=region,
                 image=image,
                 city=city,
                 date=date,
