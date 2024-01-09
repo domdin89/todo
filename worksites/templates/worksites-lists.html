@@ -48,7 +48,7 @@
         <!-- Button and Search Bar -->
         <div class="row my-3">
             <div class="col-md-12 ">
-                <a href="" class="btn btn-primary float-right">Aggiungi nuovo cantiere</a>
+                <a href="{% url 'worksites:add-worksite' %}" class="btn btn-primary float-right">Aggiungi nuovo cantiere</a>
             </div>
         </div>
 {% comment %} 
@@ -57,7 +57,7 @@
         </div> {% endcomment %}
 
         <div class="pagination">
-            <span x-text="'Show ' +events.length +' results of ' + total_count + ' total'"></span>
+            <span x-text="'Show ' +worksites.length +' results of ' + total_count + ' total'"></span>
             <button @click="previous()" :disabled="currentPage <= 1" class="btn btn-primary">Precedente</button>
         
             <!-- If we are beyond page 3, show a jump to the first page -->
@@ -97,30 +97,43 @@
                         </span>
                     </th>
                     <th scope="col"></th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('name')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Cantiere
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'name'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'name' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'name' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('region')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Regione
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'region'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'region' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'region' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
+                    <th scope="col" class="sortable" @click="toggleOrdering('city')">
+                        <span style="display: flex;gap: 4px;align-items: center;">
+                            Città
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'city'" ></ion-icon>
+                            <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'city' && orderDirection === 'asc'"></ion-icon>
+                            <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'city' && orderDirection === 'desc'"></ion-icon>
+                        </span>
+                    </th>
                     <th scope="col" class="sortable" @click="toggleOrdering('nome')">
                         <span style="display: flex;gap: 4px;align-items: center;">
-                            Evento
-                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'nome'" ></ion-icon>
+                            Indirizzo
+                            <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'name'" ></ion-icon>
                             <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'nome' && orderDirection === 'asc'"></ion-icon>
                             <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'nome' && orderDirection === 'desc'"></ion-icon>
                         </span>
                     </th>
-                    <th scope="col">Categorie</th>
-                    <th scope="col">Luogo</th>
-                    <th scope="col" class="sortable"  @click="toggleOrdering('data_da')">
-                        Da
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'data_da'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'data_da' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'data_da' && orderDirection === 'desc'"></ion-icon>
-                    </th>
-                    <th scope="col" class="sortable"  @click="toggleOrdering('data_a')">
-                        A
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'data_a'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'data_a' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'data_a' && orderDirection === 'desc'"></ion-icon>
-                    </th>
-                    <th scope="col" class="sortable">
-                        Stato
+                    <th scope="col" class="sortable"  @click="toggleOrdering('date')">
+                        Data
+                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'date'" ></ion-icon>
+                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'date' && orderDirection === 'asc'"></ion-icon>
+                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'date' && orderDirection === 'desc'"></ion-icon>
                     </th>
                     <th scope="col">Azioni</th>
                     {% if user.is_authenticated and user.is_superuser %}
@@ -130,72 +143,30 @@
                         <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'author' && orderDirection === 'asc'"></ion-icon>
                         <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'author' && orderDirection === 'desc'"></ion-icon>
                     </th>
-                    <th scope="col" @click="toggleOrdering('views_count')">
-                        Views
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'views_count'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'views_count' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'views_count' && orderDirection === 'desc'"></ion-icon>
-                    </th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                <template x-for="evento in events" :key="evento.id">
+                <template x-for="worksite in worksites" :key="worksite.id">
                     <tr>
-                        <td x-text="evento.id"></td>
+                        <td x-text="worksite.id"></td>
                         <td>
-                            <template x-if="evento?.copertina">
-                                <img x-bind:src="evento?.copertina" alt="Copertina" class="img-thumbnail cover-img">
+                            <template x-if="worksite?.image">
+                                <img x-bind:src="worksite?.image" alt="Immagine" class="img-thumbnail cover-img">
                             </template>
                         </td>
-                        <td >
-                            
-                            <span x-text="evento?.website ? 'sito: '+truncate(evento?.website, 40): 'sito: '"></span><br>                        
-                            <span class="event-name"><a :href="'/dettaglio-evento/'+evento?.id "><span x-text="evento?.nome"></span></a></span><br>
-                            <template x-if="evento?.descrizione" >
-                                <span class="smallFont" x-html="truncate(evento?.descrizione, 60)"></span>
-                            </template>                        
-                        </td>
                         <td>
-    
-                            <template x-for="cat in evento.categorie" :key="cat.categoria.name">
-                                <div style="display: inline-flex" class="border p-2 rounded">
-                                    <img x-show="cat.categoria.image" :src="cat.categoria.image" alt="icon" class="category-icon">
-                                    <span x-text="cat.categoria.name"></span>
-                                </div>
-                            </template>
+                            <span x-text="worksite.name"></span><br>  
+                        </td>
+                        <td x-text="worksite.region"></td>
+                        <td x-text="worksite.city"></td>
+                        <td x-text="worksite.address"></td>
+                        <td x-text="worksite.date"></td>
                         
-                        </td>
                         <td>
-                            <span x-text="evento.luogo.provincia"></span><br>  
-                            <span x-text="evento.luogo.edificio"></span><br>             
-                            <span x-text="evento.luogo.indirizzo"></span><br>     
-                            <span x-text="evento.luogo.nome"></span><br>             
-                            <span x-text="evento.luogo.cap"></span><br>             
-                        </td>
-                        <td x-text="evento.data_da"></td>
-                        <td x-text="evento.data_a"></td>
-                        <td>
-                            <template x-if="evento.approved">
-                                <span class="badge badge-success">Approvato</span></template>
-
-                            <template x-if="!evento.approved && !evento.denied">
-                                <span class="badge badge-warning">In attesa di approvazione..</span></template>
-
-                            <template x-if="evento.denied">
-                                <span class="badge badge-danger">Non approvato</span><br>
-                                <span>Motivo: 
-                                    <span x-text="evento.note"></span>
-                                </span>
-                            </template>
-                        </td>
-                        <td>
-                            <a :href="'/duplica-evento/'+evento.id" class="btn btn-outline-primary btn-sm float-right">
-                                <ion-icon name="copy-outline" style="font-size: 0.8rem;"></ion-icon> duplica evento
-                            </a>
-                            <a href="javascript:void(0);" @click="confirmAction('/delete_event/?id='+evento.id)" class="btn btn-outline-danger btn-sm float-right">
+                            <a href="javascript:void(0);" @click="confirmAction('/delete_worksite/?id='+worksite.id)" class="btn btn-outline-danger btn-sm float-right">
                                 <ion-icon name="trash-bin-outline"></ion-icon>
-                                elimina evento
+                                elimina cantiere
                             </a>
                         </td>
                         {% if user.is_authenticated and user.is_superuser %}
@@ -213,7 +184,7 @@
         </table> 
 
         <div class="pagination">
-            <span x-text="'Show ' +events.length +' results of ' + total_count + ' total'"></span>
+            <span x-text="'Show ' +worksites.length +' results of ' + total_count + ' total'"></span>
             <button @click="previous()" :disabled="currentPage <= 1" class="btn btn-primary">Precedente</button>
         
             <!-- If we are beyond page 3, show a jump to the first page -->
@@ -266,14 +237,14 @@
         }
         
         function confirmAction(link) {
-            if (confirm("Sei sicuro di voler eliminare l'evento?")) {
+            if (confirm("Sei sicuro di voler eliminare questo cantiere?")) {
                 window.location.href = link;
             }
         }
 
         function dataTable() {
             return {
-                events: [],
+                worksites: [],
                 currentPage: 1,
                 totalPages: 1, // A new property to keep track of the total pages
                 itemsPerPage: 10, // This can vary depending on your API setup or preference
@@ -292,15 +263,8 @@
                     this.fetchData(this.currentPage);
                 },
 
-                fetchData() {
-                    let url = ``;
-                    
-                    if (this.orderByField) {
-                        let orderSign = this.orderDirection === "asc" ? "" : "-"; // Add a "-" prefix for descending
-                        url += `&order_by=${orderSign}${this.orderByField}`;
-                    }
-                /**fetchData(page = this.currentPage) {
-                    let url = `/api/lista_eventi/?page=${page}`;
+                fetchData(page = this.currentPage) {
+                    let url = `/worksites-lists-api/?page=${page}`;
                     
                     if (this.orderByField) {
                         let orderSign = this.orderDirection === "asc" ? "" : "-"; // Add a "-" prefix for descending
@@ -309,12 +273,12 @@
 
                     if (this.searchQuery) {
                         url += `&search=${this.searchQuery}`;
-                    }**/
+                    }
 
                     fetch(url)
                     .then(response => response.json())
                     .then(data => {
-                        this.events = data.results;
+                        this.worksites = data.results;
                         this.currentPage = data.current_page;
                         this.totalPages = data.total_pages;
                         this.total_count = data.total_count;  

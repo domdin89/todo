@@ -8,6 +8,10 @@ from django.contrib.auth import views as auth_views
 app_name = 'worksites'
 urlpatterns = [
         path('', views.worksites_lists, name='worksites-lists'),
+        path('worksites-lists-api/', views.worksites_list_api, name='worksites-lists-api'),
+        path('add-worksite/', views.add_worksite, name='add-worksite'),
+         path('add-new-worksite/', views.add_new_worksite, name='add-new-worksite'),
+        path('delete_worksite/', views.delete_worksite, name='delete-worksite'),
         # path('lista-eventi-ricorrenti/', views.lista_eventi_ricorrenti, name='lista-eventi-ricorrenti'),
         # path('lista-eventi-da-approvare/', views.lista_eventi_da_approvare, name='lista-eventi-da-approvare'),
         # path('lista-eventi-prossimi/', views.lista_eventi_prossimi, name='lista-eventi-prossimi'),

@@ -8,6 +8,7 @@ from django.db.models import F
 from django.template.defaultfilters import time
 from django.contrib.auth.decorators import user_passes_test
 from accounts.models import Profile
+from worksites.serializers import WorksiteSerializer
 from .models import Worksites
 
 from io import BytesIO
@@ -37,7 +38,46 @@ from django.core.paginator import Paginator
 from collections import defaultdict
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from PIL import Image
 
+
+
+def compress_image(image_file, quality=85):
+    """
+    Compresses the provided image file and returns the compressed image.
+
+    Parameters:
+    - image_file: The image file object (uploaded file).
+    - quality: The quality level of the compressed image (0 - 100). Default is 85.
+
+    Returns:
+    - The compressed image file object.
+    """
+    try:
+        # Apri l'immagine utilizzando Pillow
+        image = Image.open(image_file)
+
+        # Comprimi l'immagine
+        output_buffer = BytesIO()
+
+        if image.format == 'JPEG':
+            output_format = 'JPEG'
+        elif image.format == 'PNG':
+            output_format = 'PNG'
+        else:
+            # If it's neither JPEG nor PNG, you can choose a default format
+            output_format = 'JPEG'
+
+        image.save(output_buffer, format=output_format, quality=quality)
+
+        # Crea un nuovo file temporaneo per l'immagine compressa
+        compressed_image_file = ContentFile(output_buffer.getvalue(), name=image_file.name)
+
+        return compressed_image_file
+
+    except Exception as e:
+        print(f"An error occurred while compressing the image: {e}")
+        return None
 
 
 # Create your views here.
@@ -54,13 +94,128 @@ def logged_check(user):
 
 @login_required(login_url='accounts:login')
 def worksites_lists(request):
+    return render(request, 'worksites-lists.html')
+
+@login_required(login_url='accounts:login')
+def worksites_list_api(request):
+    order_by_field = request.GET.get('order_by', '-id')
+    search_query = request.GET.get('search', '')
+
     worksites = Worksites.objects.all()
-    context = {
-        'worksites': worksites
+
+    # if request.user.is_superuser:
+    #     if search_query:
+    #         eventi = Evento.objects.filter(
+    #             Q(data_da__icontains=search_query,is_fixed=False) |
+    #             Q(data_a__icontains=search_query,is_fixed=False) |
+    #             Q(nome__icontains=search_query,is_fixed=False)  |
+    #             Q(luogo__nome__icontains=search_query,is_fixed=False) |
+    #             Q(luogo__indirizzo__icontains=search_query,is_fixed=False) |
+    #             Q(luogo__edificio__icontains=search_query,is_fixed=False) |
+    #             Q(luogo__cap__icontains=search_query,is_fixed=False)             
+    #         ).order_by(order_by_field)
+    #     else:    
+    #         eventi = Evento.objects.filter(is_fixed=False).order_by(order_by_field)
+    
+    #     #categorie_eventi = CategorieEvento.objects.select_related('evento', 'categoria').order_by('-evento__id')
+    # else:
+    #     if search_query:
+    #         eventi = Evento.objects.filter(
+    #             Q(data_da__icontains=search_query, author=request.user) |
+    #             Q(data_a__icontains=search_query, author=request.user) |
+    #             Q(nome__icontains=search_query, author=request.user) 
+    #         ).order_by(order_by_field)
+    #     else:    
+    #         eventi = Evento.objects.filter(author=request.user).order_by(order_by_field)
+        #categorie_eventi = CategorieEvento.objects.filter(evento__author=request.user).select_related('evento', 'categoria').order_by('-evento__id')
+
+    paginator = Paginator(worksites, per_page=10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    serializer = WorksiteSerializer(page_obj, many=True)
+
+
+    data = {
+        'results': serializer.data,
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'has_previous': page_obj.has_previous(),
+        'has_next': page_obj.has_next(),
+        'total_count': worksites.count()  # Adding the total count here
     }
 
-    return render(request, 'worksites-lists.html', context)
+    return JsonResponse(data)
 
+
+
+@login_required(login_url='accounts:login')
+def add_worksite(request):
+    return render(request, 'new-worksite.html')
+
+
+@login_required(login_url='accounts:login')
+def add_new_worksite(request):
+    try:
+        if request.method == "POST":
+            name = request.POST.get('name')
+            address = request.POST.get('address')
+            image = request.FILES.get('image')
+            # if image:
+            #     compressed_copertina_file = compress_image(image)
+            # else:
+            #     default_image_url = request.POST.get('default_image')
+            #     full_default_image_url = f"https://teramo-eventi.s3.nl-ams.scw.cloud/media/{default_image_url}"
+
+            #     response = requests.get(full_default_image_url)
+
+            #     if response.status_code == 200:
+            #         compressed_copertina_file = ContentFile(response.content)
+            #         desired_filename = 'default_event_image.jpg'
+            #         compressed_copertina_file.name = desired_filename
+            #     else:
+            #         raise ValueError("Couldn't fetch the default image.")
+
+            city = request.POST.get('city')
+            date = request.POST.get('date')
+            user = request.user
+            profile = Profile.objects.get(user=user)
+
+            
+            Worksites.objects.create(
+                name=name,
+                address=address,
+                image=image,
+                city=city,
+                date=date,
+                user=profile
+            )
+
+            messages.success(request, "Cantiere inserito con successo")
+            return redirect('worksites:worksites-lists')
+        else:
+            return print('negativo')
+    except Exception as e:
+        print(f"Adding worksite Error occurred: {e}")
+        return HttpResponse(f"An error occurred: {e}", status=500)  # HTTP 500 Internal Server Error
+
+@login_required
+def delete_worksite(request):
+    id = request.GET.get('id')
+    
+    try:
+        worksite = Worksites.objects.get(id=id)
+    except Worksites.DoesNotExist:
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/default_path/'))
+    
+    # Check if the user is a superuser or the author of the event
+    if request.user.is_superuser:
+        worksite.delete()  # Delete the event object
+    else:
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/default_path/'))
+    
+    # Redirect back to the referring page or a default path
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/default_path/'))
 
 # @login_required(login_url='accounts:login')
 # def lista_eventi_da_approvare(request):
