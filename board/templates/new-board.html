@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nuovo cantiere</title>
+    <title>Nuovo Aggiornamento</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -18,24 +18,27 @@
 <body>
     <div class="container py-5" >
 
-<form  x-ref="form" method="post" action="{% url 'worksites:add-new-worksite' %}"  enctype="multipart/form-data">
+<form  x-ref="form" method="post" action="{% url 'board:add-new-board' %}"  enctype="multipart/form-data">
     {% csrf_token %}
 
     <input type="hidden" name="orari" :value="JSON.stringify(orari)">
     <div class="row d-flex justify-content-end">
-        <h1 class="text-center mb-4 mr-4">Nuovo Cantiere</h1>
+        <h1 class="text-center mb-4 mr-4">Nuovo Aggiornamento</h1>
         <button type="submit" class="btn btn-primary mb-4">Salva</button>
     </div>
     <input type="submit" id="submitBtn" style="display: none;">
 
     <div class="form-row">
         <div class="col-md-8">
-            <h2 class="mb-3">Cantiere</h2>    
+            <h2 class="mb-3">Aggiornamento</h2>    
 
             <div class="form-group ">
-                <label >Nome Cantiere*</label>
+                <label >Titolo*</label>
                 <input type="text" class="form-control" required name="name">
             </div>
+
+
+
 
         </div>
 
@@ -57,21 +60,42 @@
         </div>
 
     <div class="form-group col-md-8">
-        <h2 class="mt-5 mb-3">Dove</h2>
+        <h2 class="mt-5 mb-3">Descrizione</h2>
         <div class="form-row">
+
             <div class="form-group col-md-12">
-                <label>Città*  <span style="opacity: 0.5;">(es. Sulmona)</span></label>
-                <input type="text" class="form-control" name="city" value="{{worksite.city}}" required>
+                <label>Testo</label>
+                <textarea class="form-control" x-model="note" name="note" placeholder="Inserisci le note qui"></textarea>
+            </div>
+            
+            <div x-data="dropdownHandler()">
+                <div class="form-group col-md-12">
+                    <label>Cantiere <span style="opacity: 0.5;">(es. Sulmona)</span></label>
+                    <select class="form-control" name="worksite" x-model="selectedWorksite" @change="updateApartments()">
+                        <option value="">Seleziona un cantiere</option>
+                        <template x-for="worksite in uniqueWorksites()" :key="worksite.id">
+                            <option x-bind:value="worksite.id" x-text="worksite.name"></option>
+                        </template>
+                    </select>
+                </div>
+            
+                <div class="form-group col-md-12">
+                    <label>Appartamenti</label>
+                    <select class="form-control" name="apartment">
+                        <template x-for="apartment in filteredApartments" :key="apartment.id">
+                            <option x-bind:value="apartment.id" x-text="apartment.name"></option>
+                        </template>
+                    </select>
+                </div>
             </div>
 
-
             <div class="form-group col-md-12">
-                <label>Indirizzo <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>    
+                <label>Appartamento <span style="opacity: 0.5;">(es. Via delle rose, 34)</span></label>    
                 <input type="text" class="form-control" name="address" value="{{worksite.address}}">
             </div>
 
             <div class="form-group col-md-12">
-                <label>Regione <span style="opacity: 0.5;">(es. Abruzzo)</span></label>    
+                <label>Autore <span style="opacity: 0.5;">(es. Abruzzo)</span></label>    
                 <input type="text" class="form-control" name="region" value="{{worksite.region}}">
             </div>
 
@@ -102,6 +126,26 @@
                 todayHighlight: true
             });
         });
+        <script>
+        function dropdownHandler() {
+            return {
+                apartmentsData: {{ apartments | safe }},
+                selectedWorksite: '',
+                filteredApartments: [],
+        
+                uniqueWorksites() {
+                    const worksites = new Map();
+                    this.apartmentsData.forEach(apartment => {
+                        worksites.set(apartment.worksite.id, apartment.worksite);
+                    });
+                    return Array.from(worksites.values());
+                },
+        
+                updateApartments() {
+                    this.filteredApartments = this.apartmentsData.filter(apartment => apartment.worksite.id === this.selectedWorksite);
+                }
+            };
+        }
     </script>
 
 </body>
