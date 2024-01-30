@@ -40,6 +40,7 @@ DEBUG = os.getenv('DEBUG') == 'True'
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "127.0.0.1:8000",
+    "falone.falone.madstudio.it"
 ]
 
 
@@ -95,6 +96,7 @@ TEMPLATES = [
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8000',
+    'https://falone.falone.madstudio.it/'
 
 ]
 
@@ -103,6 +105,7 @@ CORS_ORIGIN_WHITELIST = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000/',
+    'https://falone.falone.madstudio.it/'
 
 ]
 
