@@ -105,7 +105,7 @@ CORS_ORIGIN_WHITELIST = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000/',
-    'https://falone.falone.madstudio.it/'
+    'https://falone.falone.madstudio.it'
 
 ]
 
