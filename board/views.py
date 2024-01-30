@@ -45,14 +45,7 @@ def board_list_api(request):
 
 @login_required(login_url='accounts:login')
 def add_board(request):
-    apartments = Apartments.objects.all()
-    serializer = WorksiteApartmentsSerializer(apartments, many=True)
-
-    context = {
-        'apartments': serializer.data
-
-    }
-    return render(request, 'new-board.html', context)
+    return render(request, 'new-board.html')
 
 
 @login_required(login_url='accounts:login')

@@ -38,6 +38,7 @@ from collections import defaultdict
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from PIL import Image
+from itertools import groupby
 
 
 
@@ -82,7 +83,7 @@ def compress_image(image_file, quality=85):
 # Create your views here.
 
 
-from itertools import groupby
+
 
 
 def admin_check(user):
@@ -101,33 +102,6 @@ def worksites_list_api(request):
     search_query = request.GET.get('search', '')
 
     worksites = Worksites.objects.all()
-
-    # if request.user.is_superuser:
-    #     if search_query:
-    #         eventi = Evento.objects.filter(
-    #             Q(data_da__icontains=search_query,is_fixed=False) |
-    #             Q(data_a__icontains=search_query,is_fixed=False) |
-    #             Q(nome__icontains=search_query,is_fixed=False)  |
-    #             Q(luogo__nome__icontains=search_query,is_fixed=False) |
-    #             Q(luogo__indirizzo__icontains=search_query,is_fixed=False) |
-    #             Q(luogo__edificio__icontains=search_query,is_fixed=False) |
-    #             Q(luogo__cap__icontains=search_query,is_fixed=False)             
-    #         ).order_by(order_by_field)
-    #     else:    
-    #         eventi = Evento.objects.filter(is_fixed=False).order_by(order_by_field)
-    
-    #     #categorie_eventi = CategorieEvento.objects.select_related('evento', 'categoria').order_by('-evento__id')
-    # else:
-    #     if search_query:
-    #         eventi = Evento.objects.filter(
-    #             Q(data_da__icontains=search_query, author=request.user) |
-    #             Q(data_a__icontains=search_query, author=request.user) |
-    #             Q(nome__icontains=search_query, author=request.user) 
-    #         ).order_by(order_by_field)
-    #     else:    
-    #         eventi = Evento.objects.filter(author=request.user).order_by(order_by_field)
-        #categorie_eventi = CategorieEvento.objects.filter(evento__author=request.user).select_related('evento', 'categoria').order_by('-evento__id')
-
     paginator = Paginator(worksites, per_page=10)
     
     page_number = request.GET.get('page', 1)

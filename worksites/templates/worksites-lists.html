@@ -137,16 +137,13 @@
                                 elimina cantiere
                             </a>
                         </td>
-                        {% if user.is_authenticated and user.is_superuser %}
+                        {% if user.is_authenticated %}
                         <td>                        
-                            <template x-if="!worksite?.user?.is_superuser && worksite?.user">
-                                <span x-text="worksite?.user?.first_name+' '+worksite?.user?.last_name"></span>
-                            </template>
+                            <span x-text="worksite?.user?.first_name+' '+worksite?.user?.last_name"></span>
                         </td>
                         <td x-text="worksite.views_count"></td>
                         {% endif %}
                     </tr>
-                    
                 </template>
             </tbody>
         </table> 

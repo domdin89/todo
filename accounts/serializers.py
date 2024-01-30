@@ -39,19 +39,18 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ('user', 'name', 'surname', 'token', 'email')
 
 
-class ProfileSerialAll(serializers.ModelSerializer):
-    user = UserSerializer()
-    class Meta:
-        model = Profile
-        fields = '__all__'
 
 class UserGetDetailSerializer(serializers.Serializer):
     id = serializers.IntegerField()
 
 class UserGetSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer()
 
     class Meta:
         model = User
         exclude = ['password']
 
+class ProfileSerialAll(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Profile
+        fields = '__all__'
