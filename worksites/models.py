@@ -16,13 +16,6 @@ class Worksites(models.Model):
     link = models.CharField(max_length=100,blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True,blank=True, null=True)
-    TYPE_CHOICES = [
-        ('ABITAZIONE', 'ABITAZIONE'),
-        ('GARAGE', 'GARAGE'),
-        ('LOCALE COMMERCIALE', 'LOCALE COMMERCIALE'),
-        ('TERRENO', 'TERRENO'),
-    ]
-    type = models.CharField(max_length=100, choices=TYPE_CHOICES, default='ABITAZIONE')
 
 class WorksitesProfile(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)

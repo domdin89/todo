@@ -33,7 +33,6 @@ Table Worksites {
   link varchar(100)
   date timestamp
   date_update timestamp
-  type varchar(7) [note: 'Choices are ABITAZIONE, GARAGE, LOCALE COMMERCIALE, TERRENO']
 }
 
 table CheckList{
