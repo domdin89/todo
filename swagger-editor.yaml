@@ -1,0 +1,909 @@
+openapi: 3.0.0
+info:
+  title: Falone API
+  description: Documentazione falone api v1.
+  version: 1.0.0
+servers:
+  - url: https://be.falone.madstudio.it/api
+  - url: http://be.falone.madstudio.it/api
+paths: 
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Login and obtain JWT tokens
+      description: Obtain JWT access and refresh tokens by providing login credentials.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: yourpassword
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Access and refresh tokens generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  refresh:
+                    type: string
+                    example: <refresh_token>
+                  access:
+                    type: string
+                    example: <access_token>
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'No active account found with the given credentials'
+  /login/refresh/:
+     post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Use the refresh token to obtain a new access token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+                  description: The refresh token.
+                  example: <refresh_token>
+              required:
+                - refresh
+      responses:
+        '200':
+          description: A new access token was successfully generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    description: The new access token.
+                    example: <new_access_token>
+                  refresh:
+                    type: string
+                    description: The new refresh token.
+                    example: <new_refresh_token>
+        '401':
+          description: Unauthorized - Invalid refresh token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Token is invalid or expired'
+  /worksites:
+    get:
+      tags:
+        - Worksites
+      summary: Ottiene tutti i cantieri del pannello admin
+      description: Restituisce tutti i worksites.
+      parameters:
+        - in: query
+          name: status
+          description: 'Filtra i cantieri in base allo status. Valori ammessi: 0 per tutti i cantieri, 1 per i cantieri con status in corso, 2 per i cantieri con status chiuso.'
+          required: true
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+              - 2
+        - in: query
+          name: page
+          description: 'Numero di pagina, default 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: 'Numero di elementi per pagina, default 20.'
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Ricerca i cantieri per nome, indirizzo o tipo.
+          required: false
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: ['ABITAZIONE', 'GARAGE', 'LOCALE COMMERCIALE', 'TERRENO']
+          description: Filtra i cantieri in base al tipo.
+          required: false
+      responses:
+        '200':
+          description: Lista dei cantieri restituita con successo. Se nessun cantiere corrisponde ai criteri di ricerca, viene restituito un array vuoto.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/worksites?page=2&status=1'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Worksites'
+        '400':
+          description: Parametro mancante o non valido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Parametro 'status' mancante o non valido."
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Worksites
+      summary: Aggiungi un nuovo cantiere
+      description: Crea un nuovo cantiere nel db
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Cantiere Nuovo"
+                address:
+                  type: string
+                  example: "Via Nuova, 123"
+                lat:
+                  type: number
+                  format: "decimal(10,6)"
+                  example: 45.464203
+                lon:
+                  type: number
+                  format: "decimal(10,6)"
+                  example: 9.189982
+                is_open:
+                  type: boolean
+                  example: true
+                net_worth:
+                  type: number
+                  format: float
+                  example: 500000.00
+                financier:
+                  type: integer
+                  example: 2
+                contractor_id:
+                  type: integer
+                  example: 3
+                link:
+                  type: string
+                  example: "https://example.com/cantiere-info"
+                date:
+                  type: string
+                  format: date-time
+                  example: "2021-07-21T17:32:28Z"
+                date_update:
+                  type: string
+                  format: date-time
+                  example: "2021-07-22T12:45:00Z"
+                type:
+                  type: string
+                  example: "ABITAZIONE"
+                # Add any other fields relevant to your worksite model
+      responses:
+        '201':
+          description: Nuovo cantiere creato con successo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Worksites'
+        '400':
+          description: Campi di inuput non validi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "I campi di inuput forniti non sono validi."
+      security:
+        - bearerAuth: []
+  /collabworksites:
+    get:
+      tags:
+        - CollabWorksites
+      summary: Recupera i collaboratori dei cantieri
+      description: Ottieni l'elenco dei Professionisti, opzionalmente filtrato per un cantiere specifico o termine di ricerca.
+      parameters:
+        - in: query
+          name: worksite
+          schema:
+            type: integer
+          description: ID del cantiere per filtrare le collaborazioni.
+          required: false
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Termine di ricerca per filtrare le collaborazioni.
+          required: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Numero di pagina per la paginazione.
+          required: false
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+          description: Numero di elementi per pagina per la paginazione.
+          required: false
+      responses:
+        '200':
+          description: Un elenco di Professionisti.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    example: 'https://be.falone.madstudio.it/api/collabworksites?page=2'
+                  previous:
+                    type: string
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CollabWorksites'
+        '400':
+          description: Parametro di query non valido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parametro di query non valido."
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - CollabWorksites
+      summary: Aggiungi un nuovo collaboratore ad un cantiere
+      description: "Aggiungi un nuovo collaboratore (gia esistente) ad un cantiere"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:
+                  type: integer
+                  example: 1
+                worksite:
+                  type: integer
+                  example: 1
+                order:
+                  type: integer
+                  example: 0
+                role:
+                  type: string
+                  example: "DTC"
+      responses:
+        '201':
+          description: Nuovo collaboratore aggiunti con successo al cantiere.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollabWorksites'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "I campi di inuput forniti non sono validi."
+      security:
+        - bearerAuth: []
+  /worksitesprofile:
+    get:
+      tags:
+        - WorksitesProfile
+      summary: Ottiene tutti i profili dei cantieri con paginazione opzionale
+      description: Restituisce tutti i profili associati ai cantieri, con l'opzione di paginare i risultati.
+      parameters:
+        - in: query
+          name: worksite
+          description: 'id del cantiere'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: role
+          description: 'id del cantiere'
+          required: true
+          schema:
+            type: string
+            enum:
+              - USER
+              - TECNICI
+              - STAFF
+        - in: query
+          name: page
+          description: 'Numero della pagina per la paginazione, il valore di default è 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: 'Numero di elementi per pagina per la paginazione, il valore di default è 20.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          description: Ricerca profili dei cantieri per nome, indirizzo o altre caratteristiche.
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Elenco dei profili dei cantieri restituito con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorksitesProfile'
+        '400':
+          description: Parametro di query non valido o mancante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parametro di query non valido o mancante."
+      security:
+        - bearerAuth: []
+
+  /clientapartments:
+    get:
+      tags:
+        - ClientApartments
+      summary: Ottiene tutti gli appartamenti dei clienti con paginazione opzionale
+      description: Restituisce tutti gli appartamenti associati ai clienti, con l'opzione di paginare i risultati.
+      parameters:
+        - in: query
+          name: page
+          description: 'Numero della pagina per la paginazione, il valore di default è 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: 'Numero di elementi per pagina per la paginazione, il valore di default è 20.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          description: Ricerca appartamenti dei clienti per indirizzo, proprietario o altre caratteristiche.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: worksite
+          description: Ricerca appartamenti dei clienti per cantiere.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Elenco degli appartamenti dei clienti restituito con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/clientapartments?page=2'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClientApartments'
+        '400':
+          description: Parametro di query non valido o mancante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parametro di query non valido o mancante."
+      security:
+        - bearerAuth: []
+  /boards:
+    get:
+      tags:
+        - Boards
+      summary: Ottieni tutte le voci della bacheca con paginazione opzionale e filtro per tipo
+      description: Restituisce tutte le voci della bacheca, con opzioni per paginare i risultati e filtrare per tipo.
+      parameters:
+        - in: query
+          name: pagina
+          description: 'Numero della pagina per la paginazione, il valore di default è 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: dimensione_pagina
+          description: 'Numero di voci per pagina per la paginazione, il valore di default è 20.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: ricerca
+          description: Cerca nelle voci della bacheca per titolo, autore o altre caratteristiche.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: worksite
+          description: Cerca per cantiere.
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: profile
+          description: Cerca per Cliente.
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: apartment
+          description: Cerca per Appartamento.
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: tipo
+          description: Filtra le voci della bacheca per tipo. Ad esempio, MESSAGGIO, AGGIORNAMENTO, ecc.
+          required: false
+          schema:
+            type: string
+            enum: ['MESSAGGIO', 'AGGIORNAMENTO'] # Aggiungi altri tipi applicabili
+      responses:
+        '200':
+          description: Elenco delle voci della bacheca restituito con successo. Se nessuna voce corrisponde ai criteri di ricerca e filtro, viene restituito un array vuoto.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conteggio:
+                    type: integer
+                    example: 100
+                  successivo:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/boards?pagina=2'
+                  precedente:
+                    type: string
+                    nullable: true
+                    example: null
+                  risultati:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Boards'
+        '400':
+          description: Parametro di query non valido o mancante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errore:
+                    type: string
+                    example: "Parametro di query non valido o mancante."
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        image:
+          type: string
+        first_name:
+          type: string
+          maxLength: 100
+        last_name:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        token:
+          type: string
+          maxLength: 150
+        is_active:
+          type: boolean
+        email:
+          type: string
+          maxLength: 100
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum:
+            - USER
+            - TECNICI
+            - STAFF
+
+    Worksites:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        image:
+          type: string
+          example: "https://example.com/image.jpg"
+        name:
+          type: string
+          example: "Cantiere A"
+        address:
+          type: string
+          example: "Via Roma, 1"
+        lat:
+          type: number
+          format: "decimal(10,6)"
+          example: 45.464203
+        lon:
+          type: number
+          format: "decimal(10,6)"
+          example: 9.189982
+        is_open:
+          type: boolean
+          example: true
+        net_worth:
+          type: number
+          format: float
+          example: 1000000.50
+        financier:
+          $ref: '#/components/schemas/Financier'
+        contractor:
+          $ref: '#/components/schemas/Contractor'
+        link:
+          type: string
+          example: "https://example.com/cantiere-info"
+        date:
+          type: string
+          format: date-time
+          example: "2021-07-21T17:32:28Z"
+        date_update:
+          type: string
+          format: date-time
+          example: "2021-07-22T12:45:00Z"
+        type:
+          type: string
+          example: "ABITAZIONE"
+        collaborations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollabWorksites'
+    WorksitesProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        profile:
+          $ref: '#/components/schemas/Profile'
+        worksite:
+          type: integer
+          format: int64
+          example: 56
+    CollabWorksites:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        profile:
+          $ref: '#/components/schemas/Profile'
+        worksite:
+          type: integer
+          example: 1
+        order:
+          type: integer
+          example: 0
+        role:
+          type: string
+          example: 'DTC'
+    CheckList:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+    CheckListWorksites:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        worksites_id:
+          type: integer
+          format: int64
+        checklist_id:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date-time
+        order:
+          type: integer
+        is_done:
+          type: boolean
+    Apartments:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        worksite_id:
+          type: integer
+          format: int64
+        foglio:
+          type: integer
+        particella:
+          type: integer
+        sub:
+          type: integer
+        surface:
+          type: string
+          maxLength: 100
+        note:
+          type: string
+          maxLength: 100
+        owner:
+          type: string
+          maxLength: 100
+        owner_phone:
+          type: string
+          maxLength: 100
+        owner_email:
+          type: string
+          maxLength: 100
+        owner_cf:
+          type: string
+          maxLength: 100
+        link:
+          type: string
+          maxLength: 100
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+    ClientApartments:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        profile:
+          $ref: '#/components/schemas/Profile'
+        apartment:
+          $ref: '#/components/schemas/Apartments'
+        is_active:
+          type: boolean
+    BoardRead:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        profile_id:
+          type: integer
+          format: int64
+        board_id:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date-time
+    BoardAttachments:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        board_id:
+          type: integer
+          format: int64
+        attachment_link:
+          type: string
+        type:
+          type: string
+          enum:
+            - DOCUMENT
+            - IMAGE
+        date:
+          type: string
+          format: date-time
+    Boards:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        worksite_id:
+          type: integer
+          format: int64
+        apartment_id:
+          type: integer
+          format: int64
+        image:
+          type: string
+        title:
+          type: string
+          maxLength: 250
+        body:
+          type: string
+        author:
+          type: string
+          maxLength: 150
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        recipients:
+          type: integer
+        type:
+          type: string
+          enum:
+            - MESSAGE
+            - UPDATE
+    Categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 150
+    WorksitesCategories:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        category_id:
+          type: integer
+          format: int64
+        worksite_id:
+          type: integer
+          format: int64
+    Financier:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 150
+          example: "Banca intesa"
+    Contractor:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 150
+          example: "Comune di Roma"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
