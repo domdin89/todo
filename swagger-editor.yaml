@@ -226,10 +226,6 @@ paths:
                   type: string
                   format: date-time
                   example: "2021-07-22T12:45:00Z"
-                type:
-                  type: string
-                  example: "ABITAZIONE"
-                # Add any other fields relevant to your worksite model
       responses:
         '201':
           description: Nuovo cantiere creato con successo.
@@ -673,13 +669,14 @@ components:
           type: string
           format: date-time
           example: "2021-07-22T12:45:00Z"
-        type:
-          type: string
-          example: "ABITAZIONE"
         collaborations:
           type: array
           items:
             $ref: '#/components/schemas/CollabWorksites'
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Categories'
     WorksitesProfile:
       type: object
       properties:
@@ -870,6 +867,7 @@ components:
         name:
           type: string
           maxLength: 150
+          example: "Abitazione"
     WorksitesCategories:
       type: object
       properties:
