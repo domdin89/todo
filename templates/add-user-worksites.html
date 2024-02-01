@@ -1,0 +1,112 @@
+{% block prescription-modal %}
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" 
+    x-data="{
+      medicines: [],
+      tipologieFarmaci: [],
+      selectedMedicineId: null,
+      filter: '',
+      farmaco: '',
+      tipologiaFarmaco: '',
+      filter2: '',
+      watchTipologieFarmaci: function() {
+        if (this.tipologieFarmaci.length > 0) {
+            this.filter2 = this.tipologieFarmaci[0].id;
+        }
+    },
+      search: _.debounce(async function() {
+          if (this.filter.length > 2) {
+              try {
+                  let response = await fetch('/search-medicine/?name=' + encodeURIComponent(this.filter));
+                  let data = await response.json();
+                  this.medicines = data.results;
+              } catch (error) {
+                  console.error('Error:', error);
+                  this.medicines = [];
+              }
+          } else {
+              this.medicines = [];
+          }
+      }, 300),
+
+      search2: _.debounce(async function() {
+        // Trigger this function when a medicine is selected
+        if (this.farmaco) {
+            try {
+                let response = await fetch('/get-medicine-type/?name=' + encodeURIComponent(this.filter));
+                let data = await response.json();
+                this.tipologieFarmaci = data.type; // Update the second dropdown list
+                
+            } catch (error) {
+                console.error('Error:', error);
+                this.tipologieFarmaci = [];
+            }
+            
+        }
+    }, 300),
+      
+      selectMedicine: function(medicine) {
+        this.selectedMedicineId = medicine.id;
+        this.farmaco = medicine.medicine.name;
+        this.filter = medicine.denominazione;
+        this.filter2 = medicine.id.name;
+        this.search2(); // Trigger the second API call
+        this.medicines = [];
+          
+      }
+  }"
+  x-init="() => {
+    $watch('tipologieFarmaci', () => watchTipologieFarmaci());
+}">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Richiesta di nuova prescrizione</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'prescription:new-prescription' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label>Nome del farmaco</label>
+            <input
+              x-model="filter"
+              @input="search"
+              class="form-control"
+              placeholder="Cerca tra i tuoi prodotti..."
+            >
+            <div x-show="medicines.length > 0" class="search-results">
+              <ul>
+                <template x-for="medicine in medicines" :key="medicine.id">
+                  <li @click="selectMedicine(medicine)" x-text="medicine.denominazione"></li>
+                </template>
+              </ul>
+            </div>
+          </div>
+          <!-- Campo nascosto per l'ID della medicina selezionata -->
+          <input type="hidden" name="selectedMedicine" x-bind:value="selectedMedicineId">
+
+          <div class="mb-3">
+            <label>Tipologia confezione</label>
+            <select name="type" class="form-control" x-model="filter2" required>
+              <template x-for="option in tipologieFarmaci" :key="option.id">
+                  <option x-text="option.denominazione+' * '+option.principio_attivo" :value="option.id" name="type"></option>
+              </template>
+          </select>
+          </div>
+          <input type="hidden" name="selectedType" x-bind:value="filter2">
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn" style="background-color: #15558d; color: #fff;">Invia richiesta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lodash/lodash.min.js"></script>
+{%endblock%}

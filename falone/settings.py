@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'accounts',
     'apartments',
-    'documents',
     'worksites',
     'board',
     'admin_panel'

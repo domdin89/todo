@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Apartments, UserApartments
+from .models import Apartments
 # Register your models here.
 
 class ApartmentsAdmin(admin.ModelAdmin):
@@ -17,4 +17,3 @@ class UserApartmentsAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 admin.site.register(Apartments, ApartmentsAdmin)
-admin.site.register(UserApartments, UserApartmentsAdmin)

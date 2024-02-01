@@ -103,15 +103,11 @@
                         <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'date' && orderDirection === 'asc'"></ion-icon>
                         <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'date' && orderDirection === 'desc'"></ion-icon>
                     </th>
-                    <th scope="col">Azioni</th>
-                    {% if user.is_authenticated and user.is_superuser %}
-                    <th scope="col" @click="toggleOrdering('user')">
-                        Utente
-                        <ion-icon name="chevron-expand-outline"  x-show="orderByField !== 'user'" ></ion-icon>
-                        <ion-icon name="caret-up" style="font-size: 0.8rem; color: white;" x-show="orderByField === 'user' && orderDirection === 'asc'"></ion-icon>
-                        <ion-icon name="caret-down" style="font-size: 0.8rem;color: white;" x-show="orderByField === 'user' && orderDirection === 'desc'"></ion-icon>
-                    </th>
-                    {% endif %}
+                    <th></th>
+                    <th></th>
+                    <th>Azioni</th>
+                    <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -130,19 +126,29 @@
                         <td x-text="worksite.city"></td>
                         <td x-text="worksite.address"></td>
                         <td x-text="worksite.date"></td>
-                        
                         <td>
-                            <a href="javascript:void(0);" @click="confirmAction('/delete_worksite/?id='+worksite.id)" class="btn btn-outline-danger btn-sm float-right">
+                            <a href="" class="btn btn-outline-danger btn-sm float-right">
                                 <ion-icon name="trash-bin-outline"></ion-icon>
-                                elimina cantiere
+                                Storico Messaggi
                             </a>
                         </td>
-                        {% if user.is_authenticated %}
-                        <td>                        
-                            <span x-text="worksite?.user?.first_name+' '+worksite?.user?.last_name"></span>
+                        <td>
+                            <a href="{% url 'apartments:new-apartment' worksite.id %}" class="btn btn-outline-danger btn-sm float-right">
+                                <ion-icon name="trash-bin-outline"></ion-icon>
+                                Assegna appartamenti
+                            </a>
                         </td>
-                        <td x-text="worksite.views_count"></td>
-                        {% endif %}
+                        <td>
+                            <a href="" @click="confirmAction('/delete_worksite/?id='+worksite.id)" class="btn btn-outline-danger btn-sm float-right">
+                                <ion-icon name="trash-bin-outline"></ion-icon>
+                                Assegna utenti
+                            </a>
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                       
                     </tr>
                 </template>
             </tbody>

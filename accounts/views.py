@@ -18,7 +18,6 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from accounts.models import Profile
 from accounts.serializers import UserSerializer, ProfileSerializer, UserGetSerializer
-from django.shortcuts import reverse
 from django.utils.safestring import mark_safe
 from .forms import LoginForm
 from django.contrib.auth import authenticate, login, logout
@@ -117,58 +116,58 @@ def login_api(request):
 
 
 
-def register(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        email = request.POST['email']
-        password = request.POST['password']
-        password_confirm = request.POST['password_confirm']
+# def register(request):
+#     if request.method == 'POST':
+#         username = request.POST['username']
+#         first_name = request.POST['first_name']
+#         last_name = request.POST['last_name']
+#         email = request.POST['email']
+#         password = request.POST['password']
+#         password_confirm = request.POST['password_confirm']
 
-        if password != password_confirm:
-            messages.warning(request, 'Attenzione, le due password non coincidono')
-            return render(request, 'accounts/register.html', {'title': 'register'})
+#         if password != password_confirm:
+#             messages.warning(request, 'Attenzione, le due password non coincidono')
+#             return render(request, 'accounts/register.html', {'title': 'register'})
 
-        if User.objects.filter(username=username).exists():
-            messages.warning(request, 'Attenzione, Username già esistente, hai dimenticato la password? Recuperala')
-            return render(request, 'accounts/register.html', {'title': 'register'})
+#         if User.objects.filter(username=username).exists():
+#             messages.warning(request, 'Attenzione, Username già esistente, hai dimenticato la password? Recuperala')
+#             return render(request, 'accounts/register.html', {'title': 'register'})
 
-        if User.objects.filter(email=email).exists():
-            reset_password_link = '/password-reset/'  # Replace this with your reset password link
-            message = f'Attenzione, Email già esistente, hai dimenticato la password? <a href="{reset_password_link}">Recuperala</a>'
-            messages.warning(request, mark_safe(message))
-            return render(request, 'accounts/register.html', {'title': 'register'})
+#         if User.objects.filter(email=email).exists():
+#             reset_password_link = '/password-reset/'  # Replace this with your reset password link
+#             message = f'Attenzione, Email già esistente, hai dimenticato la password? <a href="{reset_password_link}">Recuperala</a>'
+#             messages.warning(request, mark_safe(message))
+#             return render(request, 'accounts/register.html', {'title': 'register'})
 
-        else:
-            # Create user and profile if all validation checks pass
-            try:
-                user = User.objects.create(email=email, first_name=first_name, last_name=last_name, username=username)
-                user.set_password(password)
-                user.save()
-            except Exception as e:
-                print(e)
+#         else:
+#             # Create user and profile if all validation checks pass
+#             try:
+#                 user = User.objects.create(email=email, first_name=first_name, last_name=last_name, username=username)
+#                 user.set_password(password)
+#                 user.save()
+#             except Exception as e:
+#                 print(e)
 
-            messages.success(
-                request, f'Account creato correttamente')
-            # message_txt = render_to_string('accounts/user-register.txt')
-            # message_html = render_to_string('accounts/user-register.html')
-            # send_mail(
-            #     'Perfetto! Account {} è stato creato con successo!'.format(
-            #         user.username),
-            #     message_txt,
-            #     f'{settings.EMAIL_SENDGRID}',
-            #     # destinatario
-            #     [user.email],
-            #     html_message=message_html,
-            #     fail_silently=False,
-            # )
-            return HttpResponseRedirect(reverse('accounts:login'))
+#             messages.success(
+#                 request, f'Account creato correttamente')
+#             # message_txt = render_to_string('accounts/user-register.txt')
+#             # message_html = render_to_string('accounts/user-register.html')
+#             # send_mail(
+#             #     'Perfetto! Account {} è stato creato con successo!'.format(
+#             #         user.username),
+#             #     message_txt,
+#             #     f'{settings.EMAIL_SENDGRID}',
+#             #     # destinatario
+#             #     [user.email],
+#             #     html_message=message_html,
+#             #     fail_silently=False,
+#             # )
+#             return HttpResponseRedirect(reverse('accounts:login'))
 
 
-    return render(request, 'accounts/register.html', {
-        'title': 'register',
-    })
+#     return render(request, 'accounts/register.html', {
+#         'title': 'register',
+#     })
 
 
 

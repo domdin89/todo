@@ -1,54 +1,36 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
-from accounts.models import Collaborators
+from accounts.models import Profile
 from worksites.models import Worksites
 from apartments.models import Apartments
 
 
-class Boards(models.Model):  
-    worksite = models.ForeignKey(
-        Worksites, on_delete=models.CASCADE, blank=True, null=True, )
-    apartment = models.ForeignKey(
-        Apartments, on_delete=models.CASCADE, blank=True, null=True, )
-    image = models.ImageField(
-        upload_to='worksite_pic/', blank=True, null=True, )
-    title = models.CharField(max_length=250, blank=True, null=True, )
+class BoardRead(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    board = models.ForeignKey('Boards', on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+class BoardAttachments(models.Model):
+    board = models.ForeignKey('Boards', on_delete=models.CASCADE)
+    attachment_link = models.CharField(max_length=200)
+    TYPE_CHOICES = [
+        ('DOCUMENT', 'DOCUMENT'),
+        ('IMAGE', 'IMAGE'),
+    ]
+    type = models.CharField(max_length=8, choices=TYPE_CHOICES, default='IMAGE')
+    date = models.DateTimeField(auto_now_add=True)
+
+class Boards(models.Model):
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='board_images/')
+    title = models.CharField(max_length=250)
     body = models.TextField()
-    author = models.CharField(max_length=150, blank=True, null=True, )
-
-    date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
-
-    def clean(self):
-        # Controlla che almeno uno dei due campi non sia nullo
-        if not (self.worksite or self.apartment):
-            raise ValidationError("Deve essere impostato almeno uno tra cantiere o unità abitativa.")
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super(Boards, self).save(*args, **kwargs)
-
-
-    def __str__(self):
-        return f"{self.title} {self.date}"
-    
-class CollabWorksites(models.Model):  
-    collaborator = models.ForeignKey(
-        Collaborators, 
-        on_delete=models.CASCADE, 
-        blank=True, 
-        null=True, 
-        related_name='collabworksites_collaborators'
-    )
-    worksite = models.ForeignKey(
-        Worksites, 
-        on_delete=models.CASCADE, 
-        blank=True, 
-        null=True, 
-        related_name='collabworksites_worksites'
-    )
-    order = models.IntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.collaborator.first_name} {self.worksite}"
+    author = models.CharField(max_length=150)
+    date = models.DateTimeField(auto_now_add=True)
+    date_update = models.DateTimeField(auto_now=True)
+    recipients = models.IntegerField(blank=True, null=True)
+    TYPE_CHOICES = [
+        ('MESSAGE', 'MESSAGE'),
+        ('UPDATE', 'UPDATE'),
+    ]
+    type = models.CharField(max_length=7, choices=TYPE_CHOICES, default='MESSAGE')
