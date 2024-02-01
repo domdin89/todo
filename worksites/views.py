@@ -15,7 +15,7 @@ class CustomPagination(PageNumberPagination):
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name', 'address']  # Specify your searchable fields
