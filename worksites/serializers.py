@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Worksites, CollabWorksites, Contractor, Financier, Categories
+from .models import Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
 
@@ -45,6 +45,12 @@ class WorksiteStandardSerializer(serializers.ModelSerializer):
         model = Worksites
         fields = ['id']
 
+class WorksiteCategoriesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WorksitesCategories
+        fields = ["id", "category", "worksite"]
+
 
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
@@ -57,7 +63,7 @@ class WorksiteProfileSerializer(serializers.ModelSerializer):
 class WorksiteSerializer(serializers.ModelSerializer):
     financier = FinancierSerializer(read_only=True)
     contractor = ContractorSerializer(read_only=True)
-    categories = CategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
+    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
     collaborations = WorksiteProfileSerializer(many=True, read_only=True)
     class Meta:
         model = Worksites

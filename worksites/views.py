@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
 from .serializers import GetCollabWorksitesSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -21,7 +23,7 @@ class WorksiteListView(ListCreateAPIView):
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name', 'address']  # Specify your searchable fields
-    #filterset_fields = ['type']
+    filterset_class = WorksitesFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()

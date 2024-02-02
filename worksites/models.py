@@ -32,8 +32,8 @@ class Categories(models.Model):
     name = models.CharField(max_length=150)
 
 class WorksitesCategories(models.Model):
-    category = models.ForeignKey(Categories, on_delete=models.CASCADE)
-    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    category = models.ForeignKey(Categories, on_delete=models.CASCADE )
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="categories")
 
 
 

@@ -131,10 +131,9 @@ paths:
           description: Ricerca i cantieri per nome, indirizzo o tipo.
           required: false
         - in: query
-          name: type
+          name: category
           schema:
-            type: string
-            enum: ['ABITAZIONE', 'GARAGE', 'LOCALE COMMERCIALE', 'TERRENO']
+            type: integer
           description: Filtra i cantieri in base al tipo.
           required: false
       responses:
