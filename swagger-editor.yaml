@@ -4,8 +4,7 @@ info:
   description: Documentazione falone api v1.
   version: 1.0.0
 servers:
-  - url: https://be.falone.madstudio.it/api
-  - url: http://be.falone.madstudio.it/api
+  - url: http://127.0.0.1:8000
 paths: 
   /login:
     post:

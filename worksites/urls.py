@@ -6,7 +6,9 @@ from django.urls import reverse_lazy
 
 app_name = 'worksites'
 urlpatterns = [
-        path('worksites', views.WorksiteListView.as_view(), name='worksite-list'),
+        path('worksites', views.WorksiteListView.as_view()),
+        path('collabworksites', views.CollaboratorListView.as_view()),
+        path('worksitesprofile', views.WorksiteProfileListView.as_view()),
 ]
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

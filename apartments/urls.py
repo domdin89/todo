@@ -7,11 +7,7 @@ from django.contrib.auth import views as auth_views
 
 app_name = 'apartments'
 urlpatterns = [
-    # path('apartments-api/', views.apartments_api),
-    # path('new-apartment/<int:id>', views.new_apartment, name='new-apartment'),
-    #path('login/', views.login_user, name='login'),
-    #path('download-list/', views.download_list, name="download-list"),
-    #path('download_file/<int:order_id>/<str:filename>/',views.download_file, name="download-file"),
+    path('clientapartments', views.ClientApartmentsListView.as_view()),
 
 ]
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
