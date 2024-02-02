@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from .models import Boards
-from worksites.serializers import WorksiteSerializer
-from apartments.serializers import ApartmentSerializer
+from .models import Boards
 
-
-class BoardSerializer(serializers.ModelSerializer):
-    worksite = WorksiteSerializer()
-    apartment = ApartmentSerializer()
-
+class BoardsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Boards
-        fields = '__all__'
+        fields = ['id', 'worksite', 'apartment', 'image', 'title', 'body', 'author', 'date', 'date_update', 'recipients', 'type']
+        extra_kwargs = {
+            'image': {'required': False},
+            'recipients': {'required': False},
+            'type': {'required': False}
+        }
