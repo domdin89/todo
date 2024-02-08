@@ -2,10 +2,12 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework import filters
 from .models import Profile
 from .serializers import ProfileSerializer
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
 class TecniciProfileListCreate(ListCreateAPIView):
     queryset = Profile.objects.filter(type='TECNICI')
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
 
     def perform_create(self, serializer):
@@ -14,6 +16,7 @@ class TecniciProfileListCreate(ListCreateAPIView):
 
 class ProfileListCreateAPIView(ListCreateAPIView):
     queryset = Profile.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca
