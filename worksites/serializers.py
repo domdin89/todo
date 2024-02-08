@@ -38,11 +38,6 @@ class GetCollabWorksitesSerializer(serializers.ModelSerializer):
         model = CollabWorksites
         fields = "__all__"
 
-class CollaboratorsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Profile
-        fields = "__all__"
 
 class WorksiteStandardSerializer(serializers.ModelSerializer):
 

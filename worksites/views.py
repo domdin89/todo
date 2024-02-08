@@ -5,7 +5,7 @@ from rest_framework import status
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
-from .serializers import CollaboratorsSerializer, GetCollabWorksitesSerializer, WorksiteProfileSerializer, WorksiteSerializer
+from .serializers import GetCollabWorksitesSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -96,26 +96,3 @@ class WorksiteProfileListView(ListCreateAPIView):
 
         # Implementing search functionality through the filter_backends
         return queryset
-    
-
-
-class CollaboratorListView(ListCreateAPIView):
-    queryset = Profile.objects.filter(type='TECNICI')
-    serializer_class = CollaboratorsSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = [ 'first_name','last_name','type']
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset
-    
-    
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": {"note": serializer.data}}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"status": "fail", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
