@@ -242,7 +242,7 @@ paths:
   /profile:
     get:
       tags:
-        - Collaborators
+        - Profile
       summary: Recupera i collaboratori dei cantieri
       description: Ottieni l'elenco dei Professionisti, opzionalmente filtrato per un cantiere specifico o termine di ricerca.
       parameters:
@@ -305,6 +305,58 @@ paths:
                   error:
                     type: string
                     example: "Parametro di query non valido."
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Profile
+      summary: Aggiungi un nuovo profilo
+      description: "Aggiungi un nuovo profilo"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+               - first_name
+               - last_name
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                mobile_number:
+                  type: string
+                email:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - "USER"
+                    - "STAFF"
+                    - "TECNICI"
+                image:
+                  type: string
+                  format: binary
+                  description: Image file of the worksite
+      responses:
+        '201':
+          description: Nuovo collaboratore aggiunti con successo al cantiere.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollabWorksites'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "I campi di inuput forniti non sono validi."
       security:
         - bearerAuth: []
   /collabworksites:
