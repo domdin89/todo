@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'apartments',
     'worksites',
     'board',
-    'admin_panel'
 ]
 
 MIDDLEWARE = [
