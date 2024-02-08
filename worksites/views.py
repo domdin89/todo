@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from accounts.models import Profile
 
@@ -22,8 +23,9 @@ class WorksiteListView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name', 'address']  # Specify your searchable fields
+    search_fields = ['name', 'address']
     filterset_class = WorksitesFilter
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -36,7 +38,7 @@ class WorksiteListView(ListCreateAPIView):
                 return queryset.none()  # Return an empty queryset if status is invalid
             
             if status == 0:
-                return queryset  # Return all if status is 0
+                return queryset
             elif status == 1:
                 return queryset.filter(is_open=True)
             elif status == 2:
@@ -44,8 +46,8 @@ class WorksiteListView(ListCreateAPIView):
 
         return queryset
     
-    
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        # Handling multipart data including files
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save()
