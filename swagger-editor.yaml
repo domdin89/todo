@@ -178,52 +178,47 @@ paths:
       tags:
         - Worksites
       summary: Aggiungi un nuovo cantiere
-      description: Crea un nuovo cantiere nel db
+      description: Crea un nuovo cantiere nel db inclusi i dettagli e l'immagine del cantiere
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
+              required:
+               - name
               properties:
                 name:
                   type: string
-                  example: "Cantiere Nuovo"
                 address:
                   type: string
-                  example: "Via Nuova, 123"
                 lat:
                   type: number
-                  format: "decimal(10,6)"
-                  example: 45.464203
+                  format: double
                 lon:
                   type: number
-                  format: "decimal(10,6)"
-                  example: 9.189982
+                  format: double
                 is_open:
                   type: boolean
-                  example: true
                 net_worth:
                   type: number
                   format: float
-                  example: 500000.00
                 financier:
                   type: integer
-                  example: 2
                 contractor_id:
                   type: integer
-                  example: 3
                 link:
                   type: string
-                  example: "https://example.com/cantiere-info"
                 date:
                   type: string
                   format: date-time
-                  example: "2021-07-21T17:32:28Z"
                 date_update:
                   type: string
                   format: date-time
-                  example: "2021-07-22T12:45:00Z"
+                image:
+                  type: string
+                  format: binary
+                  description: Image file of the worksite
       responses:
         '201':
           description: Nuovo cantiere creato con successo.
@@ -232,7 +227,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Worksites'
         '400':
-          description: Campi di inuput non validi
+          description: Campi di input non validi
           content:
             application/json:
               schema:
@@ -240,7 +235,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "I campi di inuput forniti non sono validi."
+                    example: "I campi di input forniti non sono validi."
       security:
         - bearerAuth: []
   /collabworksites:
