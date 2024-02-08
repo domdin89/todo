@@ -243,6 +243,11 @@ REST_FRAMEWORK = {
      'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',  # Per gestire i dati JSON
+        'rest_framework.parsers.FormParser',  # Per gestire i dati form-url-encoded
+        'rest_framework.parsers.MultiPartParser'  # Per gestire multipart/form-data
+    ],
 }
 
 SIMPLE_JWT = {
