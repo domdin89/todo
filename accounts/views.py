@@ -16,7 +16,7 @@ class TecniciProfileListCreate(ListCreateAPIView):
 
 class ProfileListCreateAPIView(ListCreateAPIView):
     queryset = Profile.objects.all()
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca
