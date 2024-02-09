@@ -18,7 +18,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Profile
-        fields = ["user", "image", "first_name", "last_name", "mobile_number", "token", "is_active", "email", "date", "date_update", "type"]
+        fields = [
+            'user', 'first_name', 'last_name', 'mobile_number', 'email', 
+            'type', 'image', 'token', 'is_active', 'date', 'date_update'
+        ]
+        extra_kwargs = {
+            'image': {'required': False},
+        }
