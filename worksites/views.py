@@ -28,7 +28,7 @@ class WorksiteListView(ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().order_by('-id')
         status = self.request.query_params.get('status', None)
         
         if status is not None:
