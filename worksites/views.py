@@ -63,25 +63,33 @@ class CollaboratorListView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = [ 'profile__first_name','profile__last_name','worksite__name']
+    search_fields = ['profile__first_name', 'profile__last_name', 'worksite__name']
 
     def get_queryset(self):
         queryset = super().get_queryset()
-
         worksite = self.request.query_params.get('worksite', None)
         if worksite:
-                return queryset.filter(worksite=worksite)
-
+            return queryset.filter(worksite=worksite)
         return queryset
-    
-    
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": {"note": serializer.data}}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"status": "fail", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, *args, **kwargs):
+        profile_id = request.data.get('profile')
+        worksite_id = request.data.get('worksite')
+        role = request.data.get('role')
+        order = request.data.get('order')
+
+        profile = get_object_or_404(Profile, id=profile_id)
+        worksite = get_object_or_404(Worksites, id=worksite_id)
+
+        collab_worksite = CollabWorksites.objects.create(
+            profile=profile,
+            worksite=worksite,
+            role=role,
+            order=order
+        )
+
+        serializer = self.get_serializer(collab_worksite)
+        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class WorksiteProfileListView(ListCreateAPIView):

@@ -436,7 +436,8 @@ paths:
               type: object
               properties:
                 profile:
-                  $ref: '#/components/schemas/Profile'
+                  type: integer
+                  example: 1
                 worksite:
                   type: integer
                   example: 1
@@ -702,6 +703,7 @@ components:
         id:
           type: integer
           format: int64
+          example: 2
         user_id:
           type: integer
           format: int64

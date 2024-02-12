@@ -21,7 +21,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'user', 'first_name', 'last_name', 'mobile_number', 'email', 
+            'id','user', 'first_name', 'last_name', 'mobile_number', 'email', 
             'type', 'image', 'token', 'is_active', 'date', 'date_update'
         ]
         extra_kwargs = {
