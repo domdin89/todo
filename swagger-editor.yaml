@@ -436,8 +436,7 @@ paths:
               type: object
               properties:
                 profile:
-                  type: integer
-                  example: 1
+                  $ref: '#/components/schemas/Profile'
                 worksite:
                   type: integer
                   example: 1
