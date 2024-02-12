@@ -24,20 +24,11 @@ class CategoriesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CollaborationSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True)
+    profile = ProfileSerializer()
 
     class Meta:
         model = CollabWorksites  # Assumendo che questo sia il nome del modello
-        fields = ['id', 'profile', 'worksite', 'order', 'role']
-
-class GetCollabWorksitesSerializer(serializers.ModelSerializer):
-    profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
-
-
-    class Meta:
-        model = CollabWorksites
-        fields = "__all__"
-
+        fields = '__all__'
 
 class WorksiteStandardSerializer(serializers.ModelSerializer):
 

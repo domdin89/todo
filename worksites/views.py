@@ -5,7 +5,7 @@ from rest_framework import status
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
-from .serializers import GetCollabWorksitesSerializer, WorksiteProfileSerializer, WorksiteSerializer
+from .serializers import CollaborationSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -59,14 +59,19 @@ class WorksiteListView(ListCreateAPIView):
 
 class CollaboratorListView(ListCreateAPIView):
     queryset = CollabWorksites.objects.all()
-    serializer_class = GetCollabWorksitesSerializer
+    serializer_class = CollaborationSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = [ 'first_name','last_name','worksite', 'type']
+    search_fields = [ 'profile__first_name','profile__last_name','worksite__name']
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
+        worksite = self.request.query_params.get('worksite', None)
+        if worksite:
+                return queryset.filter(worksite=worksite)
+
         return queryset
     
     
