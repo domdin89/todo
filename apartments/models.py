@@ -24,3 +24,15 @@ class ClientApartments(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=False)
+
+
+class CheckList(models.Model):
+    name = models.CharField(max_length=100)
+
+class CheckListWorksites(models.Model):
+    worksites = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    checklist = models.ForeignKey(CheckList, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    order = models.IntegerField()
+    is_done = models.BooleanField(default=False)

@@ -4,6 +4,9 @@ from worksites.models import Worksites
 from apartments.models import Apartments
 
 
+class Survey(models.Model):
+    name = models.CharField(max_length=250)
+
 class BoardRead(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     board = models.ForeignKey('Boards', on_delete=models.CASCADE)
@@ -11,7 +14,8 @@ class BoardRead(models.Model):
 
 class BoardAttachments(models.Model):
     board = models.ForeignKey('Boards', on_delete=models.CASCADE)
-    attachment_link = models.CharField(max_length=200)
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, blank=True, null=True)
+    attachment_link = models.CharField(max_length=200, blank=True, null=True)
     TYPE_CHOICES = [
         ('DOCUMENT', 'DOCUMENT'),
         ('IMAGE', 'IMAGE'),

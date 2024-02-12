@@ -9,13 +9,26 @@ class Worksites(models.Model):
     address = models.CharField(max_length=100,blank=True, null=True)
     lat = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)
     lon = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)
-    is_open = models.BooleanField(default=False,blank=True, null=True)
+    is_visible = models.BooleanField(default=False,blank=True, null=True)
     net_worth = models.FloatField(blank=True, null=True)
+    percentage_worth = models.FloatField(blank=True, null=True)
     financier = models.ForeignKey('Financier', on_delete=models.CASCADE,blank=True, null=True)
     contractor = models.ForeignKey('Contractor', on_delete=models.CASCADE,blank=True, null=True)
     link = models.CharField(max_length=100,blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True,blank=True, null=True)
+    codice_commessa = models.CharField(max_length=100,blank=True, null=True, unique=True)
+    codice_CIG = models.CharField(max_length=100,blank=True, null=True, unique=True)
+    codice_CUP = models.CharField(max_length=100,blank=True, null=True, unique=True)
+    date_start = models.DateTimeField(blank=True, null=True)
+    date_end = models.DateTimeField(blank=True, null=True)
+
+    CHOICES = [
+        ('APERTO', 'MESSAGE'),
+        ('SOSPESO', 'UPDATE'),
+        ('CHIUSA', 'UPDATE'),
+    ]
+    status = models.CharField(max_length=20, choices=CHOICES, default='APERTO')
 
 class WorksitesProfile(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
@@ -26,6 +39,8 @@ class CollabWorksites(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="collaborations")
     role = models.CharField(max_length=150)
     order = models.IntegerField()
+    date_start = models.DateTimeField(blank=True, null=True)
+    date_end = models.DateTimeField(blank=True, null=True)
 
 
 class Categories(models.Model):
@@ -34,18 +49,6 @@ class Categories(models.Model):
 class WorksitesCategories(models.Model):
     category = models.ForeignKey(Categories, on_delete=models.CASCADE )
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="categories")
-
-
-
-class CheckList(models.Model):
-    name = models.CharField(max_length=100)
-
-class CheckListWorksites(models.Model):
-    worksites = models.ForeignKey(Worksites, on_delete=models.CASCADE)
-    checklist = models.ForeignKey(CheckList, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    order = models.IntegerField()
-    is_done = models.BooleanField(default=False)
 
 
 
