@@ -15,7 +15,7 @@ class RecipientsSerializer(serializers.ModelSerializer):
     profile_detail = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
     class Meta:
         model = BoardsRecipient
-        fields = ['id', 'worksite_id', 'apartment_id', 'profile_id', 'worksites_detail', 'apartment_detail', 'profile_detail']
+        fields = ['id', 'worksites_id', 'apartment_id', 'profile_id', 'worksites_detail', 'apartment_detail', 'profile_detail']
         extra_kwargs = {
             'worksites_id': {'write_only': True, 'queryset': Worksites.objects.all()},
             'apartment_id': {'write_only': True, 'queryset': Apartments.objects.all()},
