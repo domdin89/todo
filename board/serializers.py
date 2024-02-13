@@ -16,9 +16,9 @@ class RecipientsSerializer(serializers.ModelSerializer):
     profile_id = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.all(), write_only=True, source='profile', required=False)
 
-    worksites = WorksiteStandardSerializer(read_only=True, source='worksites')
-    apartment = ApartmentSerializer(read_only=True, source='apartment', required=False, allow_null=True)
-    profile = ProfileSerializer(read_only=True, source='profile', required=False, allow_null=True)
+    worksites = WorksiteStandardSerializer(read_only=True, required=False, allow_null=True)
+    apartment = ApartmentSerializer(read_only=True, required=False, allow_null=True)
+    profile = ProfileSerializer(read_only=True, required=False, allow_null=True)
 
     class Meta:
         model = BoardsRecipient
