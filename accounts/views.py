@@ -13,6 +13,7 @@ class TecniciProfileListCreate(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(type='TECNICI')
+        
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
