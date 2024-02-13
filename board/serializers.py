@@ -22,7 +22,7 @@ class RecipientsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BoardsRecipient
-        fields = ['id', 'worksites_id', 'apartment_id', 'profile_id', 'worksites', 'apartment', 'profile']
+        fields = ['id', 'date', 'recipient_type' ,'worksites_id', 'apartment_id', 'profile_id', 'worksites', 'apartment', 'profile']
 
 class BoardsSerializer(serializers.ModelSerializer):
     recipients = RecipientsSerializer(many=True)
