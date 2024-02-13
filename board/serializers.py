@@ -17,7 +17,7 @@ class RecipientsSerializer(serializers.ModelSerializer):
         queryset=Profile.objects.all(), write_only=True, source='profile')
 
     worksites_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksites')
-    apartment_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='apartment')
+    apartment_detail = serializers.SlugRelatedField(slug_field='sub', read_only=True, source='apartment')
     profile_detail = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
 
     class Meta:
