@@ -94,9 +94,18 @@ class CollaboratorListView(ListCreateAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         worksite = self.request.query_params.get('worksite', None)
+        order_param = self.request.query_params.get('order', 'desc')
+        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
         if worksite:
             return queryset.filter(worksite=worksite)
         return queryset
+
 
     def post(self, request, *args, **kwargs):
         profile_id = request.data.get('profile')
@@ -129,6 +138,14 @@ class WorksiteProfileListView(ListCreateAPIView):
         queryset = CollabWorksites.objects.all()
         worksite_id = self.request.query_params.get('worksite')
         role = self.request.query_params.get('role')
+        order_param = self.request.query_params.get('order', 'desc')
+        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
 
         if worksite_id:
             queryset = queryset.filter(worksite__id=worksite_id)
