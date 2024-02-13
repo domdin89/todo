@@ -646,37 +646,62 @@ paths:
       tags:
         - Apartments
       summary: Add a new apartment
-      description: Creates a new apartment in the database with the provided details.
+      description: Creates a new apartment in the database with the provided details. Supports multipart/form-data for file upload.
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
-              required:
-                - worksite
               properties:
                 worksite:
                   type: integer
                   description: The ID of the associated worksite.
-                address:
-                  type: string
-                  description: The address of the apartment.
-                owner:
-                  type: string
-                  description: The owner of the apartment.
-                owner_phone:
-                  type: string
-                  description: The phone number of the apartment's owner.
-                owner_email:
-                  type: string
-                  description: The email address of the apartment's owner.
+                  format: int64
+                foglio:
+                  type: integer
+                  format: int64
+                  nullable: true
+                particella:
+                  type: integer
+                  format: int64
+                  nullable: true
+                sub:
+                  type: integer
+                  format: int64
+                  nullable: true
                 surface:
                   type: string
-                  description: The surface area of the apartment.
+                  maxLength: 100
+                  nullable: true
                 note:
                   type: string
-                  description: Additional notes regarding the apartment.
+                  maxLength: 100
+                  nullable: true
+                owner:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                owner_phone:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                owner_email:
+                  type: string
+                  format: email
+                  nullable: true
+                owner_cf:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                link:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+                image:
+                  type: string
+                  format: binary
+                  description: Optional image file of the apartment
       responses:
         '201':
           description: New apartment created successfully.
@@ -1073,6 +1098,33 @@ components:
         date:
           type: string
           format: date-time
+    Recipients:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        profile_id:
+          type: integer
+          format: int64
+        board_id:
+          type: integer
+          format: int64
+        apartment_id:
+          type: integer
+          format: int64
+        worksite_id:
+          type: integer
+          format: int64
+        recipient_type:
+          type: string
+          enum:
+            - WORKSITE
+            - APARTMENT
+            - PROFILE
+        date:
+          type: string
+          format: date-time
     BoardAttachments:
       type: object
       properties:
@@ -1098,12 +1150,6 @@ components:
         id:
           type: integer
           format: int64
-        worksite_id:
-          type: integer
-          format: int64
-        apartment_id:
-          type: integer
-          format: int64
         image:
           type: string
         title:
@@ -1120,13 +1166,15 @@ components:
         date_update:
           type: string
           format: date-time
-        recipients:
-          type: integer
         type:
           type: string
           enum:
             - MESSAGE
             - UPDATE
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipients'
     Categories:
       type: object
       properties:

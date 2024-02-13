@@ -7,6 +7,14 @@ from apartments.models import Apartments
 class Survey(models.Model):
     name = models.CharField(max_length=250)
 
+class SurveyQuestion(models.Model):
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    name = models.CharField(max_length=250)
+
+class SurveyQuestionChoices(models.Model):
+    question = models.ForeignKey(SurveyQuestion, on_delete=models.CASCADE)
+    name = models.CharField(max_length=250)
+
 class BoardRead(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     board = models.ForeignKey('Boards', on_delete=models.CASCADE)
@@ -23,16 +31,26 @@ class BoardAttachments(models.Model):
     type = models.CharField(max_length=8, choices=TYPE_CHOICES, default='IMAGE')
     date = models.DateTimeField(auto_now_add=True)
 
+class BoardsRecipient(models.Model):
+    board = models.ForeignKey('Boards', on_delete=models.CASCADE, related_name="recipients")
+    TYPE_CHOICES = [
+        ('APARTMENT', 'APARTMENT'),
+        ('WORKSITE', 'WORKSITE'),
+        ('PROFILE', 'PROFILE'),
+    ]
+    recipient_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='WORKSITE')
+    date = models.DateTimeField(auto_now_add=True)
+    worksites = models.ForeignKey(Worksites, on_delete=models.CASCADE, blank=True, null=True)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE, blank=True, null=True)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, null=True)
+
 class Boards(models.Model):
-    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
-    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='board_images/')
     title = models.CharField(max_length=250)
     body = models.TextField()
     author = models.CharField(max_length=150)
     date = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
-    recipients = models.IntegerField(blank=True, null=True)
     TYPE_CHOICES = [
         ('MESSAGE', 'MESSAGE'),
         ('UPDATE', 'UPDATE'),

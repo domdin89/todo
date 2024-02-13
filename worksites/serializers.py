@@ -34,7 +34,7 @@ class WorksiteStandardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Worksites
-        fields = ['id']
+        fields = '__all__'
 
 class WorksiteCategoriesSerializer(serializers.ModelSerializer):
 

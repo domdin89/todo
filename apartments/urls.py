@@ -8,7 +8,7 @@ from django.contrib.auth import views as auth_views
 app_name = 'apartments'
 urlpatterns = [
     path('clientapartments', views.ClientApartmentsListView.as_view()),
-    path('apartments/', views.ApartmentListCreateAPIView.as_view(), name='apartments_list_create'),
+    path('apartments', views.ApartmentListCreateAPIView.as_view(), name='apartments_list_create'),
 
 ]
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
