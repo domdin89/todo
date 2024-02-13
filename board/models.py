@@ -45,7 +45,7 @@ class BoardsRecipient(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, blank=True, null=True)
 
 class Boards(models.Model):
-    image = models.ImageField(upload_to='board_images/')
+    image = models.ImageField(upload_to='board_images/', blank=True, null=True)
     title = models.CharField(max_length=250)
     body = models.TextField()
     author = models.CharField(max_length=150)

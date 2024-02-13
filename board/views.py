@@ -5,11 +5,12 @@ from rest_framework.filters import SearchFilter
 from .models import Boards
 from .serializers import BoardsSerializer
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListCreateAPIView
 
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
-class BoardsListView(ListAPIView):
+class BoardsListView(ListCreateAPIView):
     queryset = Boards.objects.all()
     serializer_class = BoardsSerializer
     permission_classes = [IsAuthenticated]
