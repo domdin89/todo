@@ -803,42 +803,37 @@ paths:
           schema:
             type: integer
         - in: query
-          name: dimensione_pagina
+          name: page_size
           description: 'Numero di voci per pagina per la paginazione, il valore di default è 20.'
           required: false
           schema:
             type: integer
         - in: query
-          name: ricerca
+          name: search
           description: Cerca nelle voci della bacheca per titolo, autore o altre caratteristiche.
           required: false
           schema:
             type: string
         - in: query
-          name: worksite
-          description: Cerca per cantiere.
-          required: false
-          schema:
-            type: integer
-        - in: query
-          name: profile
-          description: Cerca per Cliente.
-          required: false
-          schema:
-            type: integer
-        - in: query
-          name: apartment
-          description: Cerca per Appartamento.
-          required: false
-          schema:
-            type: integer
-        - in: query
-          name: tipo
+          name: type
           description: Filtra le voci della bacheca per tipo. Ad esempio, MESSAGGIO, AGGIORNAMENTO, ecc.
           required: false
           schema:
             type: string
             enum: ['MESSAGGIO', 'AGGIORNAMENTO'] # Aggiungi altri tipi applicabili
+        - in: query
+          name: order
+          description: Ordina le voci della bacheca in modo crescente o decrescente.
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc'] # Aggiungi altri tipi applicabili
+        - in: query
+          name: order_by
+          description: Ordina risultati per input (nome etc)
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: Elenco delle voci della bacheca restituito con successo. Se nessuna voce corrisponde ai criteri di ricerca e filtro, viene restituito un array vuoto.
