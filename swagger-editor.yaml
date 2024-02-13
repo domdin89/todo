@@ -239,6 +239,38 @@ paths:
                     example: "I campi di input forniti non sono validi."
       security:
         - bearerAuth: []
+  /worksites/{id}:
+    get:
+      tags:
+        - Worksites
+      summary: Retrieve a single worksite by ID
+      description: Returns details of a single worksite specified by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID of the worksite to retrieve
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully retrieved worksite details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Worksites'
+        '404':
+          description: Worksites not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Worksite not found.'
+      security:
+        - bearerAuth: []
   /profile:
     get:
       tags:
@@ -543,6 +575,128 @@ paths:
                     example: "Parametro di query non valido o mancante."
       security:
         - bearerAuth: []
+  paths:
+  /apartments:
+    get:
+      tags:
+        - Apartments
+      summary: Retrieve all apartments
+      description: Returns all apartments with optional filtering and pagination.
+      parameters:
+        - in: query
+          name: page
+          description: Page number for pagination, default is 1.
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: Number of items per page for pagination, default is 20.
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          description: Search apartments by address, owner or other characteristics.
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: worksite
+          description: Filter apartments by associated worksite.
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successfully returned list of apartments. If no apartments match the filter criteria, an empty array is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://api.falone.example.com/apartments?page=2'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Apartments'
+        '400':
+          description: Invalid or missing query parameter.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid or missing query parameter."
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Apartments
+      summary: Add a new apartment
+      description: Creates a new apartment in the database with the provided details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - worksite
+              properties:
+                worksite:
+                  type: integer
+                  description: The ID of the associated worksite.
+                address:
+                  type: string
+                  description: The address of the apartment.
+                owner:
+                  type: string
+                  description: The owner of the apartment.
+                owner_phone:
+                  type: string
+                  description: The phone number of the apartment's owner.
+                owner_email:
+                  type: string
+                  description: The email address of the apartment's owner.
+                surface:
+                  type: string
+                  description: The surface area of the apartment.
+                note:
+                  type: string
+                  description: Additional notes regarding the apartment.
+      responses:
+        '201':
+          description: New apartment created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartments'
+        '400':
+          description: Invalid input fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "The input fields provided are invalid."
+      security:
+        - bearerAuth: []
+
 
   /clientapartments:
     get:

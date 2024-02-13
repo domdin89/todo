@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import Http404
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
@@ -55,6 +57,30 @@ class WorksiteListView(ListCreateAPIView):
             return Response({"status": "success", "data": {"note": serializer.data}}, status=status.HTTP_201_CREATED)
         else:
             return Response({"status": "fail", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+class WorksiteDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+    def get_object(self, pk):
+        try:
+            return Worksites.objects.get(pk=pk)
+        except Worksites.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        worksite = self.get_object(pk)
+        serializer = WorksiteSerializer(worksite)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        worksite = self.get_object(pk)
+        serializer = WorksiteSerializer(worksite, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CollaboratorListView(ListCreateAPIView):
