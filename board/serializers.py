@@ -10,15 +10,15 @@ from .models import Boards, BoardsRecipient
 
 class RecipientsSerializer(serializers.ModelSerializer):
     worksites_id = serializers.PrimaryKeyRelatedField(
-        queryset=Worksites.objects.all(), write_only=True, source='worksites')
+        queryset=Worksites.objects.all(), write_only=True, source='worksites', required=False)
     apartment_id = serializers.PrimaryKeyRelatedField(
-        queryset=Apartments.objects.all(), write_only=True, source='apartment')
+        queryset=Apartments.objects.all(), write_only=True, source='apartment', required=False)
     profile_id = serializers.PrimaryKeyRelatedField(
-        queryset=Profile.objects.all(), write_only=True, source='profile')
+        queryset=Profile.objects.all(), write_only=True, source='profile', required=False)
 
-    worksites = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksites')
-    apartment = serializers.SlugRelatedField(slug_field='sub', read_only=True, source='apartment')
-    profile = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
+    worksites = WorksiteStandardSerializer(read_only=True, source='worksites')
+    apartment = ApartmentSerializer(read_only=True, source='apartment', required=False, allow_null=True)
+    profile = ProfileSerializer(read_only=True, source='profile', required=False, allow_null=True)
 
     class Meta:
         model = BoardsRecipient
