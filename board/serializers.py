@@ -9,16 +9,22 @@ from worksites.serializers import WorksiteStandardSerializer
 from .models import Boards, BoardsRecipient
 
 class RecipientsSerializer(serializers.ModelSerializer):
-    worksite_id = serializers.PrimaryKeyRelatedField(
-        queryset=Worksites.objects.all(), source='worksites', write_only=True, required=False)
-    apartment_id = serializers.PrimaryKeyRelatedField(
-        queryset=Apartments.objects.all(), source='apartment', write_only=True, required=False)
-    profile_id = serializers.PrimaryKeyRelatedField(
-        queryset=Profile.objects.all(), source='profile', write_only=True, required=False)
+    worksite = serializers.SlugRelatedField(
+        queryset=Worksites.objects.all(), slug_field='id', source='worksite_id', read_only=True)
+    apartment = serializers.SlugRelatedField(
+        queryset=Apartments.objects.all(), slug_field='id', source='apartment_id', read_only=True)
+    profile = serializers.SlugRelatedField(
+        queryset=Profile.objects.all(), slug_field='id', source='profile_id', read_only=True)
 
     class Meta:
         model = BoardsRecipient
-        exclude = ['board']
+        fields = ['id', 'worksite', 'apartment', 'profile', 'worksite_id', 'apartment_id', 'profile_id']
+        extra_kwargs = {
+            'worksite_id': {'write_only': True},
+            'apartment_id': {'write_only': True},
+            'profile_id': {'write_only': True},
+        }
+
 
 class BoardsSerializer(serializers.ModelSerializer):
     recipients = RecipientsSerializer(many=True)
