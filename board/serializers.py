@@ -10,14 +10,14 @@ from .models import Boards, BoardsRecipient
 
 class RecipientsSerializer(serializers.ModelSerializer):
     # For read operations, use SlugRelatedField or SerializerMethodField to represent the related object in a readable format
-    worksite_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksite')
+    worksites_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksites')
     apartment_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='apartment')
     profile_detail = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
     class Meta:
         model = BoardsRecipient
         fields = ['id', 'worksite_id', 'apartment_id', 'profile_id', 'worksite_detail', 'apartment_detail', 'profile_detail']
         extra_kwargs = {
-            'worksite_id': {'write_only': True, 'queryset': Worksites.objects.all()},
+            'worksites_id': {'write_only': True, 'queryset': Worksites.objects.all()},
             'apartment_id': {'write_only': True, 'queryset': Apartments.objects.all()},
             'profile_id': {'write_only': True, 'queryset': Profile.objects.all()},
         }
