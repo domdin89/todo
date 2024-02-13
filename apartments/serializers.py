@@ -5,6 +5,7 @@ from .models import Apartments, ClientApartments
 from worksites.serializers import WorksiteSerializer
 
 class ApartmentSerializer(serializers.ModelSerializer):
+    worksite = WorksiteSerializer()
 
     class Meta:
         model = Apartments
