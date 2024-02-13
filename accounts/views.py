@@ -25,6 +25,14 @@ class ProfileListCreateAPIView(ListCreateAPIView):
         queryset = super().get_queryset()
         type_param = self.request.query_params.get('type', None)
         search_param = self.request.query_params.get('search', None)
+        order_param = self.request.query_params.get('order', 'desc')
+        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
 
         if type_param is not None:
             queryset = queryset.filter(type=type_param)
