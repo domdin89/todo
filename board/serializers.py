@@ -16,13 +16,13 @@ class RecipientsSerializer(serializers.ModelSerializer):
     profile_id = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.all(), write_only=True, source='profile')
 
-    worksites_detail = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksites')
-    apartment_detail = serializers.SlugRelatedField(slug_field='sub', read_only=True, source='apartment')
-    profile_detail = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
+    worksites = serializers.SlugRelatedField(slug_field='name', read_only=True, source='worksites')
+    apartment = serializers.SlugRelatedField(slug_field='sub', read_only=True, source='apartment')
+    profile = serializers.SlugRelatedField(slug_field='first_name', read_only=True, source='profile')
 
     class Meta:
         model = BoardsRecipient
-        fields = ['id', 'worksites_id', 'apartment_id', 'profile_id', 'worksites_detail', 'apartment_detail', 'profile_detail']
+        fields = ['id', 'worksites_id', 'apartment_id', 'profile_id', 'worksites', 'apartment', 'profile']
 
 class BoardsSerializer(serializers.ModelSerializer):
     recipients = RecipientsSerializer(many=True)
