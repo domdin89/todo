@@ -797,7 +797,7 @@ paths:
       description: Restituisce tutte le voci della bacheca, con opzioni per paginare i risultati e filtrare per tipo.
       parameters:
         - in: query
-          name: pagina
+          name: page
           description: 'Numero della pagina per la paginazione, il valore di default è 1.'
           required: false
           schema:
@@ -820,7 +820,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: ['MESSAGGIO', 'AGGIORNAMENTO'] # Aggiungi altri tipi applicabili
+            enum: ['MESSAGE', 'UPDATE'] # Aggiungi altri tipi applicabili
         - in: query
           name: order
           description: Ordina le voci della bacheca in modo crescente o decrescente.
@@ -867,6 +867,36 @@ paths:
                   errore:
                     type: string
                     example: "Parametro di query non valido o mancante."
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Boards
+      summary: Crea una nuova voce nella bacheca
+      description: Crea una nuova voce nella bacheca con i dati forniti.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Boards'
+      responses:
+        '201':
+          description: Voce della bacheca creata con successo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Boards'
+        '400':
+          description: Dati non validi forniti nella richiesta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errore:
+                    type: string
+                    example: "Dati non validi forniti."
       security:
         - bearerAuth: []
 components:
