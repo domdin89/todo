@@ -4,6 +4,7 @@ from .models import Profile
 from .serializers import ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
 
 class TecniciProfileListCreate(ListCreateAPIView):
     queryset = Profile.objects.filter(type='TECNICI')
@@ -12,13 +13,15 @@ class TecniciProfileListCreate(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(type='TECNICI')
-
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
 class ProfileListCreateAPIView(ListCreateAPIView):
     queryset = Profile.objects.all()
     #permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
+    pagination_class = CustomPagination
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca
 
     def get_queryset(self):
