@@ -56,6 +56,7 @@ class WorksiteSerializer(serializers.ModelSerializer):
     contractor = ContractorSerializer(read_only=True)
     categories = WorksiteCategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
     collaborations = WorksiteProfileSerializer(many=True, read_only=True)
+
     class Meta:
         model = Worksites
         fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 'date_update', 'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end']
