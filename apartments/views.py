@@ -45,18 +45,18 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
             queryset = super().get_queryset()
             order_param = self.request.GET.get('order', 'desc')
             order_by_field = self.request.GET.get('order_by', 'id')
+            worksite = self.request.GET.get('worksite')
             
             if order_param == 'desc':
                 queryset = queryset.order_by('-' + order_by_field)
             else:
                 queryset = queryset.order_by(order_by_field)
-            worksite = self.request.GET.get('worksite')
+            
             if worksite:
-                return Apartments.objects.filter(worksite=worksite)
-            else:
-                # Non è possibile restituire Response qui. Gestire l'errore altrimenti.
-                return Apartments.objects.none()  # Restituisce un queryset vuoto come fallback
-
+                queryset = queryset.filter(worksite=worksite)  # Filtra per worksite se presente
+        
+            return queryset
+          
     def list(self, request, *args, **kwargs):
         worksite = request.query_params.get('worksite')
         if not worksite:
