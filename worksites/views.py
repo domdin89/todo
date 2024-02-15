@@ -22,7 +22,7 @@ class CustomPagination(PageNumberPagination):
 class WorksiteListView(ListCreateAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]

@@ -180,10 +180,10 @@ USE_TZ = True
 USE_S3 = os.getenv('USE_S3') == 'True'
 
 if USE_S3:
-    AWS_ACCESS_KEY_ID = ''
-    AWS_SECRET_ACCESS_KEY = ''
-    AWS_STORAGE_BUCKET_NAME = ''
-    AWS_DEFAULT_ACL = ''
+    AWS_ACCESS_KEY_ID = 'SCW6M8PNVKP4SEZQYGS3'
+    AWS_SECRET_ACCESS_KEY = '50d914ce-6805-4d83-91d3-ebc6fd4ad261'
+    AWS_STORAGE_BUCKET_NAME = 'falone'
+    AWS_DEFAULT_ACL = 'public-read'
     AWS_S3_REGION_NAME = 'nl-ams'
     AWS_S3_ENDPOINT_URL = 'https://s3.nl-ams.scw.cloud'
 
