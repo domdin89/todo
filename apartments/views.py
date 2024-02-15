@@ -42,6 +42,13 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
+            order_param = self.request.GET.get('order', 'desc')
+            order_by_field = self.request.GET.get('order_by', 'id')
+            
+            if order_param == 'desc':
+                queryset = queryset.order_by('-' + order_by_field)
+            else:
+                queryset = queryset.order_by(order_by_field)
             worksite = self.request.query_params.get('worksite')
             if worksite:
                 return Apartments.objects.filter(worksite=worksite)
