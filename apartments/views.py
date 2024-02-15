@@ -38,7 +38,7 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
     
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name', 'address']
+    search_fields = ['owner']
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
