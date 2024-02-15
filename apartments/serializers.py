@@ -11,6 +11,10 @@ class ApartmentSerializer(serializers.ModelSerializer):
         model = Apartments
         fields = '__all__'
 
+class ApartmentBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Apartments
+        fields = '__all__'
 
 
 
