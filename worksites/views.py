@@ -8,7 +8,7 @@ from accounts.serializers import ProfileSerializer
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
-from .serializers import CollaborationSerializer, WorksiteProfileSerializer, WorksiteSerializer
+from .serializers import CollaborationSerializer,CollaborationSerializerEdit, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -122,7 +122,7 @@ class CollaboratorListView(ListCreateAPIView):
 
 class CollaboratorUpdateView(RetrieveUpdateAPIView):
     queryset = CollabWorksites.objects.all()
-    serializer_class = CollaborationSerializer
+    serializer_class = CollaborationSerializerEdit
     permission_classes = [IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
