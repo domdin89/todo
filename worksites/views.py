@@ -8,7 +8,7 @@ from accounts.serializers import ProfileSerializer
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
-from .serializers import CollaborationSerializer,CollaborationSerializerEdit, WorksiteProfileSerializer, WorksiteSerializer
+from .serializers import CollaborationSerializer, CollaborationSerializerEdit, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter

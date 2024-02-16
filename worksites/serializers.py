@@ -29,6 +29,13 @@ class CollaborationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollabWorksites
         fields = ['id', 'profile', 'worksite', 'role', 'order']
+
+class CollaborationSerializerEdit(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = CollabWorksites
+        fields = ['id', 'profile', 'worksite', 'role', 'order']
 class WorksiteStandardSerializer(serializers.ModelSerializer):
 
     class Meta:
