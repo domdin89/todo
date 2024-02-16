@@ -14,6 +14,15 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.shortcuts import get_object_or_404
+from rest_framework import status, mixins, generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .models import CollabWorksites, Profile, Worksites
+from .serializers import CollaborationSerializer
 
 from accounts.models import Profile
 
@@ -64,6 +73,72 @@ class WorksiteDetail(RetrieveUpdateAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
     lookup_field = 'pk'
+
+
+class CollaboratorListView2(mixins.ListModelMixin, 
+                           mixins.CreateModelMixin,
+                           mixins.UpdateModelMixin, 
+                           generics.GenericAPIView):
+    queryset = CollabWorksites.objects.all()
+    serializer_class = CollaborationSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['profile__first_name', 'profile__last_name', 'worksite__name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        worksite = self.request.query_params.get('worksite', None)
+        order_param = self.request.query_params.get('order', 'desc')
+        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
+        if worksite:
+            return queryset.filter(worksite=worksite)
+        return queryset
+
+
+    def post(self, request, *args, **kwargs):
+        profile_id = request.data.get('profile')
+        worksite_id = request.data.get('worksite')
+        role = request.data.get('role')
+        order = request.data.get('order')
+
+        profile = get_object_or_404(Profile, id=profile_id)
+        worksite = get_object_or_404(Worksites, id=worksite_id)
+
+        collab_worksite = CollabWorksites.objects.create(
+            profile=profile,
+            worksite=worksite,
+            role=role,
+            order=order
+        )
+
+        serializer = self.get_serializer(collab_worksite)
+        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
+
+    def put(self, request, *args, **kwargs):
+        # Estrapola l'ID dell'oggetto da aggiornare dai parametri della richiesta
+        collab_worksite_id = kwargs.get('pk')
+        collab_worksite = get_object_or_404(CollabWorksites, pk=collab_worksite_id)
+
+        # Esegui l'aggiornamento
+        serializer = self.get_serializer(collab_worksite, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get_serializer_context(self):
+        # Fornisce contesto aggiuntivo al serializer, se necessario
+        context = super(CollaboratorListView, self).get_serializer_context() # type: ignore
+        # Aggiungi al contesto se necessario
+        return context
 
 
 class CollaboratorListView(ListCreateAPIView):

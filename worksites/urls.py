@@ -10,6 +10,7 @@ urlpatterns = [
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         
         path('collabworksites', views.CollaboratorListView.as_view()),
+        path('collabworksites2', views.CollaboratorListView2.as_view()),
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
         path('profileWorskite', views.TechnicianNotInWorksiteView.as_view()),
 ]
