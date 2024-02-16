@@ -1,9 +1,10 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
+from accounts.serializers import ProfileSerializer
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
@@ -136,4 +137,31 @@ class WorksiteProfileListView(ListCreateAPIView):
             queryset = queryset.filter(profile__type=role)
 
         # Implementing search functionality through the filter_backends
+        return queryset
+
+
+class TechnicianNotInWorksiteView(ListAPIView):
+    #permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer  # Usa il serializer appropriato per Profile
+
+    def get_queryset(self):
+        # Seleziona tutti i profili di tipo 'TECNICI'
+        queryset = Profile.objects.filter(type='TECNICI')
+        
+        # Recupera il parametro 'worksite' dalla richiesta
+        worksite_id = self.request.query_params.get('worksite')
+        
+        if worksite_id is not None:
+            # Recupera gli ID dei profili associati al worksite specificato
+            associated_technician_ids = CollabWorksites.objects.filter(
+                worksite_id=worksite_id
+            ).values_list('profile__id', flat=True)
+            
+            print(f'Associated technician IDs: {associated_technician_ids}')
+            
+            # Esclude i tecnici associati al worksite specificato
+            queryset = queryset.exclude(id__in=associated_technician_ids)
+            
+            print(f'Queryset after exclusion: {queryset}')
+        
         return queryset

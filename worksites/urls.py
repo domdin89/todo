@@ -11,6 +11,7 @@ urlpatterns = [
         
         path('collabworksites', views.CollaboratorListView.as_view()),
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
+        path('profileWorskite', views.TechnicianNotInWorksiteView.as_view()),
 ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
