@@ -50,6 +50,13 @@ class WorksitesCategories(models.Model):
     category = models.ForeignKey(Categories, on_delete=models.CASCADE )
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="categories")
 
+class FoglioParticella(models.Model):
+    foglio = models.IntegerField()
+    particella = models.IntegerField()
+    
+class WorksitesFoglioParticella(models.Model):
+    foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
 
 
 class Financier(models.Model):
