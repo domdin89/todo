@@ -7,8 +7,8 @@ from django.http import Http404
 from accounts.serializers import ProfileSerializer
 
 from worksites.filters import WorksitesFilter
-from .models import CollabWorksites, Worksites
-from .serializers import CollaborationSerializer, CollaborationSerializerEdit, WorksiteProfileSerializer, WorksiteSerializer
+from .models import CollabWorksites, Worksites, WorksitesFoglioParticella
+from .serializers import CollaborationSerializer, CollaborationSerializerEdit, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -30,14 +30,14 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
 class WorksiteListView(ListCreateAPIView):
-    queryset = Worksites.objects.all()
-    serializer_class = WorksiteSerializer
+    queryset = WorksitesFoglioParticella.objects.all()
+    serializer_class = WorksiteFoglioParticellaSerializer
     permission_classes = [IsAuthenticated]
     
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name', 'address']
-    filterset_class = WorksitesFilter
+    #filterset_class = WorksitesFilter
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
@@ -53,9 +53,9 @@ class WorksiteListView(ListCreateAPIView):
             if status == 0:
                 return queryset
             elif status == 1:
-                return queryset.filter(is_open=True)
+                return queryset.filter(worksite__is_visible=True)
             elif status == 2:
-                return queryset.filter(is_open=False)
+                return queryset.filter(worksite__is_visible=False)
 
         return queryset
     

@@ -42,7 +42,6 @@ class CollabWorksites(models.Model):
     date_start = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_end = models.DateTimeField(blank=True, null=True)
 
-
 class Categories(models.Model):
     name = models.CharField(max_length=150)
 
@@ -57,7 +56,6 @@ class FoglioParticella(models.Model):
 class WorksitesFoglioParticella(models.Model):
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
-
 
 class Financier(models.Model):
     name = models.CharField(max_length=150)

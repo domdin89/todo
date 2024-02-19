@@ -29,7 +29,7 @@ class ClientApartmentsListView(ListAPIView):
         if worksite:
             queryset = queryset.filter(apartment__worksite__id=worksite)
         return queryset
-    
+
 
 class ApartmentListCreateAPIView(ListCreateAPIView):
     queryset = Apartments.objects.all()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories
+from .models import FoglioParticella, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
 
@@ -66,3 +66,21 @@ class WorksiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Worksites
         fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 'date_update', 'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end']
+
+class FoglioParticellaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoglioParticella
+        fields = '__all__'
+
+class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
+    worksite = WorksiteSerializer()
+    foglio_particella = FoglioParticellaSerializer()
+
+    class Meta:
+        model = WorksitesFoglioParticella
+        fields = ['worksite', 'foglio_particella']
+
+    def get_foglio_particella(self, obj):
+        foglio_particella_qs = FoglioParticella.objects.filter(worksitesfoglioparticella=obj.id)
+        serializer = FoglioParticellaSerializer(foglio_particella_qs, many=True)
+        return serializer.data

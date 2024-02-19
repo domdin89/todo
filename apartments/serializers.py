@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from accounts.serializers import ProfileSerializer
-from .models import Apartments, ClientApartments
+from .models import Apartments, ClientApartments, ApartmentSub
 from worksites.serializers import WorksiteSerializer
 
 class ApartmentSerializer(serializers.ModelSerializer):
@@ -11,11 +11,16 @@ class ApartmentSerializer(serializers.ModelSerializer):
         model = Apartments
         fields = '__all__'
 
+class ApartmentSubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApartmentSub
+        fields = '__all__'
+
 class ApartmentBaseSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Apartments
         fields = '__all__'
-
 
 
 class WorksiteApartmentsSerializer(serializers.ModelSerializer):
