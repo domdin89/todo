@@ -79,8 +79,3 @@ class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorksitesFoglioParticella
         fields = ['worksite', 'foglio_particella']
-
-    def get_foglio_particella(self, obj):
-        foglio_particella_qs = FoglioParticella.objects.filter(worksitesfoglioparticella=obj.id)
-        serializer = FoglioParticellaSerializer(foglio_particella_qs, many=True)
-        return serializer.data
