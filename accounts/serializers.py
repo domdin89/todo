@@ -1,7 +1,9 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from django.db.models import CharField
+from django.db.models.functions import Concat
 from accounts.models import Profile
+from worksites.models import CollabWorksites
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -22,8 +24,26 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id','user', 'first_name', 'last_name', 'mobile_number', 'email', 
-            'type', 'image', 'token', 'is_active', 'date', 'date_update'
+            'types', 'type', 'image', 'token', 'is_active', 'date', 'date_update'
         ]
         extra_kwargs = {
             'image': {'required': False},
         }
+
+class ProfileSerializerNew(serializers.ModelSerializer):
+    roles_with_dates = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = [
+            'id', 'user', 'first_name', 'last_name', 'mobile_number', 'email', 
+            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'roles_with_dates',
+        ]
+        extra_kwargs = {
+            'image': {'required': False},
+        }
+
+    def get_roles_with_dates(self, obj):
+        roles_dates = CollabWorksites.objects.filter(profile=obj)\
+            .values('role', 'date_start', 'date_end').distinct()
+        return [{'role': rd['role'], 'date_start': rd['date_start'], 'date_end': rd['date_end']} for rd in roles_dates]

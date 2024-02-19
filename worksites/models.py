@@ -35,7 +35,7 @@ class WorksitesProfile(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
 
 class CollabWorksites(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name='collabworksites')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="collaborations")
     role = models.CharField(max_length=150)
     order = models.IntegerField()

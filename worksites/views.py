@@ -4,7 +4,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
-from accounts.serializers import ProfileSerializer
+from accounts.serializers import ProfileSerializer, ProfileSerializerNew
+from django.db.models.functions import Concat
+from django.db.models import CharField, Value as V
+from django.db.models import Prefetch
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, Worksites
@@ -77,26 +80,40 @@ class WorksiteDetail(RetrieveUpdateAPIView):
 
 
 class CollaboratorListView(ListCreateAPIView):
-    queryset = CollabWorksites.objects.all()
-    serializer_class = CollaborationSerializer
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializerNew
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['profile__first_name', 'profile__last_name', 'worksite__name']
+    search_fields = ['first_name', 'last_name']  # Riflette i campi di Profile
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        worksite = self.request.query_params.get('worksite', None)
+        worksite_id = self.request.query_params.get('worksite')
+        if not worksite_id:
+            raise Http404("Il parametro 'worksite' è obbligatorio.")
+
         order_param = self.request.query_params.get('order', 'desc')
-        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
-        
-        # Applica direttamente l'ordinamento
+        order_by_field = self.request.query_params.get('order_by', 'id')
+
+        # Filtra i profili in base alla presenza in CollabWorksites per il dato worksite
+        queryset = Profile.objects.filter(
+            collabworksites__worksite_id=worksite_id
+        ).distinct()
+
+        # Prefetch dei CollabWorksites filtrati per worksite
+        collabworksites_prefetch = Prefetch(
+            'collabworksites',
+            queryset=CollabWorksites.objects.filter(worksite_id=worksite_id),
+            to_attr='filtered_collabworksites'
+        )
+        queryset = queryset.prefetch_related(collabworksites_prefetch)
+
+        # Applica l'ordinamento
         if order_param == 'desc':
-            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+            queryset = queryset.order_by('-' + order_by_field)
         else:
-            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
-        if worksite:
-            return queryset.filter(worksite=worksite)
+            queryset = queryset.order_by(order_by_field)
+
         return queryset
 
 
@@ -118,6 +135,8 @@ class CollaboratorListView(ListCreateAPIView):
 
         serializer = self.get_serializer(collab_worksite)
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
+    
+
     
 
 class CollaboratorUpdateView(RetrieveUpdateAPIView):
