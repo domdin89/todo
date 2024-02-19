@@ -1,4 +1,4 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Falone API
   description: Documentazione falone api v1.
@@ -271,6 +271,43 @@ paths:
                     example: 'Worksite not found.'
       security:
         - bearerAuth: []
+    put:
+      tags:
+        - Worksites
+      summary: Aggiorna un cantiere esistente
+      description: Aggiorna i dettagli di un cantiere esistente specificato dall'ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del cantiere da aggiornare
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Worksites'
+      responses:
+        '200':
+          description: Cantiere aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Worksites'
+        '404':
+          description: Cantiere non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Cantiere non trovato.'
+      security:
+        - bearerAuth: []
   /profile:
     get:
       tags:
@@ -391,6 +428,44 @@ paths:
                     example: "I campi di inuput forniti non sono validi."
       security:
         - bearerAuth: []
+  /profile/{id}:
+    put:
+      tags:
+        - Profile
+      summary: Aggiorna un profilo esistente
+      description: Aggiorna i dettagli di un profilo utente esistente specificato dall'ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del profilo da aggiornare
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: Profilo aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: Profilo non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Profilo non trovato.'
+      security:
+        - bearerAuth: []
   /collabworksites:
     get:
       tags:
@@ -498,6 +573,44 @@ paths:
                     example: "I campi di inuput forniti non sono validi."
       security:
         - bearerAuth: []
+  /collabworksites/{id}:
+    put:
+      tags:
+        - CollabWorksites
+      summary: Aggiorna un collaboratore di cantiere esistente
+      description: Aggiorna i dettagli di un collaboratore di cantiere esistente specificato dall'ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del collaboratore di cantiere da aggiornare
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollabWorksites'
+      responses:
+        '200':
+          description: Collaboratore di cantiere aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollabWorksites'
+        '404':
+          description: Collaboratore di cantiere non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Collaboratore di cantiere non trovato.'
+      security:
+        - bearerAuth: []
   /worksitesprofile:
     get:
       tags:
@@ -575,7 +688,6 @@ paths:
                     example: "Parametro di query non valido o mancante."
       security:
         - bearerAuth: []
-  paths:
   /apartments:
     get:
       tags:
@@ -721,8 +833,44 @@ paths:
                     example: "The input fields provided are invalid."
       security:
         - bearerAuth: []
-
-
+  /apartments/{id}:
+    put:
+      tags:
+        - Apartments
+      summary: Aggiorna un appartamento esistente
+      description: Aggiorna i dettagli di un appartamento esistente specificato dall'ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID dell'appartamento da aggiornare
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Apartments'
+      responses:
+        '200':
+          description: Appartamento aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartments'
+        '404':
+          description: Appartamento non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Appartamento non trovato.'
+      security:
+        - bearerAuth: []
   /clientapartments:
     get:
       tags:
@@ -901,131 +1049,134 @@ paths:
         - bearerAuth: []
 components:
   schemas:
-    Profile:
+    Apartments:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-          example: 2
-        user_id:
-          type: integer
-          format: int64
-        image:
-          type: string
-        first_name:
-          type: string
-          maxLength: 100
-        last_name:
-          type: string
-          maxLength: 100
-        mobile_number:
-          type: string
-          maxLength: 100
-        token:
-          type: string
-          maxLength: 150
-        is_active:
-          type: boolean
-        email:
-          type: string
-          maxLength: 100
-        date:
+        date: 
           type: string
           format: date-time
         date_update:
           type: string
           format: date-time
+        foglio:
+          type: integer
+        id:
+          type: integer
+          format: int64
+        image:
+          type: string
+          format: binary
+          description: Optional image file of the apartment
+        link:
+          type: string
+          maxLength: 100
+          nullable: true
+        note:
+          type: string
+          maxLength: 100
+          nullable: true
+        owner:
+          type: string
+          maxLength: 100
+          nullable: true
+        owner_cf:
+          type: string
+          maxLength: 100
+          nullable: true
+        owner_email:
+          type: string
+          format: email
+          nullable: true
+        owner_phone:
+          type: string
+          maxLength: 100
+          nullable: true
+        particella:
+          type: integer
+        sub:
+          type: integer
+        surface:
+          type: string
+          maxLength: 100
+          nullable: true
+        worksite_id:
+          type: integer
+          format: int64
+    BoardAttachments:
+      type: object
+      properties:
+        attachment_link:
+          type: string
+        board_id:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
         type:
           type: string
           enum:
-            - USER
-            - TECNICI
-            - STAFF
-
-    Worksites:
+            - DOCUMENT
+            - IMAGE
+    BoardRead:
       type: object
       properties:
-        id:
+        board_id:
           type: integer
-          example: 1
-        image:
-          type: string
-          example: "https://example.com/image.jpg"
-        name:
-          type: string
-          example: "Cantiere A"
-        address:
-          type: string
-          example: "Via Roma, 1"
-        lat:
-          type: number
-          format: "decimal(10,6)"
-          example: 45.464203
-        lon:
-          type: number
-          format: "decimal(10,6)"
-          example: 9.189982
-        is_open:
-          type: boolean
-          example: true
-        net_worth:
-          type: number
-          format: float
-          example: 1000000.50
-        financier:
-          $ref: '#/components/schemas/Financier'
-        contractor:
-          $ref: '#/components/schemas/Contractor'
-        link:
-          type: string
-          example: "https://example.com/cantiere-info"
+          format: int64
         date:
           type: string
           format: date-time
-          example: "2021-07-21T17:32:28Z"
+        id:
+          type: integer
+          format: int64
+        profile_id:
+          type: integer
+          format: int64
+    Boards:
+      type: object
+      properties:
+        author:
+          type: string
+          maxLength: 150
+        body:
+          type: string
+        date:
+          type: string
+          format: date-time
         date_update:
           type: string
           format: date-time
-          example: "2021-07-22T12:45:00Z"
-        collaborations:
-          type: array
-          items:
-            $ref: '#/components/schemas/CollabWorksites'
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/Categories'
-    WorksitesProfile:
-      type: object
-      properties:
         id:
           type: integer
           format: int64
-          example: 1
-        profile:
-          $ref: '#/components/schemas/Profile'
-        worksite:
-          type: integer
-          format: int64
-          example: 56
-    CollabWorksites:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        profile:
-          $ref: '#/components/schemas/Profile'
-        worksite:
-          type: integer
-          example: 1
-        order:
-          type: integer
-          example: 0
-        role:
+        image:
           type: string
-          example: 'DTC'
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipients'
+        title:
+          type: string
+          maxLength: 250
+        type:
+          type: string
+          enum:
+            - MESSAGE
+            - UPDATE
+    Categories:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 150
+          example: "Abitazione"
     CheckList:
       type: object
       properties:
@@ -1038,200 +1189,47 @@ components:
     CheckListWorksites:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        worksites_id:
-          type: integer
-          format: int64
         checklist_id:
           type: integer
           format: int64
         date:
           type: string
           format: date-time
-        order:
-          type: integer
-        is_done:
-          type: boolean
-    Apartments:
-      type: object
-      properties:
         id:
           type: integer
           format: int64
-        worksite_id:
+        is_done:
+          type: boolean
+        order:
+          type: integer
+        worksites_id:
           type: integer
           format: int64
-        foglio:
-          type: integer
-        particella:
-          type: integer
-        sub:
-          type: integer
-        surface:
-          type: string
-          maxLength: 100
-        note:
-          type: string
-          maxLength: 100
-        owner:
-          type: string
-          maxLength: 100
-        owner_phone:
-          type: string
-          maxLength: 100
-        owner_email:
-          type: string
-          maxLength: 100
-        owner_cf:
-          type: string
-          maxLength: 100
-        link:
-          type: string
-          maxLength: 100
-        date:
-          type: string
-          format: date-time
-        date_update:
-          type: string
-          format: date-time
     ClientApartments:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-        profile:
-          $ref: '#/components/schemas/Profile'
         apartment:
           $ref: '#/components/schemas/Apartments'
+        id:
+          type: integer
+          format: int64
         is_active:
           type: boolean
-    BoardRead:
+        profile:
+          $ref: '#/components/schemas/Profile'
+    CollabWorksites:
       type: object
       properties:
         id:
           type: integer
-          format: int64
-        profile_id:
+        order:
           type: integer
-          format: int64
-        board_id:
+        profile:
+          $ref: '#/components/schemas/Profile'
+        role:
+          type: string
+        worksite:
           type: integer
-          format: int64
-        date:
-          type: string
-          format: date-time
-    Recipients:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        profile_id:
-          type: integer
-          format: int64
-        board_id:
-          type: integer
-          format: int64
-        apartment_id:
-          type: integer
-          format: int64
-        worksite_id:
-          type: integer
-          format: int64
-        recipient_type:
-          type: string
-          enum:
-            - WORKSITE
-            - APARTMENT
-            - PROFILE
-        date:
-          type: string
-          format: date-time
-    BoardAttachments:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        board_id:
-          type: integer
-          format: int64
-        attachment_link:
-          type: string
-        type:
-          type: string
-          enum:
-            - DOCUMENT
-            - IMAGE
-        date:
-          type: string
-          format: date-time
-    Boards:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        image:
-          type: string
-        title:
-          type: string
-          maxLength: 250
-        body:
-          type: string
-        author:
-          type: string
-          maxLength: 150
-        date:
-          type: string
-          format: date-time
-        date_update:
-          type: string
-          format: date-time
-        type:
-          type: string
-          enum:
-            - MESSAGE
-            - UPDATE
-        recipients:
-          type: array
-          items:
-            $ref: '#/components/schemas/Recipients'
-    Categories:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-          maxLength: 150
-          example: "Abitazione"
-    WorksitesCategories:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        category_id:
-          type: integer
-          format: int64
-        worksite_id:
-          type: integer
-          format: int64
-    Financier:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-          maxLength: 150
-          example: "Banca intesa"
     Contractor:
       type: object
       properties:
@@ -1241,7 +1239,155 @@ components:
         name:
           type: string
           maxLength: 150
-          example: "Comune di Roma"
+    Financier:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 150
+    Profile:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        email:
+          type: string
+          maxLength: 100
+        first_name:
+          type: string
+          maxLength: 100
+        id:
+          type: integer
+          format: int64
+        image:
+          type: string
+        is_active:
+          type: boolean
+        last_name:
+          type: string
+          maxLength: 100
+        mobile_number:
+          type: string
+          maxLength: 100
+        token:
+          type: string
+          maxLength: 150
+        type:
+          type: string
+          enum:
+            - USER
+            - TECNICI
+            - STAFF
+        user_id:
+          type: integer
+          format: int64
+    Recipients:
+      type: object
+      properties:
+        apartment_id:
+          type: integer
+          format: int64
+        board_id:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date-time
+        id:
+          type: integer
+          format: int64
+        profile_id:
+          type: integer
+          format: int64
+        recipient_type:
+          type: string
+          enum:
+            - WORKSITE
+            - APARTMENT
+            - PROFILE
+        worksite_id:
+          type: integer
+          format: int64
+    Worksites:
+      type: object
+      properties:
+        address:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Categories'
+        collaborations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollabWorksites'
+        contractor:
+          $ref: '#/components/schemas/Contractor'
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        financier:
+          $ref: '#/components/schemas/Financier'
+        id:
+          type: integer
+        image:
+          type: string
+        is_open:
+          type: boolean
+        lat:
+          type: number
+          format: "decimal(10,6)"
+        lon:
+          type: number
+          format: "decimal(10,6)"
+        name:
+          type: string
+        net_worth:
+          type: number
+          format: float
+        link:
+          type: string
+    WorksitesCategories:
+      type: object
+      properties:
+        category_id:
+          type: integer
+          format: int64
+        id:
+          type: integer
+          format: int64
+        worksite_id:
+          type: integer
+          format: int64
+    WorksitesProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        profile:
+          $ref: '#/components/schemas/Profile'
+        role:
+          type: string
+          enum:
+            - USER
+            - TECNICI
+            - STAFF
+        worksite:
+          type: integer
+          format: int64
+          example: 56
   securitySchemes:
     bearerAuth:
       type: http
