@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 class Apartments(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
-    floor = models.IntegerField(blank=True, null=True)
+    floor = models.CharField(max_length=100, blank=True, null=True)
     note = models.CharField(max_length=100, blank=True, null=True)
     owner = models.CharField(max_length=100, blank=True, null=True)
     owner_phone = models.CharField(max_length=100,blank=True, null=True)
