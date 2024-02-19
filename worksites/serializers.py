@@ -57,25 +57,28 @@ class WorksiteProfileSerializer(serializers.ModelSerializer):
         fields = ['profile', 'worksite', 'role', 'order']
 
 
-class WorksiteSerializer(serializers.ModelSerializer):
-    financier = FinancierSerializer(read_only=True)
-    contractor = ContractorSerializer(read_only=True)
-    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
-    collaborations = WorksiteProfileSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Worksites
-        fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 'date_update', 'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end']
-
 class FoglioParticellaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoglioParticella
         fields = '__all__'
 
 class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
-    worksite = WorksiteSerializer()
     foglio_particella = FoglioParticellaSerializer()
 
     class Meta:
         model = WorksitesFoglioParticella
-        fields = ['worksite', 'foglio_particella']
+        fields = '__all__'
+
+class WorksiteSerializer(serializers.ModelSerializer):
+    financier = FinancierSerializer(read_only=True)
+    contractor = ContractorSerializer(read_only=True)
+    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
+    collaborations = WorksiteProfileSerializer(many=True, read_only=True)
+    foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Worksites
+        fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 
+                  'date_update', 
+                  'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
+

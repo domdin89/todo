@@ -55,7 +55,7 @@ class FoglioParticella(models.Model):
     
 class WorksitesFoglioParticella(models.Model):
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
-    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="foglio_particelle")
 
 class Financier(models.Model):
     name = models.CharField(max_length=150)
