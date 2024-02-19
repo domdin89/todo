@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.serializers import ProfileSerializer
 from .models import Apartments, ClientApartments, ApartmentSub
-from worksites.serializers import WorksiteSerializer
+from worksites.serializers import FoglioParticellaSerializer, WorksiteSerializer
 
 class ApartmentSerializer(serializers.ModelSerializer):
     worksite = WorksiteSerializer()
@@ -12,15 +12,17 @@ class ApartmentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ApartmentSubSerializer(serializers.ModelSerializer):
+    foglio_particella = FoglioParticellaSerializer(read_only=True)
     class Meta:
         model = ApartmentSub
         fields = '__all__'
 
 class ApartmentBaseSerializer(serializers.ModelSerializer):
+    subs = ApartmentSubSerializer(many=True, read_only=True)
     
     class Meta:
         model = Apartments
-        fields = '__all__'
+        fields = ['id','worksite', 'floor', 'note', 'owner', 'owner_phone', 'owner_email', 'owner_cf', 'link', 'date', 'date_update', 'subs'] 
 
 
 class WorksiteApartmentsSerializer(serializers.ModelSerializer):

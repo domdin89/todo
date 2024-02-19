@@ -19,7 +19,7 @@ class Apartments(models.Model):
 class ApartmentSub(models.Model):
     sub = models.IntegerField(blank=True, null=True)
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
-    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE, related_name='subs')
 
 class ClientApartments(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
