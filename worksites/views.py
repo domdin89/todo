@@ -1,5 +1,6 @@
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,8 +11,8 @@ from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
 
 from worksites.filters import WorksitesFilter
-from .models import CollabWorksites, Worksites
-from .serializers import CollaborationSerializer, CollaborationSerializerEdit, WorksiteProfileSerializer, WorksiteSerializer
+from .models import CollabWorksites, Worksites, WorksitesFoglioParticella
+from .serializers import CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -23,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
-
+from django.db import transaction
 from .models import CollabWorksites, Profile, Worksites
 from .serializers import CollaborationSerializer
 
@@ -32,8 +33,9 @@ from accounts.models import Profile
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
-class WorksiteListView(ListCreateAPIView):
+class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.all()
+    print(f'foglio particella')
     serializer_class = WorksiteSerializer
     permission_classes = [IsAuthenticated]
     
@@ -45,7 +47,7 @@ class WorksiteListView(ListCreateAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-id')
-        status = self.request.query_params.get('status', None)
+        status = self.request.GET.get('status', None)
         
         if status is not None:
             try:
@@ -62,21 +64,21 @@ class WorksiteListView(ListCreateAPIView):
 
         return queryset
     
-    def post(self, request, *args, **kwargs):
-        # Handling multipart data including files
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": {"note": serializer.data}}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"status": "fail", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
         
     
 class WorksiteDetail(RetrieveUpdateAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
     lookup_field = 'pk'
+    parser_classes = (MultiPartParser, FormParser)  # Utilizza il parser multipart/form-data
 
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=self.kwargs.get('partial', False))
+        if serializer.is_valid():
+            self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 class CollaboratorListView(ListCreateAPIView):
@@ -88,12 +90,12 @@ class CollaboratorListView(ListCreateAPIView):
     search_fields = ['first_name', 'last_name']  # Riflette i campi di Profile
 
     def get_queryset(self):
-        worksite_id = self.request.query_params.get('worksite')
+        worksite_id = self.request.GET.get('worksite')
         if not worksite_id:
             raise Http404("Il parametro 'worksite' è obbligatorio.")
 
-        order_param = self.request.query_params.get('order', 'desc')
-        order_by_field = self.request.query_params.get('order_by', 'id')
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')
 
         # Filtra i profili in base alla presenza in CollabWorksites per il dato worksite
         queryset = Profile.objects.filter(
@@ -157,10 +159,10 @@ class WorksiteProfileListView(ListCreateAPIView):
 
     def get_queryset(self):
         queryset = CollabWorksites.objects.all()
-        worksite_id = self.request.query_params.get('worksite')
-        role = self.request.query_params.get('role')
-        order_param = self.request.query_params.get('order', 'desc')
-        order_by_field = self.request.query_params.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        worksite_id = self.request.GET.get('worksite')
+        role = self.request.GET.get('role')
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
         
         # Applica direttamente l'ordinamento
         if order_param == 'desc':
@@ -187,7 +189,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
         queryset = Profile.objects.filter(type='TECNICI')
         
         # Recupera il parametro 'worksite' dalla richiesta
-        worksite_id = self.request.query_params.get('worksite')
+        worksite_id = self.request.GET.get('worksite')
         
         if worksite_id is not None:
             # Recupera gli ID dei profili associati al worksite specificato

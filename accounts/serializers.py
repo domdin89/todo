@@ -24,7 +24,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id','user', 'first_name', 'last_name', 'mobile_number', 'email', 
-            'types', 'type', 'image', 'token', 'is_active', 'date', 'date_update'
+             'type', 'image', 'token', 'is_active', 'date', 'date_update'
         ]
         extra_kwargs = {
             'image': {'required': False},
