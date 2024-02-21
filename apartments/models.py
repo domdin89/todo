@@ -17,7 +17,7 @@ class Apartments(models.Model):
     date_update = models.DateTimeField(auto_now=True)
 
 class ApartmentSub(models.Model):
-    sub = models.IntegerField(blank=True, null=True)
+    sub = models.CharField(max_length=100,blank=True, null=True)
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE, related_name='subs')
 

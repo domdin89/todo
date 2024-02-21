@@ -50,8 +50,8 @@ class WorksitesCategories(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="categories")
 
 class FoglioParticella(models.Model):
-    foglio = models.IntegerField()
-    particella = models.IntegerField()
+    foglio = models.CharField(max_length=50,blank=True, null=True) 
+    particella = models.CharField(max_length=50, blank=True, null=True)
     
 class WorksitesFoglioParticella(models.Model):
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)

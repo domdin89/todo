@@ -1,3 +1,4 @@
+import json
 from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
@@ -11,7 +12,7 @@ from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
 
 from worksites.filters import WorksitesFilter
-from .models import CollabWorksites, Worksites, WorksitesFoglioParticella
+from .models import CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
 from .serializers import CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -27,18 +28,102 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
 from .models import CollabWorksites, Profile, Worksites
 from .serializers import CollaborationSerializer
-
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser
 from accounts.models import Profile
 
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
+
+class BaseParams(APIView):
+    pagination_class = CustomPagination
+    filter_backends = []
+    search_fields = []
+
+    def __init__(self, filter_backends=None, search_fields=None, **kwargs):
+        super().__init__(**kwargs)
+        self.order_param = self.request.GET.get('order', 'desc')
+        self.order_by_field = self.request.GET.get('order_by', 'id')
+
+        # Utilizza += per assegnare una nuova lista a filter_backends invece di extend
+        if filter_backends is not None:
+            self.filter_backends += filter_backends
+
+        if search_fields is not None:
+            self.search_fields = search_fields
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+def WorksitePostNew(request):
+
+    # Ottieni il file immagine
+    image_file = request.FILES.get('image')
+
+    # Crea il cantiere
+    post_data = {
+        'image': image_file,
+        'name': request.data.get('name', None),
+        'address': request.data.get('address', None),
+        'lat': request.data.get('lat', None),
+        'lon': request.data.get('lon', None),
+        'is_visible': request.data.get('is_visible', None),
+        'net_worth': request.data.get('net_worth', None),
+        'percentage_worth': request.data.get('percentage_worth', None),
+        'link': request.data.get('link', None),
+        'date_start': request.data.get('date_start', None),
+        'date_end': request.data.get('date_end', None),
+        'status': request.data.get('status', None),
+        'codice_commessa': request.data.get('codice_commessa', None),
+        'codice_CIG': request.data.get('codice_CIG', None),
+        'codice_CUP': request.data.get('codice_CUP', None),
+    }
+
+    # Rimuovi i campi vuoti o non validi
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Crea il cantiere solo se tutti i campi obbligatori sono presenti
+    try:
+        worksite = Worksites.objects.create(**post_data)
+    except ValidationError as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    # Gestisci foglio_particelle solo se è presente
+    foglio_particelle = request.data.getlist('foglio_particelle', None)
+    if foglio_particelle:
+        for item in foglio_particelle:
+            # Converti la stringa JSON in un dizionario Python
+            item_dict = json.loads(item)
+            foglio_particella = FoglioParticella.objects.create(
+                foglio=item_dict.get('foglio'),
+                particella=item_dict.get('particella')
+            )
+
+            WorksitesFoglioParticella.objects.create(
+                foglio_particella=foglio_particella,
+                worksite=worksite
+            )
+
+    return Response('tutto regolare', status=status.HTTP_200_OK)
+
+        
+
+
+
+        # serializer = WorksiteSerializer
+
+        # dati cantiere, immagine (multipart o body)
+        # foglio particella array
+        # categorie
+
+class WorksiteProva(BaseParams):
+    filter_backends = [SearchFilter, DjangoFilterBackend]
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.all()
-    print(f'foglio particella')
     serializer_class = WorksiteSerializer
     permission_classes = [IsAuthenticated]
-    
+
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['name', 'address']
@@ -63,10 +148,7 @@ class WorksiteListView(ListAPIView):
                 return queryset.filter(is_open=False)
 
         return queryset
-    
-    
-        
-    
+
 class WorksiteDetail(RetrieveUpdateAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
@@ -87,7 +169,7 @@ class CollaboratorListView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['first_name', 'last_name']  # Riflette i campi di Profile
+    search_fields = ['first_name', 'last_name']
 
     def get_queryset(self):
         worksite_id = self.request.GET.get('worksite')
