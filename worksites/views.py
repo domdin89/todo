@@ -10,6 +10,7 @@ from accounts.serializers import ProfileSerializer, ProfileSerializerNew
 from django.db.models.functions import Concat
 from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
+from worksites.decorators import validate_token
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
@@ -35,23 +36,72 @@ from accounts.models import Profile
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
-
 class BaseParams(APIView):
+    print('sono qui')
     pagination_class = CustomPagination
-    filter_backends = []
-    search_fields = []
+    parser_classes = []
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    print(f'filter {filter_backends}')
+    filterset_class = []
+    serializer_class = []
+    queryset = []
 
-    def __init__(self, filter_backends=None, search_fields=None, **kwargs):
+    #@validate_token
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def __init__(self, search_fields=None, serializer=None, queryset=None, filter_class=None, parser_classes=None, **kwargs):
+        self.search_fields = search_fields
         super().__init__(**kwargs)
-        self.order_param = self.request.GET.get('order', 'desc')
-        self.order_by_field = self.request.GET.get('order_by', 'id')
+        # self.order_param = request.GET.get('order', 'desc')
+        # self.order_by_field = request.GET.get('order_by', 'id')
+        if parser_classes is not None:
+            self.parser_classes = parser_classes
 
-        # Utilizza += per assegnare una nuova lista a filter_backends invece di extend
-        if filter_backends is not None:
-            self.filter_backends += filter_backends
+        if filter_class is not None:
+            self.filter_class = filter_class
 
         if search_fields is not None:
             self.search_fields = search_fields
+        
+        if serializer is not None:
+            self.serializer = serializer
+        
+        if queryset is not None:
+            self.queryset = queryset
+
+
+class Child(BaseParams):
+   
+    def __init__(self, *args, **kwargs):
+        print('inti')
+        super().__init__(*args, **kwargs)
+        self.queryset = Worksites.objects.all().order_by('-id')
+        self.serializer = WorksiteSerializer
+        self.search_fields = ['name', 'address'] 
+        self.filter_class = WorksitesFilter
+        #self.parser_classes = (MultiPartParser, FormParser)
+
+    def get(self, request):
+        print('eccomi')
+        status = request.GET.get('status')
+        if status is not None:
+            try:
+                status = int(status)
+            except ValueError:
+                return Response(status=status.HTTP_400_BAD_REQUEST)  # Return a bad request response if status is invalid
+            
+            if status == 0:
+                return Response(self.queryset)
+            elif status == 1:
+                serializer = self.serializer(self.queryset.filter(is_visible=True), many=True)
+                return Response(serializer.data)
+            elif status == 2:
+                serializer = self.serializer(self.queryset.filter(is_visible=False), many=True)
+                return Response(serializer.data)
+
+        serializer = self.serializer(self.queryset, many=True)
+        return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -66,11 +116,11 @@ def WorksitePostNew(request):
         'image': image_file,
         'name': request.data.get('name', None),
         'address': request.data.get('address', None),
-        'lat': request.data.get('lat', None),
-        'lon': request.data.get('lon', None),
+        'lat': request.data.get('lat', 0),
+        'lon': request.data.get('lon', 0),
         'is_visible': request.data.get('is_visible', None),
-        'net_worth': request.data.get('net_worth', None),
-        'percentage_worth': request.data.get('percentage_worth', None),
+        'net_worth': request.data.get('net_worth', 0),
+        'percentage_worth': request.data.get('percentage_worth', 0),
         'link': request.data.get('link', None),
         'date_start': request.data.get('date_start', None),
         'date_end': request.data.get('date_end', None),
@@ -108,17 +158,114 @@ def WorksitePostNew(request):
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
         
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_id
+    try:
+        worksite = Worksites.objects.get(id=worksite_id)
+    except Worksites.DoesNotExist:
+        return Response("Cantiere non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    post_data = {
+        'name': request.data.get('name', worksite.name),
+        'address': request.data.get('address', worksite.address),
+        'lat': request.data.get('lat', worksite.lat),
+        'lon': request.data.get('lon', worksite.lon),
+        'is_visible': request.data.get('is_visible', worksite.is_visible),
+        'net_worth': request.data.get('net_worth', worksite.net_worth),
+        'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
+        'link': request.data.get('link', worksite.link),
+        'date_start': request.data.get('date_start', worksite.date_start),
+        'date_end': request.data.get('date_end', worksite.date_end),
+        'status': request.data.get('status', worksite.status),
+        'codice_commessa': request.data.get('codice_commessa', worksite.codice_commessa),
+        'codice_CIG': request.data.get('codice_CIG', worksite.codice_CIG),
+        'codice_CUP': request.data.get('codice_CUP', worksite.codice_CUP),
+    }
+
+    # Rimuovi i campi vuoti o non validi
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Aggiorna i campi del cantiere
+    for key, value in post_data.items():
+        setattr(worksite, key, value)
+
+    # Salva il cantiere
+    worksite.save()
+
+    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
 
 
-        # serializer = WorksiteSerializer
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def update_worksite_image(request, worksite_id):
+    try:
+        worksite = Worksites.objects.get(pk=worksite_id)
+    except Worksites.DoesNotExist:
+        return Response("Cantiere non trovato", status=status.HTTP_404_NOT_FOUND)
 
-        # dati cantiere, immagine (multipart o body)
-        # foglio particella array
-        # categorie
+    post_data = {
+        'image': request.FILES.get('image')
+    }
 
-class WorksiteProva(BaseParams):
-    filter_backends = [SearchFilter, DjangoFilterBackend]
+    # Rimuovi i campi vuoti o non validi
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Aggiorna i campi del cantiere
+    for key, value in post_data.items():
+        setattr(worksite, key, value)
+
+    # Salva il cantiere
+    worksite.save()
+
+    return Response("Immagine cantiere aggiornata con successo", status=status.HTTP_200_OK)
+
+           
+@api_view(['PUT'])
+def add_foglio_particella(request, foglio_particella_id):
+    try:
+        foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+    except Worksites.DoesNotExist:
+        return Response("Foglio Particella non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    if foglio_particella:
+        foglio_particelle = request.data.getlist('foglio_particelle', None)
+        for item in foglio_particelle:
+            # Converti la stringa JSON in un dizionario Python
+            item_dict = json.loads(item)
+            foglio_particelle.foglio=item_dict.get('foglio'),
+            foglio_particelle.particella=item_dict.get('particella')
+
+            try:
+                foglio_particelle.save()
+            except:
+                return Response('foglio particella errato', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+def add_worksite_foglio_particella(request, worksite_foglio_particella_id, foglio_particella_id, worksite):
+    worksite_foglio_particella = WorksitesFoglioParticella.objects.get(pk=worksite_foglio_particella_id)
+    foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+    worksite_get = Worksites.objects.get(pk=worksite)
+
+    try:
+        worksite_foglio_particella.foglio_particella = foglio_particella
+        worksite_foglio_particella.worksite = worksite_get
+
+
+        worksite_foglio_particella.save()
+
+
+    except:
+            return Response('foglio particella errato', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
+
+
+
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.all()
     serializer_class = WorksiteSerializer
