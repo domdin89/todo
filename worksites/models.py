@@ -17,9 +17,9 @@ class Worksites(models.Model):
     link = models.CharField(max_length=100,blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True,blank=True, null=True)
-    codice_commessa = models.CharField(max_length=100,blank=True, null=True, unique=True)
-    codice_CIG = models.CharField(max_length=100,blank=True, null=True, unique=True)
-    codice_CUP = models.CharField(max_length=100,blank=True, null=True, unique=True)
+    codice_commessa = models.CharField(max_length=100,blank=True, null=True)
+    codice_CIG = models.CharField(max_length=100,blank=True, null=True)
+    codice_CUP = models.CharField(max_length=100,blank=True, null=True)
     date_start = models.DateTimeField(blank=True, null=True)
     date_end = models.DateTimeField(blank=True, null=True)
 
