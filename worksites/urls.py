@@ -6,18 +6,27 @@ from django.urls import reverse_lazy
 
 app_name = 'worksites'
 urlpatterns = [
+        #get
         path('worksites', views.WorksiteListView.as_view()),
-        path('child', views.Child.as_view()),
-        path('worksite/new', views.WorksitePostNew),
-        path('worksites/update/<int:worksite_id>', views.update_worksite),
-        path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
         path('worksites/<int:pk>', views.WorksiteDetail.as_view()),
-        
+        path('child', views.Child.as_view()),
+
         path('collabworksites', views.CollaboratorListView.as_view()),
-        path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
 
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
         path('profileWorskite', views.TechnicianNotInWorksiteView.as_view()),
+
+        #post
+        path('worksite/new', views.WorksitePostNew),
+
+        #put
+        path('worksites/update/<int:worksite_id>', views.update_worksite),
+        path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
+        path('worksites/update/category/<int:id>', views.update_categories),
+        
+        path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
+
+        
 ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

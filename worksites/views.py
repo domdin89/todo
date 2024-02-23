@@ -208,26 +208,43 @@ def update_foglio_particella(request, id):
     try:
         worksite_foglio_particella = WorksitesFoglioParticella.objects.get(id=id)
         foglio_particella = worksite_foglio_particella.foglio_particella
-        print(f'worksit obj fp {worksite_foglio_particella}')
     except WorksitesFoglioParticella.DoesNotExist:  # Fixing the exception type
         return Response("Foglio Particella non trovato", status=status.HTTP_404_NOT_FOUND)
 
     if foglio_particella:
-        foglio_particelle = request.data.getlist('foglio_particelle', None)
+        foglio_particelle = request.data.getlist('foglio_particelle', foglio_particella)
         for item in foglio_particelle:
-            print(f'item {foglio_particelle}')
             # Convert the JSON string to a Python dictionary
             item_dict = json.loads(item)
-            print(f"item {item_dict.get('foglio')}")
             # Assuming foglio_particella is an instance of a model with fields foglio and particella
             foglio_particella.foglio = item_dict.get('foglio')
             foglio_particella.particella = item_dict.get('particella')
-
             
             foglio_particella.save()
 
 
     return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+def update_categories(request, id):
+    try:
+        worksite_category = WorksitesCategories.objects.get(id=id)
+        category = worksite_category.category
+    except WorksitesCategories.DoesNotExist:  # Fixing the exception type
+        return Response("Categoria non trovata", status=status.HTTP_404_NOT_FOUND)
+
+    if category:
+        categories = request.data.getlist('categories', category)  # Fixing variable name
+        for item in categories:
+            # Convert the JSON string to a Python dictionary
+            item_dict = json.loads(item)
+            # Assuming category is an instance of a model with a field 'name'
+            category.name = item_dict.get('name')
+            
+            category.save()
+
+    return Response("Categoria aggiornata con successo", status=status.HTTP_200_OK)
+
 
 
 @api_view(['PUT'])
