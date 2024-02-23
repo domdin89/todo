@@ -178,65 +178,147 @@ paths:
     post:
       tags:
         - Worksites
-      summary: Aggiungi un nuovo cantiere
-      description: Crea un nuovo cantiere nel db inclusi i dettagli e l'immagine del cantiere
+      summary: Create a new worksite with foglio particella
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
               type: object
-              required:
-               - name
               properties:
+                image:
+                  type: string
+                  format: binary
                 name:
                   type: string
                 address:
                   type: string
                 lat:
                   type: number
-                  format: double
+                  format: float
                 lon:
                   type: number
-                  format: double
-                is_open:
+                  format: float
+                is_visible:
                   type: boolean
                 net_worth:
                   type: number
                   format: float
+                percentage_worth:
+                  type: number
+                  format: float
                 financier:
                   type: integer
-                contractor_id:
+                contractor:
                   type: integer
                 link:
                   type: string
-                date:
+                date_start:
                   type: string
                   format: date-time
-                date_update:
+                date_end:
                   type: string
                   format: date-time
+                status:
+                  type: string
+                  enum:
+                    - APERTO
+                    - SOSPESO
+                    - CHIUSA
+                codice_commessa:
+                  type: string
+                codice_CIG:
+                  type: string
+                codice_CUP:
+                  type: string
+                foglio_particelle:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      foglio:
+                        type: integer
+                      particella:
+                        type: integer
+      responses:
+        '201':
+          description: Successfully created a new worksite
+        '400':
+          description: Bad request, check the request body for errors
+      security:
+        - bearerAuth: []
+  paths:
+  /worksite/new:
+    post:
+      tags:
+        - Worksites
+      summary: Crea un nuovo cantiere con foglio particella
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
                 image:
                   type: string
                   format: binary
-                  description: Image file of the worksite
+                name:
+                  type: string
+                address:
+                  type: string
+                lat:
+                  type: number
+                  format: float
+                lon:
+                  type: number
+                  format: float
+                is_visible:
+                  type: boolean
+                net_worth:
+                  type: number
+                  format: float
+                percentage_worth:
+                  type: number
+                  format: float
+                financier:
+                  type: integer
+                contractor:
+                  type: integer
+                link:
+                  type: string
+                date_start:
+                  type: string
+                  format: date-time
+                date_end:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  enum:
+                    - APERTO
+                    - SOSPESO
+                    - CHIUSA
+                codice_commessa:
+                  type: string
+                codice_CIG:
+                  type: string
+                codice_CUP:
+                  type: string
+                foglio_particelle:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      foglio:
+                        type: integer
+                      particella:
+                        type: integer
       responses:
-        '201':
-          description: Nuovo cantiere creato con successo.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Worksites'
+        '200':
+          description: tutto regolare
         '400':
-          description: Campi di input non validi
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "I campi di input forniti non sono validi."
+          description: Bad request, check the request body for errors
       security:
         - bearerAuth: []
   /worksites/{id}:
@@ -271,6 +353,7 @@ paths:
                     example: 'Worksite not found.'
       security:
         - bearerAuth: []
+  /worksites/update/{id}:
     put:
       tags:
         - Worksites
@@ -286,9 +369,9 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Worksites'
+              $ref: '#/components/schemas/WorksitesNoImage'
       responses:
         '200':
           description: Cantiere aggiornato con successo
@@ -296,6 +379,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Worksites'
+        '404':
+          description: Cantiere non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Cantiere non trovato.'
+      security:
+        - bearerAuth: []
+  /worksites/update-image/{id}:
+    put:
+      tags:
+        - Worksites
+      summary: Aggiorna un cantiere esistente
+      description: Aggiorna i dettagli di un cantiere esistente specificato dall'ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del cantiere da aggiornare
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorksitesImage'
+      responses:
+        '200':
+          description: Cantiere aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorksitesImage'
         '404':
           description: Cantiere non trovato
           content:
@@ -1357,6 +1478,52 @@ components:
           format: float
         link:
           type: string
+    WorksitesNoImage:
+      type: object
+      properties:
+        address:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Categories'
+        collaborations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CollabWorksites'
+        contractor:
+          $ref: '#/components/schemas/Contractor'
+        date:
+          type: string
+          format: date-time
+        date_update:
+          type: string
+          format: date-time
+        financier:
+          $ref: '#/components/schemas/Financier'
+        id:
+          type: integer
+        is_open:
+          type: boolean
+        lat:
+          type: number
+          format: "decimal(10,6)"
+        lon:
+          type: number
+          format: "decimal(10,6)"
+        name:
+          type: string
+        net_worth:
+          type: number
+          format: float
+        link:
+          type: string
+    WorksitesImage:
+      type: object
+      properties:
+        image:
+          type: string
+          format: binary
     WorksitesCategories:
       type: object
       properties:

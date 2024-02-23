@@ -11,6 +11,7 @@ from django.db.models.functions import Concat
 from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
 from worksites.decorators import validate_token
+from django.http import HttpResponseBadRequest, HttpResponseServerError
 
 from worksites.filters import WorksitesFilter
 from .models import CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
@@ -37,71 +38,75 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
 class BaseParams(APIView):
-    print('sono qui')
     pagination_class = CustomPagination
     parser_classes = []
     filter_backends = [SearchFilter, DjangoFilterBackend]
-    print(f'filter {filter_backends}')
+    search_fields = []
     filterset_class = []
     serializer_class = []
-    queryset = []
+    queryset = Worksites.objects.all().order_by('-id')
 
-    #@validate_token
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def __init__(self, search_fields=None, serializer=None, queryset=None, filter_class=None, parser_classes=None, **kwargs):
-        self.search_fields = search_fields
-        super().__init__(**kwargs)
-        # self.order_param = request.GET.get('order', 'desc')
-        # self.order_by_field = request.GET.get('order_by', 'id')
-        if parser_classes is not None:
-            self.parser_classes = parser_classes
-
-        if filter_class is not None:
-            self.filter_class = filter_class
-
-        if search_fields is not None:
-            self.search_fields = search_fields
-        
-        if serializer is not None:
-            self.serializer = serializer
-        
-        if queryset is not None:
-            self.queryset = queryset
-
-
-class Child(BaseParams):
-   
     def __init__(self, *args, **kwargs):
-        print('inti')
         super().__init__(*args, **kwargs)
-        self.queryset = Worksites.objects.all().order_by('-id')
-        self.serializer = WorksiteSerializer
-        self.search_fields = ['name', 'address'] 
-        self.filter_class = WorksitesFilter
-        #self.parser_classes = (MultiPartParser, FormParser)
+        
+        if 'search_fields' in kwargs:
+            self.search_fields = kwargs['sear1ch_fields']
 
+        if 'parser_classes' in kwargs:
+            self.parser_classes = kwargs['parser_classes']
+
+        if 'filter_class' in kwargs:
+            self.filter_class = kwargs['filter_class']
+
+        if 'serializer' in kwargs:
+            self.serializer = kwargs['serializer']
+        
+        if 'queryset' in kwargs:
+            self.queryset = kwargs['queryset']
+    
     def get(self, request):
-        print('eccomi')
+        order_param = request.GET.get('order', 'desc')
+        order_by_field = request.GET.get('order_by', 'id')
+        
         status = request.GET.get('status')
         if status is not None:
             try:
                 status = int(status)
             except ValueError:
-                return Response(status=status.HTTP_400_BAD_REQUEST)  # Return a bad request response if status is invalid
-            
+                return Response(status=HttpResponseBadRequest.status_code)  
+
             if status == 0:
-                return Response(self.queryset)
+                if self.queryset is None:
+                    return Response(status=HttpResponseServerError.status_code)  
+                serializer = self.serializer(self.queryset, many=True)
+                return Response(serializer.data)
             elif status == 1:
-                serializer = self.serializer(self.queryset.filter(is_visible=True), many=True)
+                filtered_queryset = self.queryset.filter(is_visible=True)  
+                serializer = self.serializer(filtered_queryset, many=True)
                 return Response(serializer.data)
             elif status == 2:
-                serializer = self.serializer(self.queryset.filter(is_visible=False), many=True)
+                filtered_queryset = self.queryset.filter(is_visible=False)  
+                serializer = self.serializer(filtered_queryset, many=True)
                 return Response(serializer.data)
-
-        serializer = self.serializer(self.queryset, many=True)
+        
+        if order_param == 'desc':
+            queryset = self.queryset.order_by('-' + order_by_field)
+        else:
+            queryset = self.queryset.order_by(order_by_field)
+        
+        serializer = self.serializer(queryset, many=True)  # Utilizza il serializzatore
         return Response(serializer.data)
+class Child(BaseParams):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.search_fields = ['name', 'address']
+        self.queryset = Worksites.objects.all().order_by('-id')
+        self.serializer = WorksiteSerializer
+        self.filter_class = WorksitesFilter
 
 
 @api_view(['POST'])
@@ -196,7 +201,6 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
 
-
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
 def update_worksite_image(request, worksite_id):
@@ -223,7 +227,7 @@ def update_worksite_image(request, worksite_id):
 
            
 @api_view(['PUT'])
-def add_foglio_particella(request, foglio_particella_id):
+def edit_foglio_particella(request, foglio_particella_id):
     try:
         foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
     except Worksites.DoesNotExist:
@@ -246,7 +250,7 @@ def add_foglio_particella(request, foglio_particella_id):
 
 
 @api_view(['PUT'])
-def add_worksite_foglio_particella(request, worksite_foglio_particella_id, foglio_particella_id, worksite):
+def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, foglio_particella_id, worksite):
     worksite_foglio_particella = WorksitesFoglioParticella.objects.get(pk=worksite_foglio_particella_id)
     foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
     worksite_get = Worksites.objects.get(pk=worksite)
