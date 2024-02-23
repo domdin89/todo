@@ -178,6 +178,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
         'lon': request.data.get('lon', worksite.lon),
         'is_visible': request.data.get('is_visible', worksite.is_visible),
         'net_worth': request.data.get('net_worth', worksite.net_worth),
+        'image': request.FILES.get('image', worksite.image),
         'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
         'link': request.data.get('link', worksite.link),
         'date_start': request.data.get('date_start', worksite.date_start),
@@ -201,50 +202,30 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
 
-@api_view(['PUT'])
-@parser_classes([MultiPartParser])
-def update_worksite_image(request, worksite_id):
-    try:
-        worksite = Worksites.objects.get(pk=worksite_id)
-    except Worksites.DoesNotExist:
-        return Response("Cantiere non trovato", status=status.HTTP_404_NOT_FOUND)
-
-    post_data = {
-        'image': request.FILES.get('image')
-    }
-
-    # Rimuovi i campi vuoti o non validi
-    post_data = {key: value for key, value in post_data.items() if value is not None}
-
-    # Aggiorna i campi del cantiere
-    for key, value in post_data.items():
-        setattr(worksite, key, value)
-
-    # Salva il cantiere
-    worksite.save()
-
-    return Response("Immagine cantiere aggiornata con successo", status=status.HTTP_200_OK)
-
            
 @api_view(['PUT'])
-def edit_foglio_particella(request, foglio_particella_id):
+def update_foglio_particella(request, id):
     try:
-        foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
-    except Worksites.DoesNotExist:
+        worksite_foglio_particella = WorksitesFoglioParticella.objects.get(id=id)
+        foglio_particella = worksite_foglio_particella.foglio_particella
+        print(f'worksit obj fp {worksite_foglio_particella}')
+    except WorksitesFoglioParticella.DoesNotExist:  # Fixing the exception type
         return Response("Foglio Particella non trovato", status=status.HTTP_404_NOT_FOUND)
 
     if foglio_particella:
         foglio_particelle = request.data.getlist('foglio_particelle', None)
         for item in foglio_particelle:
-            # Converti la stringa JSON in un dizionario Python
+            print(f'item {foglio_particelle}')
+            # Convert the JSON string to a Python dictionary
             item_dict = json.loads(item)
-            foglio_particelle.foglio=item_dict.get('foglio'),
-            foglio_particelle.particella=item_dict.get('particella')
+            print(f"item {item_dict.get('foglio')}")
+            # Assuming foglio_particella is an instance of a model with fields foglio and particella
+            foglio_particella.foglio = item_dict.get('foglio')
+            foglio_particella.particella = item_dict.get('particella')
 
-            try:
-                foglio_particelle.save()
-            except:
-                return Response('foglio particella errato', status=status.HTTP_400_BAD_REQUEST)
+            
+            foglio_particella.save()
+
 
     return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
 

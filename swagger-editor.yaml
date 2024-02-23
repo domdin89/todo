@@ -247,7 +247,6 @@ paths:
           description: Bad request, check the request body for errors
       security:
         - bearerAuth: []
-  paths:
   /worksite/new:
     post:
       tags:
@@ -391,42 +390,39 @@ paths:
                     example: 'Cantiere non trovato.'
       security:
         - bearerAuth: []
-  /worksites/update-image/{id}:
-    put:
-      tags:
-        - Worksites
-      summary: Aggiorna un cantiere esistente
-      description: Aggiorna i dettagli di un cantiere esistente specificato dall'ID.
-      parameters:
+  /worksites/update/foglio-particella/{id}:
+    parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: ID del cantiere da aggiornare
+          description: ID del foglio particella da aggiornare
+    put:
+      tags:
+        - Worksites
+      summary: Crea un nuovo cantiere con foglio particella
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/WorksitesImage'
+              type: object
+              properties:
+                foglio_particelle:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      foglio:
+                        type: string
+                      particella:
+                        type: string
       responses:
         '200':
-          description: Cantiere aggiornato con successo
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WorksitesImage'
-        '404':
-          description: Cantiere non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
-                    example: 'Cantiere non trovato.'
+          description: tutto regolare
+        '400':
+          description: Bad request, check the request body for errors
       security:
         - bearerAuth: []
   /profile:
@@ -1481,6 +1477,9 @@ components:
     WorksitesNoImage:
       type: object
       properties:
+        image:
+          type: string
+          format: binary
         address:
           type: string
         categories:
@@ -1518,12 +1517,6 @@ components:
           format: float
         link:
           type: string
-    WorksitesImage:
-      type: object
-      properties:
-        image:
-          type: string
-          format: binary
     WorksitesCategories:
       type: object
       properties:

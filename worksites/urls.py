@@ -10,7 +10,7 @@ urlpatterns = [
         path('child', views.Child.as_view()),
         path('worksite/new', views.WorksitePostNew),
         path('worksites/update/<int:worksite_id>', views.update_worksite),
-        path('worksites/update-image/<int:worksite_id>', views.update_worksite_image),
+        path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
         path('worksites/<int:pk>', views.WorksiteDetail.as_view()),
         
         path('collabworksites', views.CollaboratorListView.as_view()),
