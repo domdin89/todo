@@ -10,6 +10,7 @@ class Worksites(models.Model):
     lat = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)
     lon = models.DecimalField(max_digits=10, decimal_places=6,blank=True, null=True)
     is_visible = models.BooleanField(default=False,blank=True, null=True)
+    is_active = models.BooleanField(default=True,blank=True, null=True)
     net_worth = models.FloatField(blank=True, null=True)
     percentage_worth = models.FloatField(blank=True, null=True)
     financier = models.ForeignKey('Financier', on_delete=models.CASCADE,blank=True, null=True)

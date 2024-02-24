@@ -18,13 +18,18 @@ urlpatterns = [
 
         #post
         path('worksite/new', views.WorksitePostNew),
+        path('category/new', views.new_category),
 
         #put
+        path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
         path('worksites/update/<int:worksite_id>', views.update_worksite),
         path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
         path('worksites/update/category/<int:id>', views.update_categories),
-        
-        path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
+
+        #delete
+        path('worksites/delete/<int:id>', views.delete_worksite),
+        path('worksites/delete/foglio-particella/<int:id>', views.delete_foglio_particella),
+        path('worksites/delete/category/<int:id>', views.delete_category),
 
         
 ]

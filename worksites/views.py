@@ -10,11 +10,12 @@ from accounts.serializers import ProfileSerializer, ProfileSerializerNew
 from django.db.models.functions import Concat
 from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
+from apartments.models import ApartmentSub
 from worksites.decorators import validate_token
 from django.http import HttpResponseBadRequest, HttpResponseServerError
 
 from worksites.filters import WorksitesFilter
-from .models import CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
+from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
 from .serializers import CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -162,6 +163,26 @@ def WorksitePostNew(request):
 
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+def new_category(request, worksite_id=None):
+
+    # Ottieni il file immagine
+    category = request.data.get('category')
+
+    Categories.objects.create(
+        name=category
+    )
+
+    if worksite_id:
+        WorksitesCategories.objects.create(
+            worksite=Worksites.objects.get(id=worksite_id),
+            category=category
+        )
+
+    return Response('tutto regolare', status=status.HTTP_200_OK)
+
         
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
@@ -246,7 +267,6 @@ def update_categories(request, id):
     return Response("Categoria aggiornata con successo", status=status.HTTP_200_OK)
 
 
-
 @api_view(['PUT'])
 def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, foglio_particella_id, worksite):
     worksite_foglio_particella = WorksitesFoglioParticella.objects.get(pk=worksite_foglio_particella_id)
@@ -267,9 +287,56 @@ def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, fogl
     return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
 
 
+@api_view(['DELETE'])
+def delete_worksite(request, id):
+    try:
+        worksite = Worksites.objects.get(id=id)
+    except WorksitesFoglioParticella.DoesNotExist:
+        return Response("Worksite non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    worksite.is_active = False
+    worksite.save()
+
+    return Response("Worksite rimosso", status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def delete_category(request, id):
+    try:
+        worksite_category = WorksitesCategories.objects.get(id=id)
+    except WorksitesFoglioParticella.DoesNotExist:
+        return Response("Categoria non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    worksite_category.delete()
+
+    return Response("Relazione Categoria eliminata e Worksite rimosso", status=status.HTTP_200_OK)
+
+
+@api_view(['DELETE'])
+def delete_foglio_particella(request, id):
+    try:
+        worksite_foglio_particella = WorksitesFoglioParticella.objects.get(id=id)
+    except WorksitesFoglioParticella.DoesNotExist:
+        return Response("WorksitesFoglioParticella non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    foglio_particella = worksite_foglio_particella.foglio_particella
+
+    try:
+        subs = ApartmentSub.objects.filter(foglio_particella=foglio_particella)
+        for sub in subs:
+            sub.foglio_particella = None  # Rimuovi il collegamento a FoglioParticella
+            sub.save()
+    except ApartmentSub.DoesNotExist:
+        pass
+
+    worksite_foglio_particella.delete()
+
+    return Response("Relazione WorksitesFoglioParticella eliminata e collegamenti ApartmentSubs correlati rimossi", status=status.HTTP_200_OK)
+
+
 
 class WorksiteListView(ListAPIView):
-    queryset = Worksites.objects.all()
+    queryset = Worksites.objects.filter(is_active=True)
     serializer_class = WorksiteSerializer
     permission_classes = [IsAuthenticated]
 
@@ -299,7 +366,7 @@ class WorksiteListView(ListAPIView):
         return queryset
 
 class WorksiteDetail(RetrieveUpdateAPIView):
-    queryset = Worksites.objects.all()
+    queryset = Worksites.objects.filter(is_active=True)
     serializer_class = WorksiteSerializer
     lookup_field = 'pk'
     parser_classes = (MultiPartParser, FormParser)  # Utilizza il parser multipart/form-data
