@@ -339,7 +339,7 @@ def delete_foglio_particella(request, id):
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.filter(is_active=True)
     serializer_class = WorksiteSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
@@ -382,8 +382,8 @@ class WorksiteDetail(RetrieveUpdateAPIView):
 
 class CollaboratorListView(ListCreateAPIView):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializerRole
-    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializerNew
+    #permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['first_name', 'last_name']
@@ -399,7 +399,6 @@ class CollaboratorListView(ListCreateAPIView):
         # Filtra i profili in base alla presenza in CollabWorksites per il dato worksite
         queryset = Profile.objects.filter(
             collabworksites__worksite_id=worksite_id,
-            collabworksites__date_end__isnull=True  # filtro per date_end null
         ).distinct()
 
         # Applica l'ordinamento

@@ -48,20 +48,20 @@ class ProfileSerializerRole(serializers.ModelSerializer):
                 role.pop('date_end', None)
         return data
 
+class WorksiteProfileSerializerNew(serializers.ModelSerializer):
+    
+    class Meta:
+        model = CollabWorksites
+        fields = '__all__'
 class ProfileSerializerNew(serializers.ModelSerializer):
-    roles_with_dates = serializers.SerializerMethodField()
+    collabworksites = WorksiteProfileSerializerNew(many=True, read_only=True)
 
     class Meta:
         model = Profile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'mobile_number', 'email', 
-            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'roles_with_dates',
+            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites',
         ]
         extra_kwargs = {
             'image': {'required': False},
         }
-
-    def get_roles_with_dates(self, obj):
-        roles_dates = CollabWorksites.objects.filter(profile=obj)\
-            .values('role', 'date_start', 'date_end').distinct()
-        return [{'role': rd['role'], 'date_start': rd['date_start'], 'date_end': rd['date_end']} for rd in roles_dates]
