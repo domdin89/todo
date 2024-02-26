@@ -15,6 +15,7 @@ class Apartments(models.Model):
     link = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
     date_update = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True, blank=True, null=True)
 
 class ApartmentSub(models.Model):
     sub = models.CharField(max_length=100,blank=True, null=True)

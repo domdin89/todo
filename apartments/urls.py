@@ -10,6 +10,10 @@ urlpatterns = [
     path('clientapartments', views.ClientApartmentsListView.as_view()),
     path('apartments', views.ApartmentListCreateAPIView.as_view(), name='apartments_list_create'),
 
+    path('apartments/update/<int:id>', views.update_apartment),
+
+    path('apartments/delete/<int:id>', views.delete_apartment),
+
 ]
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

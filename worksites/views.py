@@ -291,7 +291,7 @@ def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, fogl
 def delete_worksite(request, id):
     try:
         worksite = Worksites.objects.get(id=id)
-    except WorksitesFoglioParticella.DoesNotExist:
+    except Worksites.DoesNotExist:
         return Response("Worksite non trovato", status=status.HTTP_404_NOT_FOUND)
 
     worksite.is_active = False
@@ -304,8 +304,8 @@ def delete_worksite(request, id):
 def delete_category(request, id):
     try:
         worksite_category = WorksitesCategories.objects.get(id=id)
-    except WorksitesFoglioParticella.DoesNotExist:
-        return Response("Categoria non trovato", status=status.HTTP_404_NOT_FOUND)
+    except WorksitesCategories.DoesNotExist:
+        return Response("Categoria non trovata", status=status.HTTP_404_NOT_FOUND)
 
     worksite_category.delete()
 
