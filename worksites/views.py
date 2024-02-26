@@ -20,7 +20,7 @@ from collections import defaultdict
 
 from worksites.filters import WorksitesFilter
 from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile
-from .serializers import CollabWorksitesNewSerializer, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer
+from .serializers import CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -411,13 +411,21 @@ class CollaboratorListView(APIView):
                 'mobile_number': profile.mobile_number,
                 'image': profile.image.url if profile.image else None,  # Se l'attributo 'image' non esiste, restituisce None
             }
-            worksite_serializer = WorksiteStandardSerializer(collab_worksite.worksite)
-            worksite_data = worksite_serializer.data
-            profile_roles[profile.id].append(worksite_data)
+            
+            # worksite_serializer = WorksiteStandardSerializer(collab_worksite.worksite)
+            # worksite_data = worksite_serializer.data
+            # profile_roles[profile.id].append(worksite_data)
+
+            collab_worksite_serializer = CollabWorksitesSerializer(collab_worksite)
+            collab_worksite_data = collab_worksite_serializer.data
+            profile_roles[profile.id].append(collab_worksite_data)
+
+        
+        print(profile_roles.items())
 
         # Costruisci la risposta
         data = []
-        for profile_id, worksites in profile_roles.items():
+        for profile_id, roles in profile_roles.items():
             profile_data = {
                 'profile': {
                     'id': profile_id,
@@ -427,7 +435,8 @@ class CollaboratorListView(APIView):
                     'mobile_number': profile_data.get('mobile_number', ''),
                     'image': profile_data.get('image', ''),
                 },
-                'worksites': worksites,
+               
+                'roles': roles
             }
             data.append(profile_data)
 
