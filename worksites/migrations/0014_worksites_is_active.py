@@ -15,4 +15,17 @@ class Migration(migrations.Migration):
             name='is_active',
             field=models.BooleanField(blank=True, default=True, null=True),
         ),
+        migrations.AddField(
+            model_name='worksitesprofile',
+            name='approved',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.CreateModel(
+            name='Status',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('description', models.CharField(max_length=150)),
+                ('order', models.IntegerField()),
+            ],
+        ),
     ]

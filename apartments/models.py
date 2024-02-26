@@ -37,3 +37,4 @@ class CheckListWorksites(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     order = models.IntegerField()
     is_done = models.BooleanField(default=False)
+    

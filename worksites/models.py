@@ -51,6 +51,17 @@ class WorksitesCategories(models.Model):
     category = models.ForeignKey(Categories, on_delete=models.CASCADE )
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="categories")
 
+class Status(models.Model):
+    description = models.CharField(max_length=150)
+    order = models.IntegerField()
+
+class WorksitesStatus(models.Model):
+    status = models.ForeignKey(Status, on_delete=models.CASCADE )
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_update = models.DateTimeField(blank=True, null=True)
+
+
 class FoglioParticella(models.Model):
     foglio = models.CharField(max_length=50,blank=True, null=True) 
     particella = models.CharField(max_length=50, blank=True, null=True)
