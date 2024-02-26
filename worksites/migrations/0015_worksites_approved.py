@@ -10,9 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='worksitesprofile',
-            name='approved',
-            field=models.BooleanField(default=False),
-        ),
+
     ]

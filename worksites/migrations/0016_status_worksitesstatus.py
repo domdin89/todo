@@ -11,14 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-          migrations.CreateModel(
-            name='Status',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(max_length=150)),
-                ('order', models.IntegerField()),
-            ],
-        ),
         
         migrations.CreateModel(
             name='WorksitesStatus',

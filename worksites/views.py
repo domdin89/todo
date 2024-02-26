@@ -1,119 +1,140 @@
 import json
-from django.forms import ValidationError
-from django.shortcuts import get_object_or_404
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.http import Http404
-from accounts.serializers import ProfileSerializer, ProfileSerializerRole
-from django.db.models.functions import Concat
-from django.db.models import CharField, Value as V
-from django.db.models import Prefetch
-from apartments.models import ApartmentSub
-from worksites.decorators import validate_token
-from django.http import HttpResponseBadRequest, HttpResponseServerError
 from datetime import datetime
-from django.db.models import F
-from rest_framework import serializers, viewsets, routers, status
 from collections import defaultdict
 
-from worksites.filters import WorksitesFilter
-from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile
-from .serializers import CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import CharField, Count, F, Prefetch, Value as V
+from django.db.models.functions import Concat
+from django.forms import ValidationError
+from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.shortcuts import get_object_or_404
-from rest_framework import status, mixins, generics
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
-from .models import CollabWorksites, Profile, Worksites
-from .serializers import CollaborationSerializer
+from django.core.paginator import Paginator
+
+from rest_framework import generics, mixins, serializers, status, viewsets
 from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, GenericAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+
 from accounts.models import Profile
-from django.db.models import Count
+from accounts.serializers import ProfileSerializer, ProfileSerializerRole
+from apartments.models import ApartmentSub
+from worksites.decorators import validate_token
+from worksites.filters import WorksitesFilter
+from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile)
+from .serializers import (CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
+
 
 class CustomPagination(PageNumberPagination):
-    page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
+    page_size_query_param = 'page_size'
+    page_query_param = 'page'
+    max_page_size = 50
 
-class BaseParams(APIView):
+class BaseAPIView(GenericAPIView):
     pagination_class = CustomPagination
-    parser_classes = []
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = []
-    filterset_class = []
-    serializer_class = []
-    queryset = Worksites.objects.all().order_by('-id')
+    filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
+    search_fields = []  # Questo sarà sovrascritto nelle viste derivate per specificare i campi di ricerca
+    ordering_fields = '__all__'  # Permette l'ordinamento su tutti i campi, personalizzabile nelle viste derivate
+    ordering = ['id']  # Ordinamento di default, personalizzabile nelle viste derivate
+    serializer_class = None  # Da impostare nella vista derivata
+    queryset = None  # Da impostare nella vista derivata
 
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        if 'search_fields' in kwargs:
-            self.search_fields = kwargs['sear1ch_fields']
-
-        if 'parser_classes' in kwargs:
-            self.parser_classes = kwargs['parser_classes']
-
-        if 'filter_class' in kwargs:
-            self.filter_class = kwargs['filter_class']
-
-        if 'serializer' in kwargs:
-            self.serializer = kwargs['serializer']
-        
-        if 'queryset' in kwargs:
-            self.queryset = kwargs['queryset']
-    
-    def get(self, request):
-        order_param = request.GET.get('order', 'desc')
-        order_by_field = request.GET.get('order_by', 'id')
-        
-        status = request.GET.get('status')
-        if status is not None:
-            try:
-                status = int(status)
-            except ValueError:
-                return Response(status=HttpResponseBadRequest.status_code)  
-
-            if status == 0:
-                if self.queryset is None:
-                    return Response(status=HttpResponseServerError.status_code)  
-                serializer = self.serializer(self.queryset, many=True)
-                return Response(serializer.data)
-            elif status == 1:
-                filtered_queryset = self.queryset.filter(is_visible=True)  
-                serializer = self.serializer(filtered_queryset, many=True)
-                return Response(serializer.data)
-            elif status == 2:
-                filtered_queryset = self.queryset.filter(is_visible=False)  
-                serializer = self.serializer(filtered_queryset, many=True)
-                return Response(serializer.data)
-        
-        if order_param == 'desc':
-            queryset = self.queryset.order_by('-' + order_by_field)
+    def get_queryset(self):
+        """
+        Sovrascrivere questo metodo nelle classi derivate per fornire il queryset specifico.
+        """
+        if self.queryset is not None:
+            return self.queryset
         else:
-            queryset = self.queryset.order_by(order_by_field)
+            raise NotImplementedError("La vista deve definire un `queryset` o sovrascrivere `get_queryset()`")
+
+    def get_serializer_class(self):
+        """
+        Sovrascrivere questo metodo nelle classi derivate per fornire il serializer specifico.
+        """
+        if self.serializer_class is not None:
+            return self.serializer_class
+        else:
+            raise NotImplementedError("La vista deve definire un `serializer_class` o sovrascrivere `get_serializer_class()`")
+
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
         
-        serializer = self.serializer(queryset, many=True)  # Utilizza il serializzatore
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-class Child(BaseParams):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.search_fields = ['name', 'address']
-        self.queryset = Worksites.objects.all().order_by('-id')
-        self.serializer = WorksiteSerializer
-        self.filter_class = WorksitesFilter
+    def filter_queryset(self, queryset):
+        """
+        Applica i filtri di backend definiti a `filter_backends`.
+        """
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
 
+class CollaboratorListView(APIView):
+    pagination_class = CustomPagination
+
+    def get_profile_count(self, worksite_id, search_query=None):
+        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+
+        # Applicare la ricerca se presente
+        if search_query:
+            collabs = collabs.filter(
+                Q(profile__first_name__icontains=search_query) |
+                Q(profile__last_name__icontains=search_query) |
+                Q(profile__mobile_number__icontains=search_query) |
+                Q(profile__email__icontains=search_query)
+            )
+
+        # Estrarre gli ID dei profili unici
+        profile_ids = collabs.values_list('profile__id', flat=True)
+
+        # Counting unique profiles instead of CollabWorksites
+        profile_count = Profile.objects.filter(id__in=profile_ids).distinct().count()
+        return profile_count
+
+    def get(self, request, *args, **kwargs):
+        worksite_id = request.query_params.get('worksite')
+        search_query = request.query_params.get('search')  # Aggiunto per la ricerca
+        profile_count = self.get_profile_count(worksite_id, search_query)
+
+        # Estrarre gli ID dei profili unici
+        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+        profile_ids = collabs.values_list('profile__id', flat=True)
+
+        # Applicare la paginazione agli ID dei profili
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(profile_ids, request)
+
+        if page is not None:
+            # Recuperare i profili paginati basandosi sugli ID
+            profiles = Profile.objects.filter(id__in=page).distinct()
+
+            # Preparare la risposta aggregata
+            response_data = []
+            for profile in profiles:
+                collab_data = collabs.filter(profile=profile).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
+                profile_data = {
+                    "profile": ProfileSerializer(profile).data,
+                    "roles": CollabWorksitesSerializer(collab_data, many=True).data
+                }
+                response_data.append(profile_data)
+
+            return paginator.get_paginated_response(response_data)
+
+        return Response({"message": "No data found or invalid page number"})
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
@@ -383,116 +404,7 @@ class WorksiteDetail(RetrieveUpdateAPIView):
             self.perform_update(serializer)
         return Response(serializer.data)
 
-class CollaboratorListView2(APIView):
-    pagination_class = PageNumberPagination
-    
-    def get(self, request, *args, **kwargs):
-        worksite_id = request.query_params.get('worksite')
-        queryset = CollabWorksites.objects.filter(worksite_id=worksite_id).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
-        
-        # Applica la paginazione al queryset
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(queryset, request, view=self)
-        
-        if page is not None:
-            profiles = {}
-            for collab in page:
-                if collab.profile.id not in profiles:
-                    profiles[collab.profile.id] = {
-                        "profile": ProfileSerializer(collab.profile).data,
-                        "roles": []
-                    }
-                profiles[collab.profile.id]["roles"].append(CollabWorksitesSerializer(collab).data)
-            
-            response_data = list(profiles.values())
-            return paginator.get_paginated_response(response_data)
-        
-        # Se non ci sono dati da paginare, restituisce un response vuoto o gestisci come preferisci
-        return Response({"message": "No data found or invalid page number"})
 
-class CollaboratorListView(APIView):
-    pagination_class = PageNumberPagination
-
-    def get(self, request):
-        worksite_id = request.GET.get('worksite')
-        if not worksite_id:
-            raise Http404("Il parametro 'worksite' è obbligatorio.")
-
-        order_param = request.GET.get('order', 'desc')
-        order_by_field = request.GET.get('order_by', 'id')
-
-        # Ottieni i CollabWorksites per il worksite specificato
-        collab_worksites = CollabWorksites.objects.filter(worksite_id=worksite_id)
-
-        # Dizionario per memorizzare i profili con i rispettivi ruoli
-        profile_roles = defaultdict(list)
-
-        # Popola il dizionario
-        for collab_worksite in collab_worksites:
-            profile = collab_worksite.profile
-            profile_data = {
-                'id': profile.id,
-                'first_name': profile.first_name,
-                'last_name': profile.last_name,
-                'email': profile.email,
-                'mobile_number': profile.mobile_number,
-                'image': profile.image.url if profile.image else None,  # Se l'attributo 'image' non esiste, restituisce None
-            }
-            
-            # worksite_serializer = WorksiteStandardSerializer(collab_worksite.worksite)
-            # worksite_data = worksite_serializer.data
-            # profile_roles[profile.id].append(worksite_data)
-
-            collab_worksite_serializer = CollabWorksitesSerializer(collab_worksite)
-            collab_worksite_data = collab_worksite_serializer.data
-            profile_roles[profile.id].append(collab_worksite_data)
-
-        
-        print(profile_roles.items())
-
-        # Costruisci la risposta
-        data = []
-        for profile_id, roles in profile_roles.items():
-            profile_data = {
-                'profile': {
-                    'id': profile_id,
-                    'first_name': profile_data.get('first_name', ''),  # Utilizza il metodo get per ottenere il valore, se non presente restituisce una stringa vuota
-                    'last_name': profile_data.get('last_name', ''),  # Se è None, sostituisci con stringa vuota
-                    'email': profile_data.get('email', ''),
-                    'mobile_number': profile_data.get('mobile_number', ''),
-                    'image': profile_data.get('image', ''),
-                },
-               
-                'roles': roles
-            }
-            data.append(profile_data)
-
-        # Pagina i dati
-        paginator = self.pagination_class()
-        result_page = paginator.paginate_queryset(data, request)
-        
-        return paginator.get_paginated_response(result_page)
-       
-
-    # def post(self, request, *args, **kwargs):
-    #     profile_id = request.data.get('profile')
-    #     worksite_id = request.data.get('worksite')
-    #     role = request.data.get('role')
-    #     order = request.data.get('order')
-
-    #     profile = get_object_or_404(Profile, id=profile_id)
-    #     worksite = get_object_or_404(Worksites, id=worksite_id)
-
-    #     collab_worksite = CollabWorksites.objects.create(
-    #         profile=profile,
-    #         worksite=worksite,
-    #         role=role,
-    #         order=order
-    #     )
-
-    #     serializer = self.get_serializer(collab_worksite)
-    #     return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
-    
 
     
 
