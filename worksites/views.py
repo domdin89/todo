@@ -384,6 +384,8 @@ class WorksiteDetail(RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 class CollaboratorListView(APIView):
+    pagination_class = PageNumberPagination
+
     def get(self, request):
         worksite_id = request.GET.get('worksite')
         if not worksite_id:
@@ -423,7 +425,11 @@ class CollaboratorListView(APIView):
             }
             data.append(profile_data)
 
-        return Response(data)
+        # Pagina i dati
+        paginator = self.pagination_class()
+        result_page = paginator.paginate_queryset(data, request)
+        
+        return paginator.get_paginated_response(result_page)
        
 
     # def post(self, request, *args, **kwargs):
