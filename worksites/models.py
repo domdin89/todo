@@ -34,6 +34,7 @@ class Worksites(models.Model):
 class WorksitesProfile(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    approved = models.BooleanField(default=False)
 
 class CollabWorksites(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name='collabworksites')
