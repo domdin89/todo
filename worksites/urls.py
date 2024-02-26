@@ -31,6 +31,8 @@ urlpatterns = [
         path('worksites/delete/foglio-particella/<int:id>', views.delete_foglio_particella),
         path('worksites/delete/category/<int:id>', views.delete_category),
 
+        path('collabworksites/delete/<int:id>', views.delete_collaborator),
+
         
 ]
 

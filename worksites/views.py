@@ -13,6 +13,7 @@ from django.db.models import Prefetch
 from apartments.models import ApartmentSub
 from worksites.decorators import validate_token
 from django.http import HttpResponseBadRequest, HttpResponseServerError
+from datetime import datetime
 
 from worksites.filters import WorksitesFilter
 from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
@@ -382,7 +383,7 @@ class WorksiteDetail(RetrieveUpdateAPIView):
 class CollaboratorListView(ListCreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializerNew
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['first_name', 'last_name']
@@ -397,16 +398,9 @@ class CollaboratorListView(ListCreateAPIView):
 
         # Filtra i profili in base alla presenza in CollabWorksites per il dato worksite
         queryset = Profile.objects.filter(
-            collabworksites__worksite_id=worksite_id
+            collabworksites__worksite_id=worksite_id,
+            collabworksites__date_end__isnull=True  # filtro per date_end null
         ).distinct()
-
-        # Prefetch dei CollabWorksites filtrati per worksite
-        collabworksites_prefetch = Prefetch(
-            'collabworksites',
-            queryset=CollabWorksites.objects.filter(worksite_id=worksite_id),
-            to_attr='filtered_collabworksites'
-        )
-        queryset = queryset.prefetch_related(collabworksites_prefetch)
 
         # Applica l'ordinamento
         if order_param == 'desc':
@@ -446,6 +440,19 @@ class CollaboratorUpdateView(RetrieveUpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+    
+
+@api_view(['DELETE'])
+def delete_collaborator(request, id):
+    try:
+        collaborator = CollabWorksites.objects.get(id=id)
+    except CollabWorksites.DoesNotExist:
+        return Response("Collaboratore non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    collaborator.date_end = datetime.now()
+    collaborator.save()
+
+    return Response("Collaboratore rimosso", status=status.HTTP_200_OK)
 
 
 class WorksiteProfileListView(ListCreateAPIView):

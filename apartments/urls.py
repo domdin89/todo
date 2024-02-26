@@ -7,11 +7,16 @@ from django.contrib.auth import views as auth_views
 
 app_name = 'apartments'
 urlpatterns = [
+    
     path('clientapartments', views.ClientApartmentsListView.as_view()),
+
+    #get/post
     path('apartments', views.ApartmentListCreateAPIView.as_view(), name='apartments_list_create'),
 
+    #put
     path('apartments/update/<int:id>', views.update_apartment),
 
+    #delete
     path('apartments/delete/<int:id>', views.delete_apartment),
 
 ]

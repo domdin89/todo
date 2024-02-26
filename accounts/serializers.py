@@ -29,6 +29,13 @@ class ProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'image': {'required': False},
         }
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Rimuovi date_end se è nullo
+        for role in data['roles_with_dates']:
+            if role['date_end'] is None:
+                role.pop('date_end', None)
+        return data
 
 class ProfileSerializerNew(serializers.ModelSerializer):
     roles_with_dates = serializers.SerializerMethodField()
