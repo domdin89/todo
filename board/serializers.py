@@ -52,3 +52,16 @@ class BoardsSerializer(serializers.ModelSerializer):
             # Crea ogni istanza di BoardsRecipient associata alla board corrente
             BoardsRecipient.objects.create(board=board, **recipient_data)
         return board
+    
+class BoardSerializerNew(serializers.ModelSerializer):
+    class Meta:
+        model = Boards
+        fields = "__all__"
+
+
+class BoardRecipientSerializer(serializers.ModelSerializer):
+    board = BoardSerializerNew(read_only=True)
+
+    class Meta:
+        model = BoardsRecipient
+        fields = ['board']  # Usa una lista

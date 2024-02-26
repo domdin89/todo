@@ -866,6 +866,37 @@ paths:
                     example: 'Collaboratore di cantiere non trovato.'
       security:
         - bearerAuth: []
+  /collabworksites/delete/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: ID del collaboratore da rimuovere
+    delete:
+      tags:
+        - CollabWorksites
+      summary: Elimina un collaboratore
+      responses:
+        '200':
+          description: collaboratore eliminato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollabWorksites'
+        '404':
+          description: collaboratore non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'collaboratore non trovato.'
+      security:
+        - bearerAuth: []
   /worksitesprofile:
     get:
       tags:
@@ -1088,12 +1119,12 @@ paths:
                     example: "The input fields provided are invalid."
       security:
         - bearerAuth: []
-  /apartments/{id}:
+  /apartments/update/{id}:
     put:
       tags:
         - Apartments
       summary: Aggiorna un appartamento esistente
-      description: Aggiorna i dettagli di un appartamento esistente specificato dall'ID.
+      description: Aggiorna i dettagli di un cantiere esistente specificato dall'ID.
       parameters:
         - in: path
           name: id
@@ -1115,7 +1146,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/Apartments'
         '404':
-          description: Appartamento non trovato
+          description: Cantiere non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: 'Appartamento non trovato.'
+      security:
+        - bearerAuth: []
+  /apartments/delete/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+        description: ID dell'appartamento da rimuovere
+    delete:
+      tags:
+        - Apartments
+      summary: Elimina un appartmento
+      responses:
+        '200':
+          description: Appartamento eliminato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartments'
+        '404':
+          description: Appartamento non trovata
           content:
             application/json:
               schema:
@@ -1307,21 +1369,9 @@ components:
     Apartments:
       type: object
       properties:
-        date: 
+        floor:
           type: string
-          format: date-time
-        date_update:
-          type: string
-          format: date-time
-        foglio:
-          type: integer
-        id:
-          type: integer
-          format: int64
-        image:
-          type: string
-          format: binary
-          description: Optional image file of the apartment
+          nullable: true
         link:
           type: string
           maxLength: 100
@@ -1346,17 +1396,10 @@ components:
           type: string
           maxLength: 100
           nullable: true
-        particella:
-          type: integer
-        sub:
-          type: integer
-        surface:
-          type: string
-          maxLength: 100
-          nullable: true
         worksite_id:
           type: integer
           format: int64
+          nullable: true
     BoardAttachments:
       type: object
       properties:

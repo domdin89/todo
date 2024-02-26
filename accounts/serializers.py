@@ -29,6 +29,17 @@ class ProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'image': {'required': False},
         }
+    
+class ProfileSerializerRole(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            'id','user', 'first_name', 'last_name', 'mobile_number', 'email', 
+             'type', 'image', 'token', 'is_active', 'date', 'date_update'
+        ]
+        extra_kwargs = {
+            'image': {'required': False},
+        }
     def to_representation(self, instance):
         data = super().to_representation(instance)
         # Rimuovi date_end se è nullo

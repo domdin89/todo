@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import FoglioParticella, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella
+
+from apartments.models import ApartmentSub, Apartments
+from .models import FoglioParticella, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
 
@@ -48,13 +50,43 @@ class WorksiteCategoriesSerializer(serializers.ModelSerializer):
         model = WorksitesCategories
         fields = ["id", "category", "worksite"]
 
+class ApartmentSubSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model= ApartmentSub
+        fields='__all__'
+
+class ApartmentSerializer(serializers.ModelSerializer):
+    sub = ApartmentSubSerializer(read_only=True, many=True)
+    class Meta:
+        model= Apartments
+        fields='__all__'
 
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     
+    
     class Meta:
         model = CollabWorksites
         fields = ['profile', 'worksite', 'role', 'order']
+
+
+class WorksiteUserProfileSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+    apartments = serializers.SerializerMethodField()
+
+    def get_apartments(self, obj):
+        worksite_id = obj.worksite_id
+        # Ottieni tutte le sottounità dell'appartamento associate al worksite
+        apartment_subs = ApartmentSub.objects.filter(apartment__worksite=worksite_id)
+        # Serializza i dati delle sottounità dell'appartamento
+        serializer = ApartmentSubSerializer(instance=apartment_subs, many=True)
+        return serializer.data
+    
+    class Meta:
+        model = WorksitesProfile
+        fields = ['profile', 'worksite', 'apartments']
+
 
 
 class FoglioParticellaSerializer(serializers.ModelSerializer):

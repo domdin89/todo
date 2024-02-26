@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
-from accounts.serializers import ProfileSerializer, ProfileSerializerNew
+from accounts.serializers import ProfileSerializer, ProfileSerializerNew, ProfileSerializerRole
 from django.db.models.functions import Concat
 from django.db.models import CharField, Value as V
 from django.db.models import Prefetch
@@ -16,8 +16,8 @@ from django.http import HttpResponseBadRequest, HttpResponseServerError
 from datetime import datetime
 
 from worksites.filters import WorksitesFilter
-from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella
-from .serializers import CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer
+from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile
+from .serializers import CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteUserProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -382,8 +382,8 @@ class WorksiteDetail(RetrieveUpdateAPIView):
 
 class CollaboratorListView(ListCreateAPIView):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializerNew
-    # permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializerRole
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['first_name', 'last_name']
@@ -457,7 +457,7 @@ def delete_collaborator(request, id):
 
 class WorksiteProfileListView(ListCreateAPIView):
     serializer_class = WorksiteProfileSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['profile__first_name', 'profile__last_name', 'worksite__name']
@@ -480,6 +480,32 @@ class WorksiteProfileListView(ListCreateAPIView):
         
         if role:
             queryset = queryset.filter(profile__type=role)
+
+        # Implementing search functionality through the filter_backends
+        return queryset
+    
+
+class WorksiteProfileUserListView(ListCreateAPIView):
+    serializer_class = WorksiteUserProfileSerializer
+    #permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['profile__first_name', 'profile__last_name']
+
+    def get_queryset(self):
+        worksite_id = self.request.GET.get('worksite')
+        queryset = WorksitesProfile.objects.filter(worksite_id=worksite_id, profile__type='USER')
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
+
+        if worksite_id:
+            queryset = queryset.filter(worksite__id=worksite_id)
 
         # Implementing search functionality through the filter_backends
         return queryset

@@ -9,11 +9,12 @@ urlpatterns = [
         #get
         path('worksites', views.WorksiteListView.as_view()),
         path('worksites/<int:pk>', views.WorksiteDetail.as_view()),
-        path('child', views.Child.as_view()),
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
+
+        path('worksitesprofile_user', views.WorksiteProfileUserListView.as_view()),
         path('profileWorskite', views.TechnicianNotInWorksiteView.as_view()),
 
         #post
