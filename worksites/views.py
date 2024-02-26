@@ -20,7 +20,7 @@ from collections import defaultdict
 
 from worksites.filters import WorksitesFilter
 from .models import Categories, CollabWorksites, FoglioParticella, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile
-from .serializers import CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer
+from .serializers import CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -382,6 +382,26 @@ class WorksiteDetail(RetrieveUpdateAPIView):
         if serializer.is_valid():
             self.perform_update(serializer)
         return Response(serializer.data)
+
+class CollaboratorListView2(APIView):
+    def get(self, request, *args, **kwargs):
+        worksite_id = request.query_params.get('worksite')
+        queryset = CollabWorksites.objects.filter(worksite_id=worksite_id).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
+        profiles = {}
+        for collab in queryset:
+            if collab.profile.id not in profiles:
+                profiles[collab.profile.id] = {
+                    "profile": ProfileSerializer2(collab.profile).data,
+                    "roles": []
+                }
+            profiles[collab.profile.id]["roles"].append(CollabWorksitesSerializer2(collab).data)
+        response = {
+            "count": len(profiles),
+            "next": None,
+            "previous": None,
+            "results": list(profiles.values())
+        }
+        return Response(response)
 
 class CollaboratorListView(APIView):
     pagination_class = PageNumberPagination

@@ -122,3 +122,14 @@ class WorksiteSerializer(serializers.ModelSerializer):
                   'date_update', 
                   'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
 
+
+
+class ProfileSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['id', 'first_name', 'last_name', 'email', 'mobile_number', 'image']
+
+class CollabWorksitesSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = CollabWorksites
+        fields = ['id', 'role', 'order', 'date_start', 'date_end', 'profile', 'worksite']
