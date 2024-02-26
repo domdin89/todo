@@ -407,6 +407,9 @@ class CollaboratorListView(APIView):
                 'id': profile.id,
                 'first_name': profile.first_name,
                 'last_name': profile.last_name,
+                'email': profile.email,
+                'mobile_number': profile.mobile_number,
+                'image': profile.image.url if profile.image else None,  # Se l'attributo 'image' non esiste, restituisce None
             }
             worksite_serializer = WorksiteStandardSerializer(collab_worksite.worksite)
             worksite_data = worksite_serializer.data
@@ -420,6 +423,9 @@ class CollaboratorListView(APIView):
                     'id': profile_id,
                     'first_name': profile_data.get('first_name', ''),  # Utilizza il metodo get per ottenere il valore, se non presente restituisce una stringa vuota
                     'last_name': profile_data.get('last_name', ''),  # Se è None, sostituisci con stringa vuota
+                    'email': profile_data.get('email', ''),
+                    'mobile_number': profile_data.get('mobile_number', ''),
+                    'image': profile_data.get('image', ''),
                 },
                 'worksites': worksites,
             }
