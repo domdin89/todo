@@ -974,6 +974,73 @@ paths:
                     example: "Parametro di query non valido o mancante."
       security:
         - bearerAuth: []
+  /worksitesprofile_user:
+    get:
+      tags:
+        - WorksitesProfile
+      summary: Ottiene tutti i profili dei cantieri con paginazione opzionale
+      description: Restituisce tutti i profili associati ai cantieri, con l'opzione di paginare i risultati.
+      parameters:
+        - in: query
+          name: worksite
+          description: 'id del cantiere'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          description: 'Numero della pagina per la paginazione, il valore di default è 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: 'Numero di elementi per pagina per la paginazione, il valore di default è 20.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          description: Ricerca profili dei cantieri per nome, indirizzo o altre caratteristiche.
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Elenco dei profili dei cantieri restituito con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorksitesProfile'
+        '400':
+          description: Parametro di query non valido o mancante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parametro di query non valido o mancante."
+      security:
+        - bearerAuth: []
   /apartments:
     get:
       tags:
@@ -1362,6 +1429,73 @@ paths:
                   errore:
                     type: string
                     example: "Dati non validi forniti."
+      security:
+        - bearerAuth: []
+  /boards-worksite:
+    get:
+      tags:
+        - Boards
+      summary: Ottiene tutti i board associati ad un worksite
+      description: Restituisce tutti i tutti i board associati ad un worksite, con l'opzione di paginare i risultati.
+      parameters:
+        - in: query
+          name: worksite
+          description: 'id del worksite'
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          description: 'Numero della pagina per la paginazione, il valore di default è 1.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: page_size
+          description: 'Numero di elementi per pagina per la paginazione, il valore di default è 20.'
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          description: Ricerca profili dei cantieri per nome, indirizzo o altre caratteristiche.
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Elenco dei profili dei cantieri restituito con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 100
+                  next:
+                    type: string
+                    nullable: true
+                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Boards'
+        '400':
+          description: Parametro di query non valido o mancante
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parametro di query non valido o mancante."
       security:
         - bearerAuth: []
 components:
