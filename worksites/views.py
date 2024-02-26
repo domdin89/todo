@@ -384,24 +384,31 @@ class WorksiteDetail(RetrieveUpdateAPIView):
         return Response(serializer.data)
 
 class CollaboratorListView2(APIView):
+    pagination_class = PageNumberPagination
+    
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
         queryset = CollabWorksites.objects.filter(worksite_id=worksite_id).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
-        profiles = {}
-        for collab in queryset:
-            if collab.profile.id not in profiles:
-                profiles[collab.profile.id] = {
-                    "profile": ProfileSerializer2(collab.profile).data,
-                    "roles": []
-                }
-            profiles[collab.profile.id]["roles"].append(CollabWorksitesSerializer2(collab).data)
-        response = {
-            "count": len(profiles),
-            "next": None,
-            "previous": None,
-            "results": list(profiles.values())
-        }
-        return Response(response)
+        
+        # Applica la paginazione al queryset
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        
+        if page is not None:
+            profiles = {}
+            for collab in page:
+                if collab.profile.id not in profiles:
+                    profiles[collab.profile.id] = {
+                        "profile": ProfileSerializer(collab.profile).data,
+                        "roles": []
+                    }
+                profiles[collab.profile.id]["roles"].append(CollabWorksitesSerializer(collab).data)
+            
+            response_data = list(profiles.values())
+            return paginator.get_paginated_response(response_data)
+        
+        # Se non ci sono dati da paginare, restituisce un response vuoto o gestisci come preferisci
+        return Response({"message": "No data found or invalid page number"})
 
 class CollaboratorListView(APIView):
     pagination_class = PageNumberPagination
