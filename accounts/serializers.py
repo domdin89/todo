@@ -47,21 +47,3 @@ class ProfileSerializerRole(serializers.ModelSerializer):
             if role['date_end'] is None:
                 role.pop('date_end', None)
         return data
-
-class WorksiteProfileSerializerNew(serializers.ModelSerializer):
-    
-    class Meta:
-        model = CollabWorksites
-        fields = '__all__'
-class ProfileSerializerNew(serializers.ModelSerializer):
-    collabworksites = WorksiteProfileSerializerNew(many=True, read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = [
-            'id', 'user', 'first_name', 'last_name', 'mobile_number', 'email', 
-            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites',
-        ]
-        extra_kwargs = {
-            'image': {'required': False},
-        }
