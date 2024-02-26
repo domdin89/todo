@@ -418,8 +418,8 @@ class CollaboratorListView(APIView):
             profile_data = {
                 'profile': {
                     'id': profile_id,
-                    'first_name': profile_data['first_name'],  # Prendi il nome dal profilo
-                    'last_name': profile_data['last_name'],    # Prendi il cognome dal profilo
+                    'first_name': profile_data.get('first_name', ''),  # Utilizza il metodo get per ottenere il valore, se non presente restituisce una stringa vuota
+                    'last_name': profile_data.get('last_name', ''),  # Se è None, sostituisci con stringa vuota
                 },
                 'worksites': worksites,
             }
