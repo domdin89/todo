@@ -24,6 +24,7 @@ urlpatterns = [
         path('category/new', views.new_category),
 
         #put
+        path('collabworksite/update', views.update_collabworksite),
         path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
         path('worksites/update/<int:worksite_id>', views.update_worksite),
         path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),

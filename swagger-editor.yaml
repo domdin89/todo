@@ -783,8 +783,10 @@ paths:
                   error:
                     type: string
                     example: "Parametro di query non valido."
+
       security:
         - bearerAuth: []
+  /collabworksite/new:
     post:
       tags:
         - CollabWorksites
@@ -803,12 +805,62 @@ paths:
                 worksite:
                   type: integer
                   example: 1
-                order:
+                roles:  # Fixing property name
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      order:
+                        type: integer
+      responses:
+        '201':
+          description: Nuovo collaboratore aggiunti con successo al cantiere.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollabWorksites'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "I campi di inuput forniti non sono validi."
+      security:
+        - bearerAuth: []
+  /collabworksite/update:
+    put:
+      tags:
+        - CollabWorksites
+      summary: Aggiungi un nuovo collaboratore ad un cantiere
+      description: "Aggiungi un nuovo collaboratore (gia esistente) ad un cantiere"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:
                   type: integer
-                  example: 0
-                role:
-                  type: string
-                  example: "DTC"
+                  example: 1
+                worksite:
+                  type: integer
+                  example: 1
+                roles:  # Fixing property name
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                      order:
+                        type: integer
       responses:
         '201':
           description: Nuovo collaboratore aggiunti con successo al cantiere.
