@@ -547,8 +547,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
             print(f'Associated technician IDs: {associated_technician_ids}')
             
             # Esclude i tecnici associati al worksite specificato
-            queryset = queryset.exclude(id__in=associated_technician_ids)
+            #queryset = queryset.exclude(id__in=associated_technician_ids)
             
-            print(f'Queryset after exclusion: {queryset}')
         
         return queryset
