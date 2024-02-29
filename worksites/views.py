@@ -125,14 +125,18 @@ class CollaboratorListView(APIView):
         search_query = request.query_params.get('search')
         #profile_count = self.get_profile_count(worksite_id, search_query)
 
+        search_filters = Q()
+
+        if search_query:
+            search_filters |= Q(profile__first_name__icontains=search_query)
+            search_filters |= Q(profile__last_name__icontains=search_query)
+            search_filters |= Q(profile__mobile_number__icontains=search_query)
+            search_filters |= Q(profile__email__icontains=search_query)
+
+
         collabs = CollabWorksites.objects.filter(
-            worksite_id=worksite_id,
-            **({
-                'profile__first_name__icontains': search_query,
-                'profile__last_name__icontains': search_query,
-                'profile__mobile_number__icontains': search_query,
-                'profile__email__icontains': search_query
-            } if search_query else {})
+            search_filters,
+            worksite_id=worksite_id
         ).select_related('profile').distinct()
 
         profile_ids = collabs.values_list('profile__id', flat=True)
