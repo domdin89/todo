@@ -2,8 +2,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from worksites.models import FoglioParticella
 from .serializers import ApartmentBaseSerializer, ClientApartmentsSerializer
-from .models import Apartments, ClientApartments
+from .models import ApartmentSub, Apartments, ClientApartments
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -65,16 +67,6 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
             return Response({"status": "fail", "message": "Attenzione, worksite obbligatorio"}, status=status.HTTP_400_BAD_REQUEST)
         return super(ApartmentListCreateAPIView, self).list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        # Handling multipart data including files
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": {"note": serializer.data}}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"status": "fail", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        
-
 
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
@@ -121,3 +113,45 @@ def delete_apartment(request, id):
     apartment.save()
 
     return Response("Appartamento rimosso", status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def new_apartment(request):  
+    worksite_id = request.data.get('worksite_id', None)  
+    
+    if worksite_id is None:
+        return Response("Il campo 'worksite_id' è obbligatorio.", status=status.HTTP_400_BAD_REQUEST)
+
+    apartment_data = {
+        'worksite_id': worksite_id,
+        'floor': request.data.get('floor', None),
+        'note': request.data.get('note', None),
+        'owner': request.data.get('owner', None),
+        'owner_phone': request.data.get('owner_phone', None),
+        'owner_email': request.data.get('owner_email', None),
+        'owner_cf': request.data.get('owner_cf', None),
+    }
+
+    apartment_data = {key: value for key, value in apartment_data.items() if value is not None}
+
+    apartment = Apartments.objects.create(**apartment_data)
+
+    # Creazione dei subappartamenti se presenti nel payload
+    subs_data = request.data.get('subs', [])
+    for sub_data in subs_data:
+        foglio_particella_id = sub_data.get('foglio_particella_id', None)
+        foglio_particella = None
+        if foglio_particella_id:
+            foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+
+        sub_data = {
+            'foglio_particella': foglio_particella,
+            'sub': sub_data.get('sub', None),
+            'apartment': apartment,
+        }
+
+        sub_data = {key: value for key, value in sub_data.items() if value is not None}
+
+        sub = ApartmentSub.objects.create(**sub_data)
+
+    return Response("Sub aggiornato con successo", status=status.HTTP_200_OK)

@@ -12,6 +12,7 @@ urlpatterns = [
 
     #get/post
     path('apartments', views.ApartmentListCreateAPIView.as_view(), name='apartments_list_create'),
+    path('apartment/new', views.new_apartment),
 
     #put
     path('apartments/update/<int:id>', views.update_apartment),
