@@ -122,11 +122,19 @@ class CollaboratorListView(APIView):
 
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
-        search_query = request.query_params.get('search')  # Aggiunto per la ricerca
-        profile_count = self.get_profile_count(worksite_id, search_query)
+        search_query = request.query_params.get('search')
+        #profile_count = self.get_profile_count(worksite_id, search_query)
 
-        # Estrarre gli ID dei profili unici
-        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+        collabs = CollabWorksites.objects.filter(
+            worksite_id=worksite_id,
+            **({
+                'profile__first_name__icontains': search_query,
+                'profile__last_name__icontains': search_query,
+                'profile__mobile_number__icontains': search_query,
+                'profile__email__icontains': search_query
+            } if search_query else {})
+        ).select_related('profile').distinct()
+
         profile_ids = collabs.values_list('profile__id', flat=True)
 
         # Applicare la paginazione agli ID dei profili
