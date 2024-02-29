@@ -203,6 +203,7 @@ def update_collabworksite(request):
 
     for collaborator in collaborators:
         collaborator.is_valid = False
+        collaborator.save()
 
     for role in roles:
         post_data = {
