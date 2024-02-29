@@ -596,7 +596,6 @@ class TechnicianNotInWorksiteView(ListAPIView):
                 is_visible=True
             ).values_list('profile__id', flat=True)
             
-            print(f'Associated technician IDs: {associated_technician_ids}')
             
             # Esclude i tecnici associati al worksite specificato
             queryset = queryset.exclude(id__in=associated_technician_ids)
