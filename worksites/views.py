@@ -22,6 +22,8 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import connection
 from django.db.models import Q
+from django.db import IntegrityError
+from django.db.utils import IntegrityError
 
 
 from accounts.models import Profile
@@ -163,27 +165,28 @@ class CollaboratorListView(APIView):
 
         return Response({"message": "No data found or invalid page number"})
 
+
 @api_view(['POST'])
-@parser_classes([MultiPartParser])
 def new_collabworksite(request):
-   
-    # Crea il cantiere
-    post_data = {
-        'profile_id': request.data.get('profile', None),
-        'worksite_id': request.data.get('worksite', None),
-        'order': request.data.get('order', None),
-        'role': request.data.get('role', 0),
-    }
+    roles = request.data.get('roles', [])
 
-    # Rimuovi i campi vuoti o non validi
-    post_data = {key: value for key, value in post_data.items() if value is not None}
+    for role in roles:
+        post_data = {
+            'profile_id': request.data.get('profile', None),
+            'worksite_id': request.data.get('worksite', None),
+            'order': role.get('order'),
+            'role': role.get('role'),
+        }
 
-    # Crea il cantiere solo se tutti i campi obbligatori sono presenti
-    try:
-        collabworksite = CollabWorksites.objects.create(**post_data)
-    except ValidationError as e:
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-    
+        post_data = {key: value for key, value in post_data.items() if value is not None}
+
+        try:
+            CollabWorksites.objects.create(**post_data)
+        except IntegrityError as e:
+            # Qui catturiamo l'IntegrityError e restituiamo un messaggio di errore personalizzato
+            return Response({'error': 'Errore di integrità dei dati. Assicurati che il profile_id e il worksite_id siano validi e esistenti.'}, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
@@ -560,7 +563,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
             print(f'Associated technician IDs: {associated_technician_ids}')
             
             # Esclude i tecnici associati al worksite specificato
-            #queryset = queryset.exclude(id__in=associated_technician_ids)
+            queryset = queryset.exclude(id__in=associated_technician_ids)
             
         
         return queryset
