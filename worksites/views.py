@@ -152,6 +152,32 @@ class CollaboratorListView(APIView):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
+def new_collabworksite(request):
+   
+    # Crea il cantiere
+    post_data = {
+        'profile_id': request.data.get('profile', None),
+        'worksite_id': request.data.get('worksite', None),
+        'order': request.data.get('order', None),
+        'role': request.data.get('role', 0),
+    }
+
+    # Rimuovi i campi vuoti o non validi
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Crea il cantiere solo se tutti i campi obbligatori sono presenti
+    try:
+        collabworksite = CollabWorksites.objects.create(**post_data)
+    except ValidationError as e:
+        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    
+
+    return Response('tutto regolare', status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
 def WorksitePostNew(request):
 
     # Ottieni il file immagine

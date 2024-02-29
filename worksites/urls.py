@@ -20,6 +20,7 @@ urlpatterns = [
 
         #post
         path('worksite/new', views.WorksitePostNew),
+        path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
 
         #put
