@@ -68,7 +68,7 @@ class WorksiteProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CollabWorksites
-        fields = ['order', 'date_start', 'date_end', 'profile']
+        fields = ['order', 'date_start', 'date_end', 'profile', 'is_valid']
 
 
 class CollabWorksitesNewSerializer(serializers.ModelSerializer):
