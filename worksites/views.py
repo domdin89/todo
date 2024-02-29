@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.db.models import CharField, Count, F, Prefetch, Value as V
 from django.db.models.functions import Concat
 from django.forms import ValidationError
-from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponseBadRequest, HttpResponseServerError, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.core.paginator import Paginator
@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db import connection
 
 
 from accounts.models import Profile
@@ -29,6 +30,19 @@ from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile)
 from .serializers import (CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
+
+
+# def prova(request):
+    
+#     with connection.cursor() as cursor:
+#         cursor.execute("SELECT VERSION()")
+#         row = cursor.fetchone()
+#         if row is not None:
+#             version = row[0]
+#         else:
+#             version = "N/D"  # Versione non disponibile
+#     return JsonResponse({'mysql_version': version})
+
 
 
 class CustomPagination(PageNumberPagination):
@@ -142,6 +156,7 @@ def WorksitePostNew(request):
 
     # Ottieni il file immagine
     image_file = request.FILES.get('image')
+    is_visible = request.data.get('is_visible', None),
 
     # Crea il cantiere
     post_data = {
@@ -150,7 +165,7 @@ def WorksitePostNew(request):
         'address': request.data.get('address', None),
         'lat': request.data.get('lat', 0),
         'lon': request.data.get('lon', 0),
-        'is_visible': request.data.get('is_visible', None),
+        'is_visible': is_visible == 'true',
         'net_worth': request.data.get('net_worth', 0),
         'percentage_worth': request.data.get('percentage_worth', 0),
         'link': request.data.get('link', None),
