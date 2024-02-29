@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db import connection
+from django.db.models import Q
 
 
 from accounts.models import Profile
