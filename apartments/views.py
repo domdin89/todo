@@ -76,28 +76,44 @@ def update_apartment(request, id):  # Aggiunta dell'argomento worksite_id
     except Apartments.DoesNotExist:
         return Response("Appartamento non trovato", status=status.HTTP_404_NOT_FOUND)
 
-    post_data = {
-        'worksite': request.data.get('worksite', apartment.worksite),
-        'floor': request.data.get('floor', apartment.floor),
-        'note': request.data.get('note', apartment.note),
-        'owner': request.data.get('owner', apartment.owner),
-        'owner_phone': request.data.get('owner_phone', apartment.owner_phone),
-        'owner_email': request.data.get('owner_email', apartment.owner_email),
-        'owner_cf': request.data.get('owner_cf', apartment.owner_cf),
-        'link': request.data.get('link', apartment.link),
-        'is_active': request.data.get('is_active', apartment.is_active),
 
+    subs = ApartmentSub.objects.filter(apartment=apartment)
+
+    for sub in subs:
+        sub.is_valid = False
+        sub.save()
+
+    apartment_data = {
+        'worksite_id': apartment.worksite.id,
+        'floor': request.data.get('floor', None),
+        'note': request.data.get('note', None),
+        'owner': request.data.get('owner', None),
+        'owner_phone': request.data.get('owner_phone', None),
+        'owner_email': request.data.get('owner_email', None),
+        'owner_cf': request.data.get('owner_cf', None),
     }
 
-    # Rimuovi i campi vuoti o non validi
-    post_data = {key: value for key, value in post_data.items() if value is not None}
+    apartment_data = {key: value for key, value in apartment_data.items() if value is not None}
 
-    # Aggiorna i campi del cantiere
-    for key, value in post_data.items():
-        setattr(apartment, key, value)
+    apartment = Apartments.objects.create(**apartment_data)
 
-    # Salva il cantiere
-    apartment.save()
+    # Creazione dei subappartamenti se presenti nel payload
+    subs_data = request.data.get('subs', [])
+    for sub_data in subs_data:
+        foglio_particella_id = sub_data.get('foglio_particella_id', None)
+        foglio_particella = None
+        if foglio_particella_id:
+            foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+
+        sub_data = {
+            'foglio_particella': foglio_particella,
+            'sub': sub_data.get('sub', None),
+            'apartment': apartment,
+        }
+
+        sub_data = {key: value for key, value in sub_data.items() if value is not None}
+
+        sub = ApartmentSub.objects.create(**sub_data)
 
     return Response("Appartamento aggiornato con successo", status=status.HTTP_200_OK)
 
@@ -111,6 +127,7 @@ def delete_apartment(request, id):
 
     apartment.is_active = False
     apartment.save()
+    
 
     return Response("Appartamento rimosso", status=status.HTTP_200_OK)
 
