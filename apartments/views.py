@@ -69,7 +69,7 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
 
 
 @api_view(['PUT'])
-@parser_classes([MultiPartParser])
+#@parser_classes([MultiPartParser])
 def update_apartment(request, id):  # Aggiunta dell'argomento worksite_id
     try:
         apartment = Apartments.objects.get(id=id)

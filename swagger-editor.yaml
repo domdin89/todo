@@ -1159,75 +1159,63 @@ paths:
                     example: "Invalid or missing query parameter."
       security:
         - bearerAuth: []
+  /apartment/new:
     post:
       tags:
         - Apartments
-      summary: Add a new apartment
-      description: Creates a new apartment in the database with the provided details. Supports multipart/form-data for file upload.
+      summary: Aggiungi un nuovo collaboratore ad un cantiere
+      description: "Aggiungi un nuovo collaboratore (gia esistente) ad un cantiere"
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
-                worksite:
-                  type: integer
-                  description: The ID of the associated worksite.
-                  format: int64
-                foglio:
-                  type: integer
-                  format: int64
-                  nullable: true
-                particella:
-                  type: integer
-                  format: int64
-                  nullable: true
-                sub:
-                  type: integer
-                  format: int64
-                  nullable: true
-                surface:
+                floor:
                   type: string
-                  maxLength: 100
-                  nullable: true
-                note:
-                  type: string
-                  maxLength: 100
-                  nullable: true
+                  example: 1
                 owner:
                   type: string
-                  maxLength: 100
-                  nullable: true
+                  example: Pippo
                 owner_phone:
                   type: string
-                  maxLength: 100
-                  nullable: true
+                  example: 32145678
                 owner_email:
                   type: string
-                  format: email
-                  nullable: true
+                  example: ciao@gmail.com
                 owner_cf:
                   type: string
-                  maxLength: 100
-                  nullable: true
-                link:
+                  example: PDPDOPDFOSDNF
+                note:
                   type: string
-                  maxLength: 100
-                  nullable: true
-                image:
-                  type: string
-                  format: binary
-                  description: Optional image file of the apartment
+                  example: Negozio
+                worksite:
+                  type: integer
+                  example: 1
+                subs:  # Fixing property name
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      foglio_particella:
+                        type: integer
+                        example: 1
+                      sub:
+                        type: string
+                        example: 1
+                      apartment:
+                        type: integer
+                        example: 2
       responses:
         '201':
-          description: New apartment created successfully.
+          description: Nuovo collaboratore aggiunti con successo al cantiere.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Apartments'
         '400':
-          description: Invalid input fields.
+          description: Invalid input
           content:
             application/json:
               schema:
@@ -1235,7 +1223,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "The input fields provided are invalid."
+                    example: "I campi di inuput forniti non sono validi."
       security:
         - bearerAuth: []
   /apartments/update/{id}:
