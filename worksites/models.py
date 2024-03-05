@@ -57,7 +57,7 @@ class Status(models.Model):
     order = models.IntegerField()
 
 class WorksitesStatus(models.Model):
-    #status = models.ForeignKey(Status, on_delete=models.CASCADE )
+    status = models.ForeignKey(Status, on_delete=models.CASCADE)
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(blank=True, null=True)
