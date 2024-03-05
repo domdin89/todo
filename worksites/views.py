@@ -32,7 +32,7 @@ from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile)
-from .serializers import (ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
 
 
 # def prova(request):
@@ -171,24 +171,24 @@ class CollaboratorListView(APIView):
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
-    def get_count(self, worksite_id, search_query=None):
-        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+    # def get_count(self, worksite_id, search_query=None):
+    #     collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
 
-        # Applicare la ricerca se presente
-        if search_query:
-            collabs = collabs.filter(
-                Q(profile__first_name__icontains=search_query) |
-                Q(profile__last_name__icontains=search_query) |
-                Q(profile__mobile_number__icontains=search_query) |
-                Q(profile__email__icontains=search_query)
-            )
+    #     # Applicare la ricerca se presente
+    #     if search_query:
+    #         collabs = collabs.filter(
+    #             Q(profile__first_name__icontains=search_query) |
+    #             Q(profile__last_name__icontains=search_query) |
+    #             Q(profile__mobile_number__icontains=search_query) |
+    #             Q(profile__email__icontains=search_query)
+    #         )
 
-        # Estrarre gli ID dei profili unici
-        profile_ids = collabs.values_list('profile__id', flat=True)
+    #     # Estrarre gli ID dei profili unici
+    #     profile_ids = collabs.values_list('profile__id', flat=True)
 
-        # Counting unique profiles instead of CollabWorksites
-        profile_count = Profile.objects.filter(id__in=profile_ids).distinct().count()
-        return profile_count
+    #     # Counting unique profiles instead of CollabWorksites
+    #     profile_count = Profile.objects.filter(id__in=profile_ids).distinct().count()
+    #     return profile_count
 
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
@@ -204,7 +204,7 @@ class ApartmentListView(APIView):
 
         subs = ApartmentSub.objects.filter(
             search_filters,
-            worksite_id=worksite_id,
+            apartment__worksite_id=worksite_id,
             is_valid=True
         ).select_related('apartment').distinct()
 
@@ -223,8 +223,8 @@ class ApartmentListView(APIView):
             for apartment in apartments:
                 apartment_data = subs.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
                 apartments_data = {
-                    "apartment": ApartmentSubSerializer(apartment).data,
-                    "subs": CollabWorksitesSerializer(apartment_data, many=True).data
+                    "apartments": ApartmentSerializer(apartment).data,
+                    "subs": ApartmentSubSerializer(apartment_data, many=True).data,
                 }
                 response_data.append(apartments_data)
 

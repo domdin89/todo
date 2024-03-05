@@ -57,7 +57,7 @@ class ApartmentSubSerializer(serializers.ModelSerializer):
         fields='__all__'
 
 class ApartmentSerializer(serializers.ModelSerializer):
-    sub = ApartmentSubSerializer(read_only=True, many=True)
+    #sub = ApartmentSubSerializer(read_only=True, many=True)
     class Meta:
         model= Apartments
         fields='__all__'
