@@ -50,8 +50,14 @@ class WorksiteCategoriesSerializer(serializers.ModelSerializer):
         model = WorksitesCategories
         fields = ["id", "category", "worksite"]
 
-class ApartmentSubSerializer(serializers.ModelSerializer):
 
+class FoglioParticellaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoglioParticella
+        fields = '__all__'
+        
+class ApartmentSubSerializer(serializers.ModelSerializer):
+    foglio_particella = FoglioParticellaSerializer()
     class Meta:
         model= ApartmentSub
         fields='__all__'
@@ -97,10 +103,6 @@ class WorksiteUserProfileSerializer(serializers.ModelSerializer):
 
 
 
-class FoglioParticellaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FoglioParticella
-        fields = '__all__'
 
 class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
     foglio_particella = FoglioParticellaSerializer()
