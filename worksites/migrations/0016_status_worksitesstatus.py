@@ -22,4 +22,9 @@ class Migration(migrations.Migration):
                 ('worksite', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='worksites.worksites')),
             ],
         ),
+        migrations.AddField(
+            model_name='collabworksites',
+            name='is_valid',
+            field=models.BooleanField(default=True),
+        ),
     ]

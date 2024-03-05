@@ -17,10 +17,5 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=150)),
                 ('order', models.IntegerField()),
             ],
-        ),
-        migrations.AddField(
-            model_name='collabworksites',
-            name='is_valid',
-            field=models.BooleanField(default=True),
-        ),
+        )
     ]
