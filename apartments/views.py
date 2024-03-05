@@ -34,7 +34,6 @@ class ClientApartmentsListView(ListAPIView):
             queryset = queryset.filter(apartment__worksite__id=worksite)
         return queryset
 
-
 class ApartmentListCreateAPIView(ListCreateAPIView):
     queryset = Apartments.objects.filter(is_active=True)
     serializer_class = ApartmentBaseSerializer
@@ -60,7 +59,7 @@ class ApartmentListCreateAPIView(ListCreateAPIView):
                 queryset = queryset.filter(worksite=worksite)  # Filtra per worksite se presente
         
             return queryset
-          
+
     def list(self, request, *args, **kwargs):
         worksite = request.query_params.get('worksite')
         if not worksite:

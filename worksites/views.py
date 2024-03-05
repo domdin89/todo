@@ -28,11 +28,11 @@ from django.db.utils import IntegrityError
 
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer, ProfileSerializerRole
-from apartments.models import ApartmentSub
+from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile)
-from .serializers import (CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteUserProfileSerializer)
 
 
 # def prova(request):
@@ -161,6 +161,72 @@ class CollaboratorListView(APIView):
                     "roles": CollabWorksitesSerializer(collab_data, many=True).data
                 }
                 response_data.append(profile_data)
+
+            return paginator.get_paginated_response(response_data)
+
+        return Response({"message": "No data found or invalid page number"})
+    
+
+
+class ApartmentListView(APIView):
+    pagination_class = CustomPagination
+
+    def get_count(self, worksite_id, search_query=None):
+        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+
+        # Applicare la ricerca se presente
+        if search_query:
+            collabs = collabs.filter(
+                Q(profile__first_name__icontains=search_query) |
+                Q(profile__last_name__icontains=search_query) |
+                Q(profile__mobile_number__icontains=search_query) |
+                Q(profile__email__icontains=search_query)
+            )
+
+        # Estrarre gli ID dei profili unici
+        profile_ids = collabs.values_list('profile__id', flat=True)
+
+        # Counting unique profiles instead of CollabWorksites
+        profile_count = Profile.objects.filter(id__in=profile_ids).distinct().count()
+        return profile_count
+
+    def get(self, request, *args, **kwargs):
+        worksite_id = request.query_params.get('worksite')
+        search_query = request.query_params.get('search')
+        #profile_count = self.get_profile_count(worksite_id, search_query)
+
+        search_filters = Q()
+
+        if search_query:
+            search_filters |= Q(apartment__owner__icontains=search_query)
+            search_filters |= Q(apartment__note__icontains=search_query)
+
+
+        subs = ApartmentSub.objects.filter(
+            search_filters,
+            worksite_id=worksite_id,
+            is_valid=True
+        ).select_related('apartment').distinct()
+
+        apartment_ids = subs.values_list('apartment__id', flat=True)
+
+        # Applicare la paginazione agli ID dei profili
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(apartment_ids, request)
+
+        if page is not None:
+            # Recuperare i profili paginati basandosi sugli ID
+            apartments = Apartments.objects.filter(id__in=page).distinct()
+
+            # Preparare la risposta aggregata
+            response_data = []
+            for apartment in apartments:
+                apartment_data = subs.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
+                apartments_data = {
+                    "apartment": ApartmentSubSerializer(apartment).data,
+                    "subs": CollabWorksitesSerializer(apartment_data, many=True).data
+                }
+                response_data.append(apartments_data)
 
             return paginator.get_paginated_response(response_data)
 

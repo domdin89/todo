@@ -12,6 +12,8 @@ urlpatterns = [
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
+        path('apartment', views.ApartmentListView.as_view()),
+
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
 
         path('worksitesprofile_user', views.WorksiteProfileUserListView.as_view()),
