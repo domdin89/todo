@@ -9,7 +9,7 @@ urlpatterns = [
         #get
         path('worksites', views.WorksiteListView.as_view()),
         path('worksites/<int:pk>', views.WorksiteDetail.as_view()),
-        path('worksite-status', views.get_worksite_status),
+        path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
@@ -25,12 +25,17 @@ urlpatterns = [
         path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
 
+        path('worksite-status/new/<int:id>/', views.new_worksite_status, name='new_worksite_status'),
+        path('worksite-status/new/<int:id>/<int:status_id>', views.new_worksite_status, name='new_worksite_status'),
+
         #put
         path('collabworksite/update', views.update_collabworksite),
         path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
         path('worksites/update/<int:worksite_id>', views.update_worksite),
         path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
         path('worksites/update/category/<int:id>', views.update_categories),
+
+        path('worksite-status/update/<int:old_id>/<int:current_id>/', views.edit_worksite_status, name='edit_worksite_status'),
 
         #delete
         path('worksites/delete/<int:id>', views.delete_worksite),

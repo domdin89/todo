@@ -61,6 +61,7 @@ class WorksitesStatus(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(blank=True, null=True)
+    is_current = models.BooleanField(default=False)
 
 
 class FoglioParticella(models.Model):
