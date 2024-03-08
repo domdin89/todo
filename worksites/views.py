@@ -720,9 +720,9 @@ def edit_order_collabworksite(request):
     profiles = request.data.get('profiles', [])
 
     for profile in profiles:
-        for role in profile.roles:
-            collab = CollabWorksites.objects.get(id=role.id)
-            collab.order = role.order
+        for role in profile['roles']:
+            collab = CollabWorksites.objects.get(id=role['id'])
+            collab.order = role['order']
             collab.save()
 
     return Response('tutto regolare', status=status.HTTP_200_OK)
