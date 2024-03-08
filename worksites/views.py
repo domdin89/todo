@@ -679,12 +679,7 @@ def get_worksite_status(request, id):
     
     serializer = StatusSerializer(statuses, many=True)
 
-    worksite_status = WorksitesStatus.objects.filter(worksite=worksite, is_current=True).first()
-    
-   
-        
-    current_status_serializer = WorksiteStatusSerializer(worksite_status)
-    return Response({'current_status': current_status_serializer.data, 'WorksiteStatus': serializer.data})
+    return Response(serializer.data)
 
     
 

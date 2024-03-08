@@ -137,14 +137,19 @@ class CollabWorksitesSerializer2(serializers.ModelSerializer):
         fields = ['id', 'role', 'order', 'date_start', 'date_end', 'profile', 'worksite']
 
 
-class StatusSerializer(serializers.ModelSerializer):
-     class Meta:
-        model = Status
-        fields = '__all__'
+
 
 
 class WorksiteStatusSerializer(serializers.ModelSerializer):
-      status = StatusSerializer()
+    
       class Meta:
         model = WorksitesStatus
         fields = '__all__'
+
+
+class StatusSerializer(serializers.ModelSerializer):
+     worksite_status = WorksiteStatusSerializer(many=True, read_only=True)
+
+     class Meta:
+        model = Status
+        fields = ['description', 'id', 'order', 'worksite_status']
