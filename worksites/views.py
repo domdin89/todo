@@ -34,7 +34,7 @@ from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 
 
 # def prova(request):
@@ -640,7 +640,7 @@ class WorksiteProfileUserListView(ListCreateAPIView):
 
 class TechnicianNotInWorksiteView(ListAPIView):
     #permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer  # Usa il serializer appropriato per Profile
+    serializer_class = ProfileSerializerPD  # Usa il serializer appropriato per Profile
 
     def get_queryset(self):
         # Seleziona tutti i profili di tipo 'TECNICI'
