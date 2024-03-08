@@ -42,7 +42,6 @@ class CollabWorksites(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name='collabworksites')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="collaborations")
     role = models.CharField(max_length=150)
-    order = models.IntegerField()
     is_valid = models.BooleanField(default=True)
     date_start = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_end = models.DateTimeField(blank=True, null=True)

@@ -3,8 +3,7 @@ from rest_framework import serializers
 from django.db.models import CharField
 from django.db.models.functions import Concat
 from accounts.models import Profile
-from worksites.models import CollabWorksites
-from worksites.serializers import CollabWorksitesSerializer2
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -21,7 +20,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    collabworksites = CollabWorksitesSerializer2(many=True, read_only=True)
+
     class Meta:
         model = Profile
         fields = [

@@ -134,9 +134,33 @@ class ProfileSerializer2(serializers.ModelSerializer):
 class CollabWorksitesSerializer2(serializers.ModelSerializer):
     class Meta:
         model = CollabWorksites
-        fields = ['id', 'role', 'order', 'date_start', 'date_end', 'worksite']
+        fields = ['id', 'role', 'date_start', 'date_end', 'worksite', 'is_valid']
 
+class ProfileSerializerPD(serializers.ModelSerializer):
+    collabworksites = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Profile
+        fields = [
+            'id', 'user', 'first_name', 'last_name', 'mobile_number', 'email',
+            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites'
+        ]
+        extra_kwargs = {
+            'image': {'required': False},
+        }
+
+    def get_collabworksites(self, obj):
+        # Filtra solo i CollabWorksites che hanno is_valid = True per il profilo corrente
+        valid_collabworksites = obj.collabworksites.filter(is_valid=True)
+        # Utilizza il CollabWorksitesSerializer2 per serializzare i dati filtrati
+        return CollabWorksitesSerializer2(valid_collabworksites, many=True).data
+
+class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
+    profile_details = ProfileSerializerPD(source='profile', read_only=True)
+
+    class Meta:
+        model = CollabWorksitesOrder
+        fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update', 'profile_details']
 
 
 
@@ -155,11 +179,3 @@ class StatusSerializer(serializers.ModelSerializer):
         fields = ['description', 'id', 'order', 'worksite_status']
 
 
-
-class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
-    profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
-    
-
-    class Meta:
-        model = CollabWorksitesOrder
-        fields = '__all__'
