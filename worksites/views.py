@@ -106,7 +106,7 @@ class CollaboratorListView(APIView):
     pagination_class = CustomPagination
 
     def get_profile_count(self, worksite_id, search_query=None):
-        collabs = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id).select_related('profile')
+        collabs = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id, is_valid=True).select_related('profile')
 
         # Applicare la ricerca se presente
         if search_query:
@@ -141,6 +141,7 @@ class CollaboratorListView(APIView):
         collabs = CollabWorksitesOrder.objects.filter(
             search_filters,
             worksite_id=worksite_id,
+            is_valid=True
         ).select_related('profile').distinct()
 
         collabs = collabs.order_by('order')
@@ -680,6 +681,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
             # Recupera gli ID dei profili associati al worksite specificato
             associated_technician_ids = CollabWorksitesOrder.objects.filter(
                 worksite_id=worksite_id,
+                is_valid=True
             ).values_list('profile__id', flat=True)
             
             
