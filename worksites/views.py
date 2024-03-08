@@ -156,11 +156,9 @@ class CollaboratorListView(APIView):
 
         if page is not None:
              print('sono qui')
-             response_data = []
              serializer = CollabWorksitesOrderSerializer(collabs, many=True)
-             response_data.append(serializer.data)
 
-             return paginator.get_paginated_response(response_data)
+             return paginator.get_paginated_response(serializer.data)
            
 
         return Response({"message": "No data found or invalid page number"})
