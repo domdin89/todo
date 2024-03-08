@@ -293,6 +293,25 @@ def update_collabworksite(request):
 
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
+@api_view(['PUT'])
+def delete_collabworksite(request):
+    profile = request.data.get('profile')
+    worksite = request.data.get('worksite')
+
+
+    collaborators = CollabWorksites.objects.filter(worksite_id=worksite, profile_id=profile)
+    collaborators_order = CollabWorksitesOrder.objects.filter(worksite_id=worksite, profile_id=profile)
+
+    for collaborator in collaborators:
+        collaborator.is_valid = False
+        collaborator.save()
+
+    for collaborator in collaborators_order:
+        collaborator.is_valid = False
+        collaborator.save()
+
+    return Response('tutto regolare', status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])

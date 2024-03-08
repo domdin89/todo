@@ -53,6 +53,7 @@ class CollabWorksitesOrder(models.Model):
     order = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
+    is_valid = models.BooleanField(default=True)
 
 class Categories(models.Model):
     name = models.CharField(max_length=150)

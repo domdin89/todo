@@ -36,6 +36,7 @@ urlpatterns = [
         path('worksites/update/category/<int:id>', views.update_categories),
 
         #delete
+        path('collabworksite/delete', views.delete_collabworksite),
         path('worksites/delete/<int:id>', views.delete_worksite),
         path('worksites/delete/foglio-particella/<int:id>', views.delete_foglio_particella),
         path('worksites/delete/category/<int:id>', views.delete_category),
