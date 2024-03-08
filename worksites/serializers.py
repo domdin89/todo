@@ -156,11 +156,11 @@ class ProfileSerializerPD(serializers.ModelSerializer):
         return CollabWorksitesSerializer2(valid_collabworksites, many=True).data
 
 class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
-    profile_details = ProfileSerializerPD(source='profile', read_only=True)
+    profile = ProfileSerializerPD(source='profile', read_only=True)
 
     class Meta:
         model = CollabWorksitesOrder
-        fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update', 'profile_details']
+        fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update']
 
 
 

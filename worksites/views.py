@@ -144,10 +144,8 @@ class CollaboratorListView(APIView):
         ).select_related('profile').distinct()
 
         collabs = collabs.order_by('order')
-        print(f'collab {collabs}')
 
         profile_ids = collabs.values_list('profile__id', flat=True)
-        print(f'profile_ids {profile_ids}')
 
 
         # Applicare la paginazione agli ID dei profili
@@ -155,7 +153,6 @@ class CollaboratorListView(APIView):
         page = paginator.paginate_queryset(profile_ids, request)
 
         if page is not None:
-             print('sono qui')
              serializer = CollabWorksitesOrderSerializer(collabs, many=True)
 
              return paginator.get_paginated_response(serializer.data)
