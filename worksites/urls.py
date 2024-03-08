@@ -8,8 +8,8 @@ app_name = 'worksites'
 urlpatterns = [
         #get
         path('worksites', views.WorksiteListView.as_view()),
-        path('worksites/<int:pk>', views.WorksiteDetail.as_view()),
-        path('worksite-status/<int:id>', views.get_worksite_status, name='get_worksite_status'),
+        path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
+        path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
