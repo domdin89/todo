@@ -4,6 +4,7 @@ from django.db.models import CharField
 from django.db.models.functions import Concat
 from accounts.models import Profile
 from worksites.models import CollabWorksites
+from worksites.serializers import CollabWorksitesSerializer2
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -20,11 +21,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    collabworksites = CollabWorksitesSerializer2(many=True, read_only=True)
     class Meta:
         model = Profile
         fields = [
             'id','user', 'first_name', 'last_name', 'mobile_number', 'email', 
-             'type', 'image', 'token', 'is_active', 'date', 'date_update'
+             'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites'
         ]
         extra_kwargs = {
             'image': {'required': False},

@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apartments.models import ApartmentSub, Apartments
 from .models import CollabWorksitesOrder, FoglioParticella, Status, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus
 from accounts.models import Profile
-from accounts.serializers import ProfileSerializer, ProfileSerializerRole
+from accounts.serializers import ProfileSerializer
 
 class CollabWorksitesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -134,7 +134,7 @@ class ProfileSerializer2(serializers.ModelSerializer):
 class CollabWorksitesSerializer2(serializers.ModelSerializer):
     class Meta:
         model = CollabWorksites
-        fields = ['id', 'role', 'order', 'date_start', 'date_end', 'profile', 'worksite']
+        fields = ['id', 'role', 'order', 'date_start', 'date_end', 'worksite']
 
 
 
@@ -157,7 +157,8 @@ class StatusSerializer(serializers.ModelSerializer):
 
 
 class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True)
+    profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
+    
 
     class Meta:
         model = CollabWorksitesOrder
