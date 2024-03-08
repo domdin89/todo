@@ -150,17 +150,27 @@ class ProfileSerializerPD(serializers.ModelSerializer):
         }
 
     def get_collabworksites(self, obj):
-        # Filtra solo i CollabWorksites che hanno is_valid = True per il profilo corrente
-        valid_collabworksites = obj.collabworksites.filter(is_valid=True)
-        # Utilizza il CollabWorksitesSerializer2 per serializzare i dati filtrati
+        # Ottieni il worksite dal contesto
+        worksite = self.context.get('worksite', None)
+        
+        # Filtra i CollabWorksites che sono validi e appartengono al worksite specifico
+        valid_collabworksites = obj.collabworksites.filter(is_valid=True, worksite=worksite)
+        
         return CollabWorksitesSerializer2(valid_collabworksites, many=True).data
-
+    
 class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializerPD(read_only=True)
+    profile = serializers.SerializerMethodField()
 
     class Meta:
         model = CollabWorksitesOrder
         fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update']
+
+    def get_profile(self, obj):
+        # Passa il worksite al ProfileSerializerPD attraverso il contesto
+        context = self.context
+        context['worksite'] = obj.worksite
+        serializer = ProfileSerializerPD(instance=obj.profile, context=context)
+        return serializer.data
 
 
 
