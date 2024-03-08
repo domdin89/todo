@@ -25,8 +25,7 @@ urlpatterns = [
         path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
 
-        path('worksite-status/new/<int:id>/', views.new_worksite_status, name='new_worksite_status'),
-        path('worksite-status/new/<int:id>/<int:status_id>', views.new_worksite_status, name='new_worksite_status'),
+        path('worksite-status/new', views.new_worksite_status, name='new_worksite_status'),
 
         #put
         path('collabworksite/update', views.update_collabworksite),
@@ -34,8 +33,6 @@ urlpatterns = [
         path('worksites/update/<int:worksite_id>', views.update_worksite),
         path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
         path('worksites/update/category/<int:id>', views.update_categories),
-
-        path('worksite-status/update/<int:old_id>/<int:current_id>/', views.edit_worksite_status, name='edit_worksite_status'),
 
         #delete
         path('worksites/delete/<int:id>', views.delete_worksite),

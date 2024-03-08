@@ -33,7 +33,7 @@ from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 
 
 # def prova(request):
@@ -675,67 +675,40 @@ class TechnicianNotInWorksiteView(ListAPIView):
 def get_worksite_status(request, id):
     # Ottieni il worksite corrispondente all'id fornito
     worksite = Worksites.objects.get(id=id)
-    worksite_statuses = WorksitesStatus.objects.filter(worksite=worksite)
+    statuses = Status.objects.all().order_by('order')
     
-    serializer = WorksiteStatusSerializer(worksite_statuses, many=True)
+    serializer = StatusSerializer(statuses, many=True)
+
+    worksite_status = WorksitesStatus.objects.filter(worksite=worksite, is_current=True).first()
     
-    sorted_statuses = worksite_statuses.order_by('-date')
-    
-    if sorted_statuses.exists():
-        current_status = sorted_statuses.first()
-        current_status_serializer = WorksiteStatusSerializer(current_status)
-        return Response({'current_status': current_status_serializer.data, 'WorksiteStatus': serializer.data})
-    else:
-        return Response({'current_status': None, 'WorksiteStatus': serializer.data})
+   
+        
+    current_status_serializer = WorksiteStatusSerializer(worksite_status)
+    return Response({'current_status': current_status_serializer.data, 'WorksiteStatus': serializer.data})
+
     
 
 @api_view(['POST'])
-def new_worksite_status(request, id, status_id=None):
-    previous_status = None
-    worksite = Worksites.objects.get(id=id)
+def new_worksite_status(request):
 
-    if status_id:
-        previous_status = WorksitesStatus.objects.get(status=status_id)
-        previous_status.is_current = False
-        previous_status.save()
+    worksite_id = request.data.get('worksite')
+    status_id = request.data.get('status')
 
-    status_data = {
-        'description': request.data.get('status', None),
-        'order': request.data.get('order', None),
-    }
+    worksite = Worksites.objects.get(id=worksite_id)
 
-    status = Status.objects.create(**status_data)
+    previous_statuses = WorksitesStatus.objects.filter(worksite=worksite)
+    for status in previous_statuses:
+        status.is_current = False
+        status.save()
+
 
     worksite_status_data = {
-        'status': status,
+        'status': Status.objects.get(id=status_id),
         'worksite': worksite,
-        'date': datetime.now(),
         'is_current': True,
     }
 
     wk_status = WorksitesStatus.objects.create(**worksite_status_data)
 
     serializer = WorksiteStatusSerializer(wk_status)
-    return Response(serializer.data) 
-
-
-@api_view(['PUT'])
-def edit_worksite_status(request, old_id, current_id):
-  
-    if old_id and current_id:
-        old_st = Status.objects.get(id=old_id)
-        cur_st = Status.objects.get(id=current_id)
-
-        previous_status = WorksitesStatus.objects.get(status=old_st)
-        current_status = WorksitesStatus.objects.get(status=cur_st)
-
-        previous_status.is_current = True
-        current_status.is_current = False
-
-        previous_status.save()
-        current_status.save()
-
-    
-
-    serializer = WorksiteStatusSerializer(previous_status)
     return Response(serializer.data) 
