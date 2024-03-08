@@ -659,9 +659,8 @@ class TechnicianNotInWorksiteView(ListAPIView):
         
         if worksite_id is not None:
             # Recupera gli ID dei profili associati al worksite specificato
-            associated_technician_ids = CollabWorksites.objects.filter(
+            associated_technician_ids = CollabWorksitesOrder.objects.filter(
                 worksite_id=worksite_id,
-                is_valid=True
             ).values_list('profile__id', flat=True)
             
             
