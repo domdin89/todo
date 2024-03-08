@@ -156,7 +156,7 @@ class ProfileSerializerPD(serializers.ModelSerializer):
         return CollabWorksitesSerializer2(valid_collabworksites, many=True).data
 
 class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializerPD(source='profile', read_only=True)
+    profile = ProfileSerializerPD(read_only=True)
 
     class Meta:
         model = CollabWorksitesOrder
