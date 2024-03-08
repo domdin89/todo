@@ -713,3 +713,16 @@ def new_worksite_status(request):
 
     serializer = WorksiteStatusSerializer(wk_status)
     return Response(serializer.data) 
+
+
+@api_view(['PUT'])
+def edit_order_collabworksite(request):
+    profiles = request.data.get('profiles', [])
+
+    for profile in profiles:
+        for role in profile.roles:
+            collab = CollabWorksites.objects.get(id=role.id)
+            collab.order = role.order
+            collab.save()
+
+    return Response('tutto regolare', status=status.HTTP_200_OK)
