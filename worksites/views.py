@@ -144,10 +144,12 @@ class CollaboratorListView(APIView):
             is_valid=True
         ).select_related('profile').distinct()
 
-
-        collabs = collabs.annotate(min_order=Min('order')).order_by('min_order')
+        collabs = collabs.order_by('order')
+        print(f'collab {collabs}')
 
         profile_ids = collabs.values_list('profile__id', flat=True)
+        print(f'profile_ids {profile_ids}')
+
 
         # Applicare la paginazione agli ID dei profili
         paginator = self.pagination_class()
@@ -155,12 +157,14 @@ class CollaboratorListView(APIView):
 
         if page is not None:
             # Recuperare i profili paginati basandosi sugli ID
-            profiles = Profile.objects.filter(id__in=page).distinct()
-
+            profiles = Profile.objects.filter(id__in=page).order_by('collabworksites__order').distinct()
+            print(f'profiles {profiles}')
+           
             # Preparare la risposta aggregata
             response_data = []
             for profile in profiles:
                 collab_data = collabs.filter(profile=profile).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
+                print(f'collab_data {collab_data}')
 
                 profile_data = {
                     "profile": ProfileSerializer(profile).data,
