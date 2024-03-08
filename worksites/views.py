@@ -230,12 +230,14 @@ class ApartmentListView(APIView):
 @api_view(['POST'])
 def new_collabworksite(request):
     roles = request.data.get('roles', [])
+    order = request.data.get('order', None)
+    profile_id = request.data.get('profile', None)
+    worksite_id= request.data.get('worksite', None)
 
     for role in roles:
         post_data = {
-            'profile_id': request.data.get('profile', None),
-            'worksite_id': request.data.get('worksite', None),
-            'order': role.get('order'),
+            'profile_id': profile_id,
+            'worksite_id': worksite_id,
             'role': role.get('role'),
         }
 
@@ -248,7 +250,13 @@ def new_collabworksite(request):
             return Response({'error': 'Errore di integrità dei dati. Assicurati che il profile_id e il worksite_id siano validi e esistenti.'}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    
 
+    CollabWorksitesOrder.objects.create(
+        order = order,
+        profile_id = profile_id,
+        worksite_id= worksite_id
+    )
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
 
