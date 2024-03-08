@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.core.paginator import Paginator
 from rest_framework import status
+from django.db.models import Min
 
 from rest_framework import generics, mixins, serializers, status, viewsets
 from rest_framework.decorators import api_view, parser_classes
@@ -143,7 +144,10 @@ class CollaboratorListView(APIView):
             is_valid=True
         ).select_related('profile').distinct()
 
-        profile_ids = collabs.values_list('profile__id', flat=True)
+
+        collabs = collabs.annotate(min_order=Min('order'))
+
+        profile_ids = collabs.values_list('profile__id', flat=True).order_by('min_order')
 
         # Applicare la paginazione agli ID dei profili
         paginator = self.pagination_class()
@@ -157,6 +161,7 @@ class CollaboratorListView(APIView):
             response_data = []
             for profile in profiles:
                 collab_data = collabs.filter(profile=profile).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
+
                 profile_data = {
                     "profile": ProfileSerializer(profile).data,
                     "roles": CollabWorksitesSerializer(collab_data, many=True).data
