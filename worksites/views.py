@@ -145,9 +145,9 @@ class CollaboratorListView(APIView):
         ).select_related('profile').distinct()
 
 
-        collabs = collabs.annotate(min_order=Min('order'))
+        collabs = collabs.annotate(min_order=Min('order')).order_by('min_order')
 
-        profile_ids = collabs.values_list('profile__id', flat=True).order_by('min_order')
+        profile_ids = collabs.values_list('profile__id', flat=True)
 
         # Applicare la paginazione agli ID dei profili
         paginator = self.pagination_class()
