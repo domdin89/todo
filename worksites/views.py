@@ -673,15 +673,27 @@ class TechnicianNotInWorksiteView(ListAPIView):
 
 @api_view(['GET'])
 def get_worksite_status(request, id):
-    # Ottieni il worksite corrispondente all'id fornito
-    worksite = Worksites.objects.get(id=id)
+    # Ottieni tutti gli status ordinati
     statuses = Status.objects.all().order_by('order')
     
-    serializer = StatusSerializer(statuses, many=True)
+    # Prepariamo la lista dei dati finali
+    statuses_data = []
 
-    return Response(serializer.data)
+    # Per ogni status, trova il WorksiteStatus attivo associato
+    for status in statuses:
+        # Cerca il WorksitesStatus attivo per il dato status e worksite
+        active_status = WorksitesStatus.objects.filter(
+            status=status, 
+            worksite_id=id, 
+            active=True
+        ).first()
 
-    
+        # Serializza lo status e aggiungi i dati del WorksitesStatus attivo
+        status_data = StatusSerializer(status).data
+        status_data['active'] = WorksiteStatusSerializer(active_status).data if active_status else None
+        statuses_data.append(status_data)
+
+    return Response(statuses_data)
 
 @api_view(['POST'])
 def new_worksite_status(request):
@@ -691,16 +703,10 @@ def new_worksite_status(request):
 
     worksite = Worksites.objects.get(id=worksite_id)
 
-    previous_statuses = WorksitesStatus.objects.filter(worksite=worksite)
-    for status in previous_statuses:
-        status.is_current = False
-        status.save()
-
 
     worksite_status_data = {
         'status': Status.objects.get(id=status_id),
-        'worksite': worksite,
-        'is_current': True,
+        'worksite': worksite
     }
 
     wk_status = WorksitesStatus.objects.create(**worksite_status_data)

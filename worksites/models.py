@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from accounts.models import Profile
+from django.db import transaction
+
 
 
 class Worksites(models.Model):
@@ -56,12 +58,34 @@ class Status(models.Model):
     description = models.CharField(max_length=150)
     order = models.IntegerField()
 
+
+class ActiveWorksiteStatusManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(active=True)
+    
 class WorksitesStatus(models.Model):
     status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name="worksite_status")
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
-    is_current = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
+
+    objects = models.Manager()  # Il manager di default
+    active_statuses = ActiveWorksiteStatusManager()  # Il nostro nuovo manager per gli stati attivi
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.active:
+                # When a new active status is being saved, we deactivate all other active statuses
+                # for the same worksite, but we exclude the current instance from this deactivation.
+                WorksitesStatus.objects.filter(
+                    worksite=self.worksite,
+                    status=self.status,
+                    active=True
+                ).exclude(id=self.id).update(active=False)
+                
+            super(WorksitesStatus, self).save(*args, **kwargs)
+
 
 
 class FoglioParticella(models.Model):

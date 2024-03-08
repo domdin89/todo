@@ -148,7 +148,7 @@ class WorksiteStatusSerializer(serializers.ModelSerializer):
 
 
 class StatusSerializer(serializers.ModelSerializer):
-     worksite_status = WorksiteStatusSerializer(many=True, read_only=True)
+
 
      class Meta:
         model = Status
