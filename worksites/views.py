@@ -33,8 +33,8 @@ from accounts.serializers import ProfileSerializer, ProfileSerializerRole
 from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
-from .models import (Categories, CollabWorksites, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .models import (Categories, CollabWorksites, CollabWorksitesOrder, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
+from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 
 
 # def prova(request):
@@ -106,7 +106,7 @@ class CollaboratorListView(APIView):
     pagination_class = CustomPagination
 
     def get_profile_count(self, worksite_id, search_query=None):
-        collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
+        collabs = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id).select_related('profile')
 
         # Applicare la ricerca se presente
         if search_query:
@@ -138,10 +138,9 @@ class CollaboratorListView(APIView):
             search_filters |= Q(profile__email__icontains=search_query)
 
 
-        collabs = CollabWorksites.objects.filter(
+        collabs = CollabWorksitesOrder.objects.filter(
             search_filters,
             worksite_id=worksite_id,
-            is_valid=True
         ).select_related('profile').distinct()
 
         collabs = collabs.order_by('order')
@@ -156,23 +155,13 @@ class CollaboratorListView(APIView):
         page = paginator.paginate_queryset(profile_ids, request)
 
         if page is not None:
-            # Recuperare i profili paginati basandosi sugli ID
-            profiles = Profile.objects.filter(id__in=page).order_by('collabworksites__order').distinct()
-            print(f'profiles {profiles}')
+             print('sono qui')
+             response_data = []
+             serializer = CollabWorksitesOrderSerializer(collabs, many=True)
+             response_data.append(serializer.data)
+
+             return paginator.get_paginated_response(response_data)
            
-            # Preparare la risposta aggregata
-            response_data = []
-            for profile in profiles:
-                collab_data = collabs.filter(profile=profile).prefetch_related(Prefetch('profile', queryset=Profile.objects.all()))
-                print(f'collab_data {collab_data}')
-
-                profile_data = {
-                    "profile": ProfileSerializer(profile).data,
-                    "roles": CollabWorksitesSerializer(collab_data, many=True).data
-                }
-                response_data.append(profile_data)
-
-            return paginator.get_paginated_response(response_data)
 
         return Response({"message": "No data found or invalid page number"})
     
