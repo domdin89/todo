@@ -166,39 +166,25 @@ class CollaboratorListView(APIView):
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
-    # def get_count(self, worksite_id, search_query=None):
-    #     collabs = CollabWorksites.objects.filter(worksite_id=worksite_id).select_related('profile')
-
-    #     # Applicare la ricerca se presente
-    #     if search_query:
-    #         collabs = collabs.filter(
-    #             Q(profile__first_name__icontains=search_query) |
-    #             Q(profile__last_name__icontains=search_query) |
-    #             Q(profile__mobile_number__icontains=search_query) |
-    #             Q(profile__email__icontains=search_query)
-    #         )
-
-    #     # Estrarre gli ID dei profili unici
-    #     profile_ids = collabs.values_list('profile__id', flat=True)
-
-    #     # Counting unique profiles instead of CollabWorksites
-    #     profile_count = Profile.objects.filter(id__in=profile_ids).distinct().count()
-    #     return profile_count
-
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
-        #profile_count = self.get_profile_count(worksite_id, search_query)
-
-        search_filters = Q()
-
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')
+        
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)
+        else:
+            queryset = queryset.order_by(order_by_field)
+        
         if search_query:
-            search_filters |= Q(apartment__owner__icontains=search_query)
-            search_filters |= Q(apartment__note__icontains=search_query)
-
+            queryset = queryset.filter(
+                Q(apartment__owner__icontains=search_query) | 
+                Q(apartment__note__icontains=search_query)
+            )
 
         subs = ApartmentSub.objects.filter(
-            search_filters,
+            queryset,
             apartment__worksite_id=worksite_id,
             is_valid=True
         ).select_related('apartment').distinct()

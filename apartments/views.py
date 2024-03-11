@@ -126,7 +126,7 @@ def delete_apartment(request, id):
 
     apartment.is_active = False
     apartment.save()
-    
+
 
     return Response("Appartamento rimosso", status=status.HTTP_200_OK)
 
