@@ -174,7 +174,8 @@ class ApartmentListView(APIView):
 
         queryset = ApartmentSub.objects.filter(
             apartment__worksite_id=worksite_id,
-            is_valid=True
+            is_valid=True,
+            apartment__is_active=True
         ).select_related('apartment')
 
         if search_query:
@@ -187,9 +188,6 @@ class ApartmentListView(APIView):
             queryset = queryset.order_by('-' + order_by_field)
         else:
             queryset = queryset.order_by(order_by_field)
-        
-        
-
         
         apartment_ids = queryset.values_list('apartment__id', flat=True).distinct()
 
