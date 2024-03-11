@@ -722,7 +722,6 @@ def update_worksite_status(request):
         return Response('tutto regolare') 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-    
 
 
 @api_view(['POST'])
