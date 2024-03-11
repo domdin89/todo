@@ -751,7 +751,7 @@ def update_worksite_status_date(request):
     try:
         wk_status = WorksitesStatus.objects.get(id=wk_status_id)
         if wk_status:
-            wk_status.data = wk_status_data
+            wk_status.date = wk_status_data
             wk_status.save()
 
         return Response('tutto regolare') 
