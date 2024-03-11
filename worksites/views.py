@@ -167,6 +167,7 @@ class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
     def get(self, request, *args, **kwargs):
+        queryset = None
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
         order_param = self.request.GET.get('order', 'desc')
