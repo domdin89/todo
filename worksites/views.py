@@ -167,30 +167,31 @@ class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
     def get(self, request, *args, **kwargs):
-        queryset = None
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
         order_param = self.request.GET.get('order', 'desc')
         order_by_field = self.request.GET.get('order_by', 'id')
-        
-        if order_param == 'desc':
-            queryset = queryset.order_by('-' + order_by_field)
-        else:
-            queryset = queryset.order_by(order_by_field)
-        
+
+        queryset = ApartmentSub.objects.filter(
+            apartment__worksite_id=worksite_id,
+            is_valid=True
+        ).select_related('apartment')
+
         if search_query:
             queryset = queryset.filter(
                 Q(apartment__owner__icontains=search_query) | 
                 Q(apartment__note__icontains=search_query)
             )
 
-        subs = ApartmentSub.objects.filter(
-            queryset,
-            apartment__worksite_id=worksite_id,
-            is_valid=True
-        ).select_related('apartment').distinct()
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)
+        else:
+            queryset = queryset.order_by(order_by_field)
+        
+        
 
-        apartment_ids = subs.values_list('apartment__id', flat=True)
+        
+        apartment_ids = queryset.values_list('apartment__id', flat=True).distinct()
 
         # Applicare la paginazione agli ID dei profili
         paginator = self.pagination_class()
@@ -203,7 +204,7 @@ class ApartmentListView(APIView):
             # Preparare la risposta aggregata
             response_data = []
             for apartment in apartments:
-                apartment_data = subs.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
+                apartment_data = queryset.filter(apartment=apartment)
                 apartments_data = {
                     "apartments": ApartmentSerializer(apartment).data,
                     "subs": ApartmentSubSerializer(apartment_data, many=True).data,
