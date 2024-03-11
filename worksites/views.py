@@ -26,6 +26,7 @@ from django.db import connection
 from django.db.models import Q
 from django.db import IntegrityError
 from django.db.utils import IntegrityError
+from django.db.models import Max
 
 
 from accounts.models import Profile
@@ -186,7 +187,6 @@ class ApartmentListView(APIView):
         query_params &= Q(apartment__worksite_id=worksite_id,
                             is_valid=True,
                             apartment__is_active=True)
-
 
         queryset = ApartmentSub.objects.filter(
           query_params
@@ -706,23 +706,30 @@ def get_worksite_status(request, id):
     return Response(statuses_data)
 
 @api_view(['POST'])
-def new_worksite_status(request):
+def update_worksite_status(request):
 
     worksite_id = request.data.get('worksite')
-    status_id = request.data.get('status')
 
-    worksite = Worksites.objects.get(id=worksite_id)
+    try:
+        max_order = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True).aggregate(max_order=Max('status__order'))['max_order'],
+
+        if max_order:
+            next_status = Status.objects.get(order=max_order+1)
+            updated_worksite_status = WorksitesStatus.objects.create(
+                worksite_id=worksite_id, 
+                status=next_status,
+                active=True)
+        return Response('tutto regolare') 
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
 
 
-    worksite_status_data = {
-        'status': Status.objects.get(id=status_id),
-        'worksite': worksite
-    }
+   
 
-    wk_status = WorksitesStatus.objects.create(**worksite_status_data)
 
-    serializer = WorksiteStatusSerializer(wk_status)
-    return Response(serializer.data) 
+    
+    
 
 
 @api_view(['PUT'])
