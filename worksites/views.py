@@ -173,17 +173,17 @@ class ApartmentListView(APIView):
         order_by_field = self.request.GET.get('order_by', 'id')
 
 
+        query_params = Q() 
+
         if search_query:
-            queryset = queryset.filter(
-                Q(apartment__owner__icontains=search_query) | 
-                Q(apartment__note__icontains=search_query)
-            )
+            query_params &= Q(apartment__owner__icontains=search_query) | Q(apartment__note__icontains=search_query)
+        query_params &= Q(apartment__worksite_id=worksite_id,
+                            is_valid=True,
+                            apartment__is_active=True)
 
 
         queryset = ApartmentSub.objects.filter(
-            apartment__worksite_id=worksite_id,
-            is_valid=True,
-            apartment__is_active=True
+          query_params
         ).select_related('apartment').distinct()
         
         apartment_ids = queryset.values_list('apartment__id', flat=True)
@@ -199,7 +199,7 @@ class ApartmentListView(APIView):
             # Preparare la risposta aggregata
             response_data = []
             for apartment in apartments:
-                apartment_data = queryset.filter(apartment=apartment)
+                apartment_data = queryset.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
                 apartments_data = {
                     "apartments": ApartmentSerializer(apartment).data,
                     "subs": ApartmentSubSerializer(apartment_data, many=True).data,
