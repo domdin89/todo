@@ -742,7 +742,21 @@ def undo_worksite_status(request):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-    
+@api_view(['PUT'])
+def update_worksite_status_date(request):
+
+    wk_status_id = request.data.get('id')
+    wk_status_data = request.data.get('date')
+
+    try:
+        wk_status = WorksitesStatus.objects.get(id=wk_status_id)
+        if wk_status:
+            wk_status.data = wk_status_data
+            wk_status.save()
+
+        return Response('tutto regolare') 
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)   
     
 
 

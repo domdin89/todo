@@ -29,6 +29,7 @@ urlpatterns = [
         path('worksite-status/previous', views.undo_worksite_status, name='undo_worksite_status'),
 
         #put
+        path('worksite-status/date/update', views.update_worksite_status_date, name='date_worksite_status'),
         path('collabworksite/update', views.update_collabworksite),
         path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
         path('collabworksites/reorder', views.edit_order_collabworksite),
