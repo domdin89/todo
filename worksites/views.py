@@ -166,6 +166,8 @@ class CollaboratorListView(APIView):
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
+
+
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
