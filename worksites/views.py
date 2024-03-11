@@ -167,10 +167,16 @@ class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
     def get(self, request, *args, **kwargs):
+        order_by = '-id'
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
         order_param = self.request.GET.get('order', 'desc')
         order_by_field = self.request.GET.get('order_by', 'id')
+
+        if order_param == 'desc':
+            order_by = '-' + order_by_field
+        else:
+            order_by = order_by_field
 
 
         query_params = Q() 
@@ -194,7 +200,7 @@ class ApartmentListView(APIView):
 
         if page is not None:
             # Recuperare i profili paginati basandosi sugli ID
-            apartments = Apartments.objects.filter(id__in=page).distinct()
+            apartments = Apartments.objects.filter(id__in=page).distinct().order_by(order_by)
 
             # Preparare la risposta aggregata
             response_data = []
