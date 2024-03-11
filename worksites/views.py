@@ -711,7 +711,7 @@ def update_worksite_status(request):
     worksite_id = request.data.get('worksite')
 
     try:
-        max_order = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True).aggregate(max_order=Max('status__order'))['max_order'],
+        max_order = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True).aggregate(max_order=Max('status__order'))['max_order']
 
         if max_order:
             next_status = Status.objects.get(order=max_order+1)
@@ -725,7 +725,22 @@ def update_worksite_status(request):
     
 
 
-   
+@api_view(['POST'])
+def undo_worksite_status(request):
+
+    worksite_id = request.data.get('worksite')
+
+    try:
+        max_order = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True).aggregate(max_order=Max('status__order'))['max_order']
+
+        if max_order:
+            wk_status = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True, status__order=max_order).first()
+            wk_status.active = False
+            wk_status.save()
+
+        return Response('tutto regolare') 
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 
     
