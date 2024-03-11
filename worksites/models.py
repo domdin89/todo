@@ -39,7 +39,7 @@ class WorksitesProfile(models.Model):
     approved = models.BooleanField(default=False)
 
 class CollabWorksites(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE,related_name='collabworksites')
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='collabworksites')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="collaborations")
     role = models.CharField(max_length=150)
     is_valid = models.BooleanField(default=True)
@@ -48,8 +48,8 @@ class CollabWorksites(models.Model):
 
 
 class CollabWorksitesOrder(models.Model):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='collabworksitesOrder')
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE, related_name="collaborationsOrder")
     order = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)

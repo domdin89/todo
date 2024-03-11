@@ -111,19 +111,6 @@ class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
         model = WorksitesFoglioParticella
         fields = '__all__'
 
-class WorksiteSerializer(serializers.ModelSerializer):
-    financier = FinancierSerializer(read_only=True)
-    contractor = ContractorSerializer(read_only=True)
-    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  # Assumendo una relazione ManyToMany con Worksites
-    collaborations = WorksiteProfileSerializer(many=True, read_only=True)
-    foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Worksites
-        fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 
-                  'date_update', 
-                  'collaborations', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
-
 
 
 class ProfileSerializer2(serializers.ModelSerializer):
@@ -163,7 +150,7 @@ class CollabWorksitesOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CollabWorksitesOrder
-        fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update']
+        fields = ['id', 'profile', 'worksite', 'order', 'date', 'date_update', 'is_valid']
 
     def get_profile(self, obj):
         # Passa il worksite al ProfileSerializerPD attraverso il contesto
@@ -189,3 +176,27 @@ class StatusSerializer(serializers.ModelSerializer):
         fields = ['description', 'id', 'order', 'worksite_status']
 
 
+
+class WorksiteSerializer(serializers.ModelSerializer):
+    financier = FinancierSerializer(read_only=True)
+    contractor = ContractorSerializer(read_only=True)
+    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  
+    collaborationsOrder = CollabWorksitesOrderSerializer(many=True, read_only=True) # Assumendo una relazione ManyToMany con collaborators
+    foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Worksites
+        fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 
+                  'date_update', 
+                  'collaborationsOrder', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Assicurati che 'collaborationsOrder' sia già un elenco ordinato come desiderato.
+        # L'ordinamento qui è solo a scopo dimostrativo se 'ret['collaborationsOrder']' non è già ordinato.
+        valid_collaborations = sorted(
+            [collab for collab in ret['collaborationsOrder'] if collab['is_valid']], 
+            key=lambda x: x['order']
+        )
+        ret['collaborationsOrder'] = valid_collaborations
+        return ret
