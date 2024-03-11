@@ -166,19 +166,12 @@ class CollaboratorListView(APIView):
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
 
-
-
     def get(self, request, *args, **kwargs):
         worksite_id = request.query_params.get('worksite')
         search_query = request.query_params.get('search')
         order_param = self.request.GET.get('order', 'desc')
         order_by_field = self.request.GET.get('order_by', 'id')
 
-        queryset = ApartmentSub.objects.filter(
-            apartment__worksite_id=worksite_id,
-            is_valid=True,
-            apartment__is_active=True
-        ).select_related('apartment')
 
         if search_query:
             queryset = queryset.filter(
@@ -186,12 +179,14 @@ class ApartmentListView(APIView):
                 Q(apartment__note__icontains=search_query)
             )
 
-        if order_param == 'desc':
-            queryset = queryset.order_by('-' + order_by_field)
-        else:
-            queryset = queryset.order_by(order_by_field)
+
+        queryset = ApartmentSub.objects.filter(
+            apartment__worksite_id=worksite_id,
+            is_valid=True,
+            apartment__is_active=True
+        ).select_related('apartment').distinct()
         
-        apartment_ids = queryset.values_list('apartment__id', flat=True).distinct()
+        apartment_ids = queryset.values_list('apartment__id', flat=True)
 
         # Applicare la paginazione agli ID dei profili
         paginator = self.pagination_class()
