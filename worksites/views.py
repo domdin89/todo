@@ -190,7 +190,7 @@ class ApartmentListView(APIView):
 
         queryset = ApartmentSub.objects.filter(
           query_params
-        ).select_related('apartment').distinct()
+        ).select_related('apartment').distinct().order_by(order_by)
         
         apartment_ids = queryset.values_list('apartment__id', flat=True)
 
@@ -200,7 +200,7 @@ class ApartmentListView(APIView):
 
         if page is not None:
             # Recuperare i profili paginati basandosi sugli ID
-            apartments = Apartments.objects.filter(id__in=page).distinct().order_by(order_by)
+            apartments = Apartments.objects.filter(id__in=page).distinct()
 
             # Preparare la risposta aggregata
             response_data = []
