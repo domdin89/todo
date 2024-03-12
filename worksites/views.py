@@ -339,24 +339,21 @@ def WorksitePostNew(request):
         worksite = Worksites.objects.create(**post_data)
     except ValidationError as e:
         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    
+    foglio_particelle_str = request.data.get('foglio_particelle', None)
+    if foglio_particelle_str:
+        try:
+            foglio_particelle = json.loads(foglio_particelle_str)
+            for item_dict in foglio_particelle:
+                foglio_particella = FoglioParticella.objects.create(**item_dict)
+                WorksitesFoglioParticella.objects.create(
+                    foglio_particella=foglio_particella,
+                    worksite=worksite
+                )
+        except json.JSONDecodeError as e:
+            return Response({'error': 'Invalid JSON format for foglio_particelle'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Gestisci foglio_particelle solo se è presente
-    foglio_particelle = request.data.getlist('foglio_particelle', None)
-    if foglio_particelle:
-        for item in foglio_particelle:
-            # Converti la stringa JSON in un dizionario Python
-            item_dict = json.loads(item)
-            foglio_particella = FoglioParticella.objects.create(
-                foglio=item_dict.get('foglio'),
-                particella=item_dict.get('particella')
-            )
-
-            WorksitesFoglioParticella.objects.create(
-                foglio_particella=foglio_particella,
-                worksite=worksite
-            )
-
-    return Response('tutto regolare', status=status.HTTP_200_OK)
+    return Response({'message': 'Worksite created successfully'}, status=status.HTTP_201_CREATED)
 
 
 @api_view(['POST'])
