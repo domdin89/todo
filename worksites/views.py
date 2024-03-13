@@ -408,33 +408,76 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
     except Worksites.DoesNotExist:
         return Response("Cantiere non trovato", status=status.HTTP_404_NOT_FOUND)
 
-    post_data = {
-        'name': request.data.get('name', worksite.name),
-        'address': request.data.get('address', worksite.address),
-        'lat': request.data.get('lat', worksite.lat),
-        'lon': request.data.get('lon', worksite.lon),
-        'is_visible': request.data.get('is_visible', worksite.is_visible),
-        'net_worth': request.data.get('net_worth', worksite.net_worth),
-        'image': request.FILES.get('image', worksite.image),
-        'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
-        'link': request.data.get('link', worksite.link),
-        'date_start': request.data.get('date_start', worksite.date_start),
-        'date_end': request.data.get('date_end', worksite.date_end),
-        'status': request.data.get('status', worksite.status),
-        'codice_commessa': request.data.get('codice_commessa', worksite.codice_commessa),
-        'codice_CIG': request.data.get('codice_CIG', worksite.codice_CIG),
-        'codice_CUP': request.data.get('codice_CUP', worksite.codice_CUP),
-    }
+    with transaction.atomic():
 
-    # Rimuovi i campi vuoti o non validi
-    post_data = {key: value for key, value in post_data.items() if value is not None}
+        financier = request.data.get('financier', worksite.financier)
+        contractor = request.data.get('contractor', worksite.contractor)
+        new_financer = None
+        new_contractor = None
 
-    # Aggiorna i campi del cantiere
-    for key, value in post_data.items():
-        setattr(worksite, key, value)
+        if financier:
+            try:
+                new_financer = Financier.objects.create(name=financier)
+            except json.JSONDecodeError as e:
+                return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if contractor:
+            try:
+                new_contractor = Contractor.objects.create(name=contractor)
+            except json.JSONDecodeError as e:
+                return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Salva il cantiere
-    worksite.save()
+        post_data = {
+            'name': request.data.get('name', worksite.name),
+            'address': request.data.get('address', worksite.address),
+            'lat': request.data.get('lat', worksite.lat),
+            'lon': request.data.get('lon', worksite.lon),
+            'is_visible': request.data.get('is_visible', worksite.is_visible),
+            'net_worth': request.data.get('net_worth', worksite.net_worth),
+            'image': request.FILES.get('image', worksite.image),
+            'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
+            'link': request.data.get('link', worksite.link),
+            'date_start': request.data.get('date_start', worksite.date_start),
+            'date_end': request.data.get('date_end', worksite.date_end),
+            'status': request.data.get('status', worksite.status),
+            'codice_commessa': request.data.get('codice_commessa', worksite.codice_commessa),
+            'codice_CIG': request.data.get('codice_CIG', worksite.codice_CIG),
+            'codice_CUP': request.data.get('codice_CUP', worksite.codice_CUP),
+            'financier': new_financer,
+            'contractor': new_contractor
+        }
+
+        # Rimuovi i campi vuoti o non validi
+        post_data = {key: value for key, value in post_data.items() if value is not None}
+
+        # Aggiorna i campi del cantiere
+        for key, value in post_data.items():
+            setattr(worksite, key, value)
+
+        # Salva il cantiere
+        worksite.save()
+
+    
+        foglio_particelle_str = request.data.get('foglio_particelle', None)
+        if foglio_particelle_str:
+            try:
+                foglio_particelle = json.loads(foglio_particelle_str)
+                for item_dict in foglio_particelle:
+                    try:
+                        fp = FoglioParticella.objects.get(**item_dict)
+
+                        for key, value in item_dict.items():
+                            setattr(fp, key, value)
+                        fp.save()
+                    except FoglioParticella.DoesNotExist:
+                        foglio_particella = FoglioParticella.objects.create(**item_dict)
+                        WorksitesFoglioParticella.objects.create(
+                            foglio_particella=foglio_particella,
+                            worksite=worksite
+                        )
+
+            except json.JSONDecodeError as e:
+                return Response({'error': 'Invalid JSON format for foglio_particelle'}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
