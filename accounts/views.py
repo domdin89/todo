@@ -24,7 +24,7 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
 class ProfileListCreateAPIView(ListCreateAPIView):
-    queryset = Profile.objects.filter(is_active=True)
+    queryset = Profile.objects.all()
     #permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
