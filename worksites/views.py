@@ -463,37 +463,29 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
 
         if foglio_particelle_str:
             foglio_particelle = json.loads(foglio_particelle_str)
-            
-            # Inizializza l'insieme degli ID sottomessi che devono essere mantenuti
-            submitted_ids = set()
-            
-            for item_dict in foglio_particelle:
-                id_val = item_dict.pop('id', None)
 
-                if id_val:
-                    # Aggiorna il record esistente
-                    fp, created = FoglioParticella.objects.update_or_create(
-                        id=id_val, 
-                        defaults=item_dict
+            # Assicurati che tutte le operazioni siano atomiche
+            with transaction.atomic():
+                # 1 & 2: Disattiva tutti i FoglioParticella esistenti per questo worksite
+                FoglioParticella.objects.filter(worksitesfoglioparticella__worksite_id=worksite_id).update(is_active=False)
+                
+                for item_dict in foglio_particelle:
+                    id_val = item_dict.pop('id', None)
+
+                    if id_val:
+                        # 3: Cerca il FoglioParticella esistente per aggiornarlo e riattivarlo
+                        fp, _ = FoglioParticella.objects.update_or_create(id=id_val, defaults={**item_dict, 'is_active': True})
+                    else:
+                        # 4: Crea un nuovo FoglioParticella e impostalo come attivo
+                        fp = FoglioParticella.objects.create(**item_dict, is_active=True)
+                    
+                    # Associa FoglioParticella a Worksites, creando o aggiornando WorksitesFoglioParticella
+                    WorksitesFoglioParticella.objects.update_or_create(
+                        foglio_particella=fp, 
+                        worksite_id=worksite_id,
+                        defaults={'foglio_particella': fp}
                     )
-                    submitted_ids.add(id_val)
-                else:
-                    # Crea un nuovo record
-                    fp = FoglioParticella.objects.create(**item_dict)
 
-                # Assicurati di associare ogni record (nuovo o aggiornato) al worksite corretto
-                WorksitesFoglioParticella.objects.get_or_create(foglio_particella=fp, worksite_id=worksite_id)
-
-            # Elimina tutti i record associati al worksite che non sono stati sottomessi nella richiesta PUT
-            if submitted_ids:
-                WorksitesFoglioParticella.objects.filter(
-                    worksite_id=worksite_id
-                ).exclude(
-                    foglio_particella_id__in=submitted_ids
-                ).delete()
-            else:
-                # Se nessun id è stato sottomesso, e ci sono solo record da creare, non eliminare nulla
-                pass
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 

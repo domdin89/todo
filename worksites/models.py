@@ -99,6 +99,7 @@ class WorksitesStatus(models.Model):
 class FoglioParticella(models.Model):
     foglio = models.CharField(max_length=50,blank=True, null=True) 
     particella = models.CharField(max_length=50, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     
 class WorksitesFoglioParticella(models.Model):
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
