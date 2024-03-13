@@ -109,7 +109,7 @@ class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorksitesFoglioParticella
-        fields = ['foglio_particella',]  # Aggiorna con gli altri campi necessari
+        fields = ['foglio_particella', 'id']  # Aggiorna con gli altri campi necessari
 
 
 class ProfileSerializer2(serializers.ModelSerializer):
