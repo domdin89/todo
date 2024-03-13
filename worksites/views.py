@@ -432,7 +432,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
             'address': request.data.get('address', worksite.address),
             'lat': request.data.get('lat', worksite.lat),
             'lon': request.data.get('lon', worksite.lon),
-            'is_visible': request.data.get('is_visible', worksite.is_visible),
+            'is_visible': True if request.data.get('is_visible', worksite.is_visible) == 'true' else False,
             'net_worth': request.data.get('net_worth', worksite.net_worth),
             'image': request.FILES.get('image', worksite.image),
             'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
