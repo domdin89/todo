@@ -460,24 +460,22 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
     
         foglio_particelle_str = request.data.get('foglio_particelle', None)
         if foglio_particelle_str:
-            try:
-                foglio_particelle = json.loads(foglio_particelle_str)
-                for item_dict in foglio_particelle:
-                    try:
-                        fp = FoglioParticella.objects.get(**item_dict)
+            foglio_particelle = json.loads(foglio_particelle_str)
+            for item_dict in foglio_particelle:
+                try:
+                    fp = FoglioParticella.objects.get(**item_dict)
 
-                        for key, value in item_dict.items():
-                            setattr(fp, key, value)
-                        fp.save()
-                    except FoglioParticella.DoesNotExist:
-                        foglio_particella = FoglioParticella.objects.create(**item_dict)
-                        WorksitesFoglioParticella.objects.create(
-                            foglio_particella=foglio_particella,
-                            worksite=worksite
-                        )
+                    for key, value in item_dict.items():
+                        setattr(fp, key, value)
+                    fp.save()
+                except FoglioParticella.DoesNotExist:
+                    foglio_particella = FoglioParticella.objects.create(**item_dict)
+                    WorksitesFoglioParticella.objects.create(
+                        foglio_particella=foglio_particella,
+                        worksite=worksite
+                    )
 
-            except json.JSONDecodeError as e:
-                return Response({'error': 'Invalid JSON format for foglio_particelle'}, status=status.HTTP_400_BAD_REQUEST)
+           
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
