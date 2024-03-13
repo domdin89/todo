@@ -36,6 +36,7 @@ from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
 from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from django.db.models import Q
 
 
 # def prova(request):
@@ -459,28 +460,36 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
 
     
         foglio_particelle_str = request.data.get('foglio_particelle', None)
+
         if foglio_particelle_str:
             foglio_particelle = json.loads(foglio_particelle_str)
+            
+            # Trova tutti gli id esistenti per questo worksite per determinare quali eliminare più tardi
+            existing_ids = set(WorksitesFoglioParticella.objects.filter(worksite_id=worksite_id).values_list('foglio_particella_id', flat=True))
+            
+            # Aggiornamento/Creazione di record
             for item_dict in foglio_particelle:
-                try:
-                    fp = FoglioParticella.objects.get(id=item_dict['id'], worksitesfoglioparticella__worksite_id=worksite_id)
-                except:
-                    fp = None
-                if fp:
-                    for key, value in item_dict.items():
-                        setattr(fp, key, value)
-                    fp.save()
-                else:
-                    try:
-                        foglio_particella = FoglioParticella.objects.create(**item_dict)
-                        WorksitesFoglioParticella.objects.create(
-                            foglio_particella=foglio_particella,
-                            worksite=worksite
-                        )
-                    except Exception as e:
-                        return JsonResponse({'error': str(e)}, status=400)
+                id_val = item_dict.pop('id', None)
 
-           
+                if id_val and id_val in existing_ids:
+                    # Aggiorna l'oggetto esistente
+                    fp, _ = FoglioParticella.objects.update_or_create(
+                        id=id_val, 
+                        defaults=item_dict
+                    )
+                    # L'id è gestito, quindi rimuovilo dall'insieme degli id esistenti
+                    existing_ids.remove(id_val)
+                elif not id_val:
+                    # Crea un nuovo oggetto e la sua relazione con worksite
+                    fp = FoglioParticella.objects.create(**item_dict)
+                    WorksitesFoglioParticella.objects.create(foglio_particella=fp, worksite_id=worksite_id)
+                # Se l'id_val esiste ma non è nell'insieme existing_ids, significa che non corrisponde al worksite_id dato, quindi non fare nulla
+
+            # Eliminazione di record non più necessari
+            WorksitesFoglioParticella.objects.filter(
+                worksite_id=worksite_id,
+                foglio_particella_id__in=list(existing_ids)
+            ).delete()
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
