@@ -784,7 +784,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
 
     def get_queryset(self):
         # Seleziona tutti i profili di tipo 'TECNICI'
-        queryset = Profile.objects.filter(type='TECNICI')
+        queryset = Profile.objects.filter(type='TECNICI', is_active=True)
         
         # Recupera il parametro 'worksite' dalla richiesta
         worksite_id = self.request.GET.get('worksite')

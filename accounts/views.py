@@ -82,10 +82,3 @@ def profile_edit(request):
 
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
-
-api_view(['PUT'])
-@parser_classes([MultiPartParser])
-def ciao(request):
-    first_name = request.data.get('first_name')
-
-    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)

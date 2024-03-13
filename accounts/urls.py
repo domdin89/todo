@@ -9,5 +9,4 @@ urlpatterns = [
     path('profile', views.ProfileListCreateAPIView.as_view()),
  
 
-    path('ciao', views.ciao),
 ]
