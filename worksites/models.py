@@ -3,6 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from accounts.models import Profile
 from django.db import transaction
 
+class CollabAttivoManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(profile__is_active=True)
+    
 class AttivoManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_active=True)
@@ -56,6 +60,8 @@ class CollabWorksitesOrder(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
     is_valid = models.BooleanField(default=True)
+
+    objects = CollabAttivoManager()  # Il manager di default
 
 class Categories(models.Model):
     name = models.CharField(max_length=150)
