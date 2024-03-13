@@ -105,29 +105,12 @@ class WorksiteUserProfileSerializer(serializers.ModelSerializer):
 
 
 class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
-    #foglio_particella = FoglioParticellaSerializer()
-    foglio_particella = serializers.SerializerMethodField()
+    foglio_particella = FoglioParticellaSerializer()
 
     class Meta:
         model = WorksitesFoglioParticella
         fields = ['foglio_particella',]  # Aggiorna con gli altri campi necessari
 
-    def get_foglio_particella(self, worksitesFoglioParticella):
-        # Controlla se l'oggetto FoglioParticella collegato esiste e se è attivo
-        foglio_particella = worksitesFoglioParticella.foglio_particella
-        if foglio_particella and foglio_particella.is_active:
-            # Serializza e restituisce i dati se il FoglioParticella è attivo
-            return FoglioParticellaSerializer(foglio_particella).data
-        # Non restituire nulla se il FoglioParticella non esiste o non è attivo
-        return None
-    
-    def to_representation(self, instance):
-        # Ottieni la rappresentazione standard
-        ret = super().to_representation(instance)
-        # Rimuovi 'foglio_particella' se è None
-        if ret['foglio_particella'] is None:
-            ret.pop('foglio_particella')
-        return ret
 
 class ProfileSerializer2(serializers.ModelSerializer):
     class Meta:
@@ -198,7 +181,9 @@ class WorksiteSerializer(serializers.ModelSerializer):
     contractor = ContractorSerializer(read_only=True)
     categories = WorksiteCategoriesSerializer(many=True, read_only=True)  
     collaborationsOrder = CollabWorksitesOrderSerializer(many=True, read_only=True) # Assumendo una relazione ManyToMany con collaborators
-    foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
+    #foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
+    foglio_particelle = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Worksites
@@ -206,6 +191,11 @@ class WorksiteSerializer(serializers.ModelSerializer):
                   'date_update', 
                   'collaborationsOrder', 'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
     
+    def get_foglio_particelle(self, obj):
+        foglio_particelle = obj.foglio_particelle.filter(foglio_particella__is_active=True)
+        serializer = WorksiteFoglioParticellaSerializer(foglio_particelle, many=True)
+        return serializer.data
+
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         # Assicurati che 'collaborationsOrder' sia già un elenco ordinato come desiderato.
