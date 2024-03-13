@@ -26,6 +26,7 @@ urlpatterns = [
         path('category/new', views.new_category),
 
         path('profile/update/<int:id>', views.profile_edit),
+        path('profile/delete/<int:id>', views.profile_delete),
 
         path('worksite-status/next', views.update_worksite_status, name='next_worksite_status'),
         path('worksite-status/previous', views.undo_worksite_status, name='undo_worksite_status'),

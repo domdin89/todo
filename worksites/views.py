@@ -642,6 +642,16 @@ def profile_edit(request, id):  # Aggiunta dell'argomento worksite_id
 
     return Response("Profilo aggiornato con successo", status=status.HTTP_200_OK)
 
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def profile_delete(request, id):  # Aggiunta dell'argomento worksite_id
+    profile = Profile.objects.get(id=id)
+
+    profile.is_active = False
+
+    profile.save()
+
+    return Response("Profilo aggiornato con successo", status=status.HTTP_200_OK)
 
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.filter(is_active=True)
