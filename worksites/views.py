@@ -740,6 +740,12 @@ def update_worksite_status(request):
                 worksite_id=worksite_id, 
                 status=next_status,
                 active=True)
+        else:        
+            initial_status = Status.objects.order_by('order').first()
+            WorksitesStatus.objects.create(
+                    status=initial_status,
+                    worksite_id=worksite_id  # Usa l'istanza passata dalla funzione
+                )
         return Response('tutto regolare') 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -757,12 +763,8 @@ def undo_worksite_status(request):
             wk_status = WorksitesStatus.objects.filter(worksite_id=worksite_id, active=True, status__order=max_order).first()
             wk_status.active = False
             wk_status.save()
-        else:
-            initial_status = Status.objects.order_by('order').first()
-            WorksitesStatus.objects.create(
-                status=initial_status,
-                worksite_id=worksite_id  # Usa l'istanza passata dalla funzione
-            )
+        
+           
 
         return Response('tutto regolare') 
     except Exception as e:
