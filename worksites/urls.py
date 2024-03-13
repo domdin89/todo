@@ -33,9 +33,9 @@ urlpatterns = [
         path('collabworksite/update', views.update_collabworksite),
         path('collabworksites/<int:pk>/', views.CollaboratorUpdateView.as_view()),
         path('collabworksites/reorder', views.edit_order_collabworksite),
-        path('worksites/update/<int:worksite_id>', views.update_worksite),
-        path('worksites/update/foglio-particella/<int:id>', views.update_foglio_particella),
-        path('worksites/update/category/<int:id>', views.update_categories),
+        path('worksite/update/<int:worksite_id>', views.update_worksite),
+        path('worksite/update/foglio-particella/<int:id>', views.update_foglio_particella),
+        path('worksite/update/category/<int:id>', views.update_categories),
 
         #delete
         path('collabworksite/delete', views.delete_collabworksite),
