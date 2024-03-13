@@ -492,7 +492,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
             # Eliminazione di record non più necessari
             WorksitesFoglioParticella.objects.filter(
                 worksite_id=worksite_id,
-                foglio_particella_id__in=list(existing_ids)
+                foglio_particella_id__in=list(ids_to_remove)
             ).delete()
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
