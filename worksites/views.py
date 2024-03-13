@@ -34,7 +34,7 @@ from accounts.serializers import ProfileSerializer, ProfileSerializerRole
 from apartments.models import ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
-from .models import (Categories, CollabWorksites, CollabWorksitesOrder, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
+from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
 from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 
 
@@ -307,51 +307,75 @@ def delete_collabworksite(request):
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def WorksitePostNew(request):
-
-    # Ottieni il file immagine
-    image_file = request.FILES.get('image')
-    is_visible = request.data.get('is_visible', None),
-
-    # Crea il cantiere
-    post_data = {
-        'image': image_file,
-        'name': request.data.get('name', None),
-        'address': request.data.get('address', None),
-        'lat': request.data.get('lat', 0),
-        'lon': request.data.get('lon', 0),
-        'is_visible': is_visible == 'true',
-        'net_worth': request.data.get('net_worth', 0),
-        'percentage_worth': request.data.get('percentage_worth', 0),
-        'link': request.data.get('link', None),
-        'date_start': request.data.get('date_start', None),
-        'date_end': request.data.get('date_end', None),
-        'status': request.data.get('status', None),
-        'codice_commessa': request.data.get('codice_commessa', None),
-        'codice_CIG': request.data.get('codice_CIG', None),
-        'codice_CUP': request.data.get('codice_CUP', None),
-    }
-
-    # Rimuovi i campi vuoti o non validi
-    post_data = {key: value for key, value in post_data.items() if value is not None}
-
-    # Crea il cantiere solo se tutti i campi obbligatori sono presenti
     try:
-        worksite = Worksites.objects.create(**post_data)
-    except ValidationError as e:
-        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+
+            financier = request.data.get('financier', None)
+            contractor = request.data.get('contractor', None)
+            new_financer = None
+            new_contractor = None
+
+            if financier:
+                try:
+                    new_financer = Financier.objects.create(name=financier)
+                except json.JSONDecodeError as e:
+                    return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if contractor:
+                try:
+                    new_contractor = Contractor.objects.create(name=contractor)
+                except json.JSONDecodeError as e:
+                    return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Ottieni il file immagine
+            image_file = request.FILES.get('image')
+            is_visible = request.data.get('is_visible', None),
+
+            # Crea il cantiere
+            post_data = {
+                'image': image_file,
+                'name': request.data.get('name', None),
+                'address': request.data.get('address', None),
+                'lat': request.data.get('lat', 0),
+                'lon': request.data.get('lon', 0),
+                'is_visible': is_visible == 'true',
+                'net_worth': request.data.get('net_worth', 0),
+                'percentage_worth': request.data.get('percentage_worth', 0),
+                'link': request.data.get('link', None),
+                'date_start': request.data.get('date_start', None),
+                'date_end': request.data.get('date_end', None),
+                'status': request.data.get('status', None),
+                'codice_commessa': request.data.get('codice_commessa', None),
+                'codice_CIG': request.data.get('codice_CIG', None),
+                'codice_CUP': request.data.get('codice_CUP', None),
+                'financier': new_financer,
+                'contractor': new_contractor
+            }
+
+            # Rimuovi i campi vuoti o non validi
+            post_data = {key: value for key, value in post_data.items() if value is not None}
+
+            # Crea il cantiere solo se tutti i campi obbligatori sono presenti
+            try:
+                worksite = Worksites.objects.create(**post_data)
+            except ValidationError as e:
+                return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            
+            foglio_particelle_str = request.data.get('foglio_particelle', None)
+            if foglio_particelle_str:
+                try:
+                    foglio_particelle = json.loads(foglio_particelle_str)
+                    for item_dict in foglio_particelle:
+                        foglio_particella = FoglioParticella.objects.create(**item_dict)
+                        WorksitesFoglioParticella.objects.create(
+                            foglio_particella=foglio_particella,
+                            worksite=worksite
+                        )
+                except json.JSONDecodeError as e:
+                    return Response({'error': 'Invalid JSON format for foglio_particelle'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
     
-    foglio_particelle_str = request.data.get('foglio_particelle', None)
-    if foglio_particelle_str:
-        try:
-            foglio_particelle = json.loads(foglio_particelle_str)
-            for item_dict in foglio_particelle:
-                foglio_particella = FoglioParticella.objects.create(**item_dict)
-                WorksitesFoglioParticella.objects.create(
-                    foglio_particella=foglio_particella,
-                    worksite=worksite
-                )
-        except json.JSONDecodeError as e:
-            return Response({'error': 'Invalid JSON format for foglio_particelle'}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({'message': 'Worksite created successfully'}, status=status.HTTP_201_CREATED)
 
