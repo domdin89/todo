@@ -464,36 +464,36 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
         if foglio_particelle_str:
             foglio_particelle = json.loads(foglio_particelle_str)
             
+            # Inizializza l'insieme degli ID sottomessi che devono essere mantenuti
+            submitted_ids = set()
             
-            submitted_ids = set(item.get('id') for item in foglio_particelle if 'id' in item)
-            # Trova tutti gli id esistenti per questo worksite per determinare quali eliminare più tardi
-            existing_ids = set(WorksitesFoglioParticella.objects.filter(worksite_id=worksite_id).values_list('foglio_particella__id', flat=True))
-            # IDs to keep should not be removed
-            ids_to_remove = existing_ids - submitted_ids
-            
-            # Aggiornamento/Creazione di record
             for item_dict in foglio_particelle:
                 id_val = item_dict.pop('id', None)
 
-                if id_val and id_val in existing_ids:
-                    # Aggiorna l'oggetto esistente
-                    fp, _ = FoglioParticella.objects.update_or_create(
+                if id_val:
+                    # Aggiorna il record esistente
+                    fp, created = FoglioParticella.objects.update_or_create(
                         id=id_val, 
                         defaults=item_dict
                     )
-                    # L'id è gestito, quindi rimuovilo dall'insieme degli id esistenti
-                    existing_ids.remove(id_val)
-                elif not id_val:
-                    # Crea un nuovo oggetto e la sua relazione con worksite
+                    submitted_ids.add(id_val)
+                else:
+                    # Crea un nuovo record
                     fp = FoglioParticella.objects.create(**item_dict)
-                    WorksitesFoglioParticella.objects.create(foglio_particella=fp, worksite_id=worksite_id)
-                # Se l'id_val esiste ma non è nell'insieme existing_ids, significa che non corrisponde al worksite_id dato, quindi non fare nulla
 
-            # Eliminazione di record non più necessari
-            WorksitesFoglioParticella.objects.filter(
-                worksite_id=worksite_id,
-                foglio_particella_id__in=list(ids_to_remove)
-            ).delete()
+                # Assicurati di associare ogni record (nuovo o aggiornato) al worksite corretto
+                WorksitesFoglioParticella.objects.get_or_create(foglio_particella=fp, worksite_id=worksite_id)
+
+            # Elimina tutti i record associati al worksite che non sono stati sottomessi nella richiesta PUT
+            if submitted_ids:
+                WorksitesFoglioParticella.objects.filter(
+                    worksite_id=worksite_id
+                ).exclude(
+                    foglio_particella_id__in=submitted_ids
+                ).delete()
+            else:
+                # Se nessun id è stato sottomesso, e ci sono solo record da creare, non eliminare nulla
+                pass
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
