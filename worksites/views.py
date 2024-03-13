@@ -464,8 +464,12 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
         if foglio_particelle_str:
             foglio_particelle = json.loads(foglio_particelle_str)
             
+            
+            submitted_ids = set(item.get('id') for item in foglio_particelle if 'id' in item)
             # Trova tutti gli id esistenti per questo worksite per determinare quali eliminare più tardi
-            existing_ids = set(WorksitesFoglioParticella.objects.filter(worksite_id=worksite_id).values_list('foglio_particella_id', flat=True))
+            existing_ids = set(WorksitesFoglioParticella.objects.filter(worksite_id=worksite_id).values_list('foglio_particella__id', flat=True))
+            # IDs to keep should not be removed
+            ids_to_remove = existing_ids - submitted_ids
             
             # Aggiornamento/Creazione di record
             for item_dict in foglio_particelle:
