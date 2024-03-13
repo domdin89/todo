@@ -102,7 +102,7 @@ def update_apartment(request, id):  # Aggiunta dell'argomento worksite_id
         foglio_particella_id = sub_data.get('foglio_particella_id', None)
         foglio_particella = None
         if foglio_particella_id:
-            foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+            foglio_particella = FoglioParticella.oggetti_attivi.get(pk=foglio_particella_id)
 
         sub_data = {
             'foglio_particella': foglio_particella,
@@ -158,7 +158,7 @@ def new_apartment(request):
         foglio_particella_id = sub_data.get('foglio_particella_id', None)
         foglio_particella = None
         if foglio_particella_id:
-            foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
+            foglio_particella = FoglioParticella.oggetti_attivi.get(pk=foglio_particella_id)
 
         sub_data = {
             'foglio_particella': foglio_particella,

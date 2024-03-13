@@ -105,13 +105,29 @@ class WorksiteUserProfileSerializer(serializers.ModelSerializer):
 
 
 class WorksiteFoglioParticellaSerializer(serializers.ModelSerializer):
-    foglio_particella = FoglioParticellaSerializer()
+    #foglio_particella = FoglioParticellaSerializer()
+    foglio_particella = serializers.SerializerMethodField()
 
     class Meta:
         model = WorksitesFoglioParticella
-        fields = '__all__'
+        fields = ['foglio_particella',]  # Aggiorna con gli altri campi necessari
 
-
+    def get_foglio_particella(self, worksitesFoglioParticella):
+        # Controlla se l'oggetto FoglioParticella collegato esiste e se è attivo
+        foglio_particella = worksitesFoglioParticella.foglio_particella
+        if foglio_particella and foglio_particella.is_active:
+            # Serializza e restituisce i dati se il FoglioParticella è attivo
+            return FoglioParticellaSerializer(foglio_particella).data
+        # Non restituire nulla se il FoglioParticella non esiste o non è attivo
+        return None
+    
+    def to_representation(self, instance):
+        # Ottieni la rappresentazione standard
+        ret = super().to_representation(instance)
+        # Rimuovi 'foglio_particella' se è None
+        if ret['foglio_particella'] is None:
+            ret.pop('foglio_particella')
+        return ret
 
 class ProfileSerializer2(serializers.ModelSerializer):
     class Meta:

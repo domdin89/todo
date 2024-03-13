@@ -458,34 +458,23 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
         # Salva il cantiere
         worksite.save()
 
-    
+        # 1 & 2: Disattiva tutti i FoglioParticella esistenti per questo worksite
+        FoglioParticella.objects.filter(worksitesfoglioparticella__worksite_id=worksite_id).update(is_active=False)
+
         foglio_particelle_str = request.data.get('foglio_particelle', None)
 
         if foglio_particelle_str:
             foglio_particelle = json.loads(foglio_particelle_str)
-
-            # Assicurati che tutte le operazioni siano atomiche
-            with transaction.atomic():
-                # 1 & 2: Disattiva tutti i FoglioParticella esistenti per questo worksite
-                FoglioParticella.objects.filter(worksitesfoglioparticella__worksite_id=worksite_id).update(is_active=False)
                 
-                for item_dict in foglio_particelle:
-                    id_val = item_dict.pop('id', None)
-
-                    if id_val:
-                        # 3: Cerca il FoglioParticella esistente per aggiornarlo e riattivarlo
-                        fp, _ = FoglioParticella.objects.update_or_create(id=id_val, defaults={**item_dict, 'is_active': True})
-                    else:
-                        # 4: Crea un nuovo FoglioParticella e impostalo come attivo
-                        fp = FoglioParticella.objects.create(**item_dict, is_active=True)
-                    
-                    # Associa FoglioParticella a Worksites, creando o aggiornando WorksitesFoglioParticella
-                    WorksitesFoglioParticella.objects.update_or_create(
+            for item_dict in foglio_particelle:
+                if item_dict.get('id'):
+                    FoglioParticella.objects.update_or_create(id=item_dict['id'], defaults={**item_dict, 'is_active': True})
+                else:
+                    fp = FoglioParticella.objects.create(**item_dict)
+                    WorksitesFoglioParticella.objects.create(
                         foglio_particella=fp, 
-                        worksite_id=worksite_id,
-                        defaults={'foglio_particella': fp}
+                        worksite_id=worksite_id
                     )
-
 
     return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 

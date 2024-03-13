@@ -3,7 +3,9 @@ from django.utils.translation import gettext_lazy as _
 from accounts.models import Profile
 from django.db import transaction
 
-
+class AttivoManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
 
 class Worksites(models.Model):
     image = models.ImageField(upload_to='worksite_images/',blank=True, null=True)
@@ -100,6 +102,9 @@ class FoglioParticella(models.Model):
     foglio = models.CharField(max_length=50,blank=True, null=True) 
     particella = models.CharField(max_length=50, blank=True, null=True)
     is_active = models.BooleanField(default=True)
+
+    oggetti_attivi = AttivoManager()
+    objects = models.Manager()
     
 class WorksitesFoglioParticella(models.Model):
     foglio_particella = models.ForeignKey(FoglioParticella, on_delete=models.CASCADE)
