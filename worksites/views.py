@@ -305,6 +305,8 @@ def delete_collabworksite(request):
 
 
 
+
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 def WorksitePostNew(request):
@@ -589,6 +591,56 @@ def delete_foglio_particella(request, id):
 
     return Response("Relazione WorksitesFoglioParticella eliminata e collegamenti ApartmentSubs correlati rimossi", status=status.HTTP_200_OK)
 
+api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def profile_edit2(request, id):
+
+    profile = Profile.objects.get(id=id)
+
+    post_data = {
+    'first_name' : request.data.get('first_name', profile.first_name),
+    'last_name' : request.data.get('last_name', profile.last_name),
+    'mobile_number' : request.data.get('mobile_number', profile.mobile_number),
+    'email' : request.data.get('email', profile.email),
+    'image' : request.FILES.get('image', profile.image)
+    }
+
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Aggiorna i campi del cantiere
+    for key, value in post_data.items():
+        setattr(profile, key, value)
+
+    # Salva il cantiere
+    profile.save()
+
+
+    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def profile_edit(request, id):  # Aggiunta dell'argomento worksite_id
+    profile = Profile.objects.get(id=id)
+
+    post_data = {
+    'first_name' : request.data.get('first_name', profile.first_name),
+    'last_name' : request.data.get('last_name', profile.last_name),
+    'mobile_number' : request.data.get('mobile_number', profile.mobile_number),
+    'email' : request.data.get('email', profile.email),
+    'image' : request.FILES.get('image', profile.image)
+    }
+
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Aggiorna i campi del cantiere
+    for key, value in post_data.items():
+        setattr(profile, key, value)
+
+    # Salva il cantiere
+    profile.save()
+
+    return Response("Profilo aggiornato con successo", status=status.HTTP_200_OK)
 
 
 class WorksiteListView(ListAPIView):

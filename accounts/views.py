@@ -5,6 +5,12 @@ from .serializers import ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import api_view,parser_classes
+from rest_framework.parsers import MultiPartParser
+
+
 
 class TecniciProfileListCreate(ListCreateAPIView):
     queryset = Profile.objects.filter(type='TECNICI')
@@ -48,3 +54,38 @@ class ProfileListCreateAPIView(ListCreateAPIView):
             )
 
         return queryset
+    
+api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def profile_edit(request):
+
+    profile_id = request.data.get('profile_id', None)
+
+    profile = Profile.objects.get(id=profile_id)
+
+    post_data = {
+    'first_name' : request.data.get('first_name', profile.first_name),
+    'last_name' : request.data.get('last_name', profile.last_name),
+    'mobile_number' : request.data.get('mobile_number', profile.mobile_number),
+    'email' : request.data.get('email', profile.email),
+    'image' : request.FILES.get('image', profile.image)
+    }
+
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    # Aggiorna i campi del cantiere
+    for key, value in post_data.items():
+        setattr(profile, key, value)
+
+    # Salva il cantiere
+    profile.save()
+
+
+    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
+
+api_view(['PUT'])
+@parser_classes([MultiPartParser])
+def ciao(request):
+    first_name = request.data.get('first_name')
+
+    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)

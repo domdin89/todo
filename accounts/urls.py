@@ -7,4 +7,7 @@ urlpatterns = [
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     path('profile', views.ProfileListCreateAPIView.as_view()),
+ 
+
+    path('ciao', views.ciao),
 ]
