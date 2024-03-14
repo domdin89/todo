@@ -19,7 +19,7 @@ class Profile(models.Model):
     mobile_number = models.CharField(max_length=100, blank=True, null=True, )
 
     token = models.CharField(max_length=150, blank=True, null=True, )
-    is_active = models.BooleanField(default=False )    
+    is_active = models.BooleanField(default=True )    
     email = models.CharField(max_length=100, blank=True, null=True, unique=True)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
