@@ -667,6 +667,15 @@ class WorksiteListView(ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset().order_by('-id')
         status = self.request.GET.get('status', None)
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')  # Prendi il campo da 'order_by', default a 'id'
+        
+        # Applica direttamente l'ordinamento
+        if order_param == 'desc':
+            queryset = queryset.order_by('-' + order_by_field)  # Ordinamento discendente
+        else:
+            queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
+        
         
         if status is not None:
             try:
