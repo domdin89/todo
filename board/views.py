@@ -3,12 +3,16 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
+from accounts.models import Profile
 from worksites.models import Worksites
 from .models import Boards, BoardsRecipient
 from .serializers import BoardRecipientSerializer, BoardsSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListCreateAPIView
 from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework import status
+
 
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
@@ -50,3 +54,23 @@ class BoardsWorksiteListView(ListCreateAPIView):
         queryset = BoardsRecipient.objects.filter(recipient_type='WORKSITE', worksites=worksite)
 
         return queryset
+    
+
+def send_message_profile(request):
+
+    profile_id = request.data.get('profile_id')
+
+    survey = request.data.get('survey', None)
+    profile_id = request.data.get('profile_id')
+    profile_id = request.data.get('profile_id')
+    profile_id = request.data.get('profile_id')
+    profile_id = request.data.get('profile_id')
+
+    try:
+        profile = Profile.objects.get(id=profile_id)
+    except:
+        return Response({'error': 'Profilo inesistente'}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+    

@@ -25,7 +25,7 @@ class CustomPagination(PageNumberPagination):
 
 class ProfileListCreateAPIView(ListCreateAPIView):
     queryset = Profile.objects.all()
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
     pagination_class = CustomPagination
