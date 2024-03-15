@@ -33,9 +33,9 @@ class Worksites(models.Model):
     date_end = models.DateTimeField(blank=True, null=True)
 
     CHOICES = [
-        ('APERTO', 'MESSAGE'),
-        ('SOSPESO', 'UPDATE'),
-        ('CHIUSA', 'UPDATE'),
+        ('APERTO', 'APERTO'),
+        ('SOSPESO', 'SOSPESO'),
+        ('CHIUSO', 'CHIUSO'),
     ]
     status = models.CharField(max_length=20, choices=CHOICES, default='APERTO')
 
