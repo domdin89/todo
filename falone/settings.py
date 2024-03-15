@@ -100,8 +100,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8000',
     'http://127.0.0.1:8100',
-    'https://falone.falone.madstudio.it'
-
+    'https://falone.falone.madstudio.it',
+    'https://falone-test.falone.madstudio.it',
+    'https://falone-gui.falone.madstudio.it'
 ]
 
 
@@ -110,7 +111,9 @@ CORS_ORIGIN_WHITELIST = [
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000/',
      'http://127.0.0.1:8100/',
-    'https://falone.falone.madstudio.it'
+    'https://falone.falone.madstudio.it',
+    'https://falone-test.falone.madstudio.it',
+    'https://falone-gui.falone.madstudio.it'
 
 ]
 
