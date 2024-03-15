@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,parser_classes, permission_classes
 from rest_framework.parsers import MultiPartParser
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 
 
@@ -55,6 +56,82 @@ class ProfileListCreateAPIView(ListCreateAPIView):
             )
 
         return queryset
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_profiles(request):
+    # Estrai i parametri della query
+    role_param = request.GET.get('role', None)
+    page = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+    order = request.GET.get('order', 'asc')
+    order_by = request.GET.get('order_by', 'first_name')
+    search_param = request.GET.get('search', None)
+
+    # Costruisci la queryset in base ai parametri
+    profiles = Profile.objects.all()
+
+    if role_param:
+        profiles = profiles.filter(type=role_param)
+
+    if search_param:
+        profiles = profiles.filter(
+            Q(first_name__icontains=search_param) |
+            Q(last_name__icontains=search_param) |
+            Q(email__icontains=search_param)
+        )
+
+    if order == 'desc':
+        profiles = profiles.order_by('-' + order_by)
+    else:
+        profiles = profiles.order_by(order_by)
+
+    # Applica la paginazione
+    paginator = Paginator(profiles, page_size)
+    try:
+        profiles_page = paginator.page(page)
+    except PageNotAnInteger:
+        profiles_page = paginator.page(1)
+    except EmptyPage:
+        profiles_page = paginator.page(paginator.num_pages)
+
+    serializer = ProfileSerializer(profiles_page, many=True, context={'request': request})
+    return Response({
+        'count': paginator.count,
+        'total_pages': paginator.num_pages,
+        'current_page': page,
+        'page_size': page_size,
+        'results': serializer.data
+    })
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
+def profile_create(request):
+    # Estrai i dati dalla richiesta
+    post_data = {
+        'first_name': request.data.get('first_name'),
+        'last_name': request.data.get('last_name'),
+        'mobile_number': request.data.get('mobile_number'),
+        'email': request.data.get('email'),
+        'image': request.FILES.get('image'),
+        'type': 'TECNICI'
+    }
+    
+    # Filtra i campi None
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    if not post_data:  # Se post_data è vuoto dopo la rimozione di valori None
+        return Response({"detail": "Dati insufficienti per creare un profilo."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Crea un nuovo profilo
+    try:
+        profile = Profile(**post_data)
+        profile.save()
+    except Exception as e:  # Cattura eventuali errori durante la creazione del profilo
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"detail": "Profilo creato con successo."}, status=status.HTTP_201_CREATED)
     
 api_view(['PUT'])
 @parser_classes([MultiPartParser])
