@@ -677,9 +677,11 @@ class WorksiteListView(ListAPIView):
             if status == 0:
                 return queryset
             elif status == 1:
-                return queryset.filter(is_open=True)
+                return queryset.filter(status='APERTO')
             elif status == 2:
-                return queryset.filter(is_open=False)
+                return queryset.filter(status='CHIUSO')
+            elif status == 3:
+                return queryset.filter(status='SOSPESO')
 
         return queryset
 
