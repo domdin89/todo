@@ -13,7 +13,7 @@ from rest_framework import status
 from django.db.models import Min
 
 from rest_framework import generics, mixins, serializers, status, viewsets
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, GenericAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -56,7 +56,6 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     page_query_param = 'page'
     max_page_size = 50
-
 class BaseAPIView(GenericAPIView):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
@@ -106,6 +105,7 @@ class BaseAPIView(GenericAPIView):
 
 class CollaboratorListView(APIView):
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
 
     def get_profile_count(self, worksite_id, search_query=None):
         collabs = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id, is_valid=True).select_related('profile')
@@ -167,6 +167,7 @@ class CollaboratorListView(APIView):
 
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         order_by = '-id'
@@ -219,6 +220,7 @@ class ApartmentListView(APIView):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def new_collabworksite(request):
     roles = request.data.get('roles', [])
     order = request.data.get('order', None)
@@ -252,6 +254,7 @@ def new_collabworksite(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_collabworksite(request):
     profile = request.data.get('profile')
     worksite = request.data.get('worksite')
@@ -285,6 +288,7 @@ def update_collabworksite(request):
     return Response('tutto regolare', status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def delete_collabworksite(request):
     profile = request.data.get('profile')
     worksite = request.data.get('worksite')
@@ -309,6 +313,7 @@ def delete_collabworksite(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def WorksitePostNew(request):
     try:
         with transaction.atomic():
@@ -385,6 +390,7 @@ def WorksitePostNew(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def new_category(request, worksite_id=None):
 
     # Ottieni il file immagine
@@ -405,6 +411,7 @@ def new_category(request, worksite_id=None):
         
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_id
     try:
         worksite = Worksites.objects.get(id=worksite_id)
@@ -483,6 +490,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
 
            
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_foglio_particella(request, id):
     try:
         worksite_foglio_particella = WorksitesFoglioParticella.objects.get(id=id)
@@ -505,6 +513,7 @@ def update_foglio_particella(request, id):
     return Response("Foglio_particella aggiunta con successo", status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_categories(request, id):
     try:
         worksite_category = WorksitesCategories.objects.get(id=id)
@@ -526,6 +535,7 @@ def update_categories(request, id):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, foglio_particella_id, worksite):
     worksite_foglio_particella = WorksitesFoglioParticella.objects.get(pk=worksite_foglio_particella_id)
     foglio_particella = FoglioParticella.objects.get(pk=foglio_particella_id)
@@ -546,6 +556,7 @@ def edit_worksite_foglio_particella(request, worksite_foglio_particella_id, fogl
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_worksite(request, id):
     try:
         worksite = Worksites.objects.get(id=id)
@@ -559,6 +570,7 @@ def delete_worksite(request, id):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_category(request, id):
     try:
         worksite_category = WorksitesCategories.objects.get(id=id)
@@ -571,6 +583,7 @@ def delete_category(request, id):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_foglio_particella(request, id):
     try:
         worksite_foglio_particella = WorksitesFoglioParticella.objects.get(id=id)
@@ -593,6 +606,7 @@ def delete_foglio_particella(request, id):
 
 api_view(['PUT'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def profile_edit2(request, id):
 
     profile = Profile.objects.get(id=id)
@@ -620,6 +634,7 @@ def profile_edit2(request, id):
 
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def profile_edit(request, id):  # Aggiunta dell'argomento worksite_id
     profile = Profile.objects.get(id=id)
 
@@ -644,6 +659,7 @@ def profile_edit(request, id):  # Aggiunta dell'argomento worksite_id
 
 @api_view(['PUT'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def profile_delete(request, id):  # Aggiunta dell'argomento worksite_id
     profile = Profile.objects.get(id=id)
 
@@ -656,7 +672,7 @@ def profile_delete(request, id):  # Aggiunta dell'argomento worksite_id
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.filter(is_active=True)
     serializer_class = WorksiteSerializer
-    # permission_classes = [IsAuthenticated] # Uncomment if needed
+    permission_classes = [IsAuthenticated] # Uncomment if needed
 
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
@@ -694,6 +710,7 @@ class WorksiteListView(ListAPIView):
         return queryset
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def worksites_count(request):
     queryset = Worksites.objects.all()
     aperto = queryset.filter(status='APERTO')
@@ -734,6 +751,7 @@ class WorksiteDetail(RetrieveUpdateAPIView):
     serializer_class = WorksiteSerializer
     lookup_field = 'pk'
     parser_classes = (MultiPartParser, FormParser)  # Utilizza il parser multipart/form-data
+    permission_classes = [IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -770,7 +788,7 @@ def delete_collaborator(request, id):
 
 class WorksiteProfileListView(ListCreateAPIView):
     serializer_class = WorksiteProfileSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['profile__first_name', 'profile__last_name', 'worksite__name']
@@ -800,7 +818,7 @@ class WorksiteProfileListView(ListCreateAPIView):
 
 class WorksiteProfileUserListView(ListCreateAPIView):
     serializer_class = WorksiteUserProfileSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['profile__first_name', 'profile__last_name']
@@ -825,7 +843,7 @@ class WorksiteProfileUserListView(ListCreateAPIView):
 
 
 class TechnicianNotInWorksiteView(ListAPIView):
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializerPD  # Usa il serializer appropriato per Profile
 
     def get_queryset(self):

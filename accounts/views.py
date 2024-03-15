@@ -7,7 +7,7 @@ from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view,parser_classes
+from rest_framework.decorators import api_view,parser_classes, permission_classes
 from rest_framework.parsers import MultiPartParser
 
 
@@ -30,6 +30,7 @@ class ProfileListCreateAPIView(ListCreateAPIView):
     filter_backends = [filters.SearchFilter]
     pagination_class = CustomPagination
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -57,6 +58,7 @@ class ProfileListCreateAPIView(ListCreateAPIView):
     
 api_view(['PUT'])
 @parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
 def profile_edit(request):
 
     profile_id = request.data.get('profile_id', None)
