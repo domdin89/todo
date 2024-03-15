@@ -30,7 +30,7 @@ class ProfileListCreateAPIView(ListCreateAPIView):
     filter_backends = [filters.SearchFilter]
     pagination_class = CustomPagination
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = super().get_queryset()
