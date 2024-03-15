@@ -656,7 +656,7 @@ def profile_delete(request, id):  # Aggiunta dell'argomento worksite_id
 class WorksiteListView(ListAPIView):
     queryset = Worksites.objects.filter(is_active=True)
     serializer_class = WorksiteSerializer
-    #permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated] # Uncomment if needed
 
     pagination_class = CustomPagination
     filter_backends = [SearchFilter, DjangoFilterBackend]
@@ -676,7 +676,6 @@ class WorksiteListView(ListAPIView):
         else:
             queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
         
-        
         if status is not None:
             try:
                 status = int(status)
@@ -693,6 +692,42 @@ class WorksiteListView(ListAPIView):
                 return queryset.filter(status='SOSPESO')
 
         return queryset
+
+@api_view(['GET'])
+def worksites_count(request):
+    queryset = Worksites.objects.all()
+    aperto = queryset.filter(status='APERTO')
+    sospeso = queryset.filter(status='SOSPESO')
+    chiuso = queryset.filter(status='CHIUSO')
+
+
+    date_start = request.GET.get('date_start', None)
+    date_end = request.GET.get('date_end', None)
+
+
+    if date_start and date_end:
+        queryset = queryset.filter(date_start__gte=date_start, date_end__lte=date_end)
+        aperto = aperto.filter(date_start__gte=date_start, date_end__lte=date_end)
+        sospeso = sospeso.filter(date_start__gte=date_start, date_end__lte=date_end)
+        chiuso = chiuso.filter(date_start__gte=date_start, date_end__lte=date_end)
+    if date_start:
+        queryset = queryset.filter(date_start__gte=date_start)
+        aperto = aperto.filter(date_start__gte=date_start)
+        sospeso = sospeso.filter(date_start__gte=date_start)
+        chiuso = chiuso.filter(date_start__gte=date_start)
+    if date_end:
+        queryset = queryset.filter(date_end__lte=date_end)
+        aperto = aperto.filter(date_end__lte=date_end)
+        sospeso = sospeso.filter(date_end__lte=date_end)
+        chiuso = chiuso.filter(date_end__lte=date_end)
+
+    return Response({
+        'totale_cantieri': queryset.count(),
+        'cantieri_aperti': aperto.count(),
+        'cantieri_sospesi': sospeso.count(),
+        'cantieri_chiusi': chiuso.count(),
+    })
+
 
 class WorksiteDetail(RetrieveUpdateAPIView):
     queryset = Worksites.objects.filter(is_active=True)

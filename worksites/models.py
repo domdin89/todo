@@ -39,6 +39,8 @@ class Worksites(models.Model):
     ]
     status = models.CharField(max_length=20, choices=CHOICES, default='APERTO')
 
+    objects = AttivoManager()
+
 class WorksitesProfile(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)

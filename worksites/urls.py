@@ -8,6 +8,7 @@ app_name = 'worksites'
 urlpatterns = [
         #get
         path('worksites', views.WorksiteListView.as_view()),
+        path('worksites/count', views.worksites_count),
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
 
