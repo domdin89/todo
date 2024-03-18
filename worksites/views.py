@@ -185,7 +185,7 @@ class ApartmentListView(APIView):
         query_params = Q() 
 
         if search_query:
-            query_params &= Q(apartment__owner__icontains=search_query) | Q(apartment__note__icontains=search_query) | Q(apartmentsub__sub__icontains=search_query)
+            query_params &= Q(apartment__owner__icontains=search_query) | Q(apartment__note__icontains=search_query) | Q(sub__icontains=search_query)
         query_params &= Q(apartment__worksite_id=worksite_id,
                             is_valid=True,
                             apartment__is_active=True)
