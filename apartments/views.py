@@ -94,7 +94,9 @@ def update_apartment(request, id):  # Aggiunta dell'argomento worksite_id
 
     apartment_data = {key: value for key, value in apartment_data.items() if value is not None}
 
-    apartment = Apartments.objects.create(**apartment_data)
+    for key, value in apartment_data.items():
+        setattr(apartment, key, value)
+    apartment.save()
 
     # Creazione dei subappartamenti se presenti nel payload
     subs_data = request.data.get('subs', [])

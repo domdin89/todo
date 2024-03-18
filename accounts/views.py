@@ -10,6 +10,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view,parser_classes, permission_classes
 from rest_framework.parsers import MultiPartParser
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from rest_framework.views import APIView
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import GenericAPIView
 
 
 
@@ -57,6 +61,139 @@ class ProfileListCreateAPIView(ListCreateAPIView):
 
         return queryset
     
+
+class GenericListAPIView(APIView):
+    model = None
+    serializer_class = None
+    filter_params = None
+    default_page_size = 10
+    default_order_by = 'id'
+    
+    def get(self, request, format=None):
+        params = {}
+        for param in self.filter_params:
+            params[param] = request.GET.get(param)
+        
+        page_param = request.GET.get('page', 1)
+        page_size_param = request.GET.get('page_size', self.default_page_size)
+        order_param = request.GET.get('order', 'asc')
+        order_by_param = request.GET.get('order_by', self.default_order_by)
+        
+        queryset = self.model.objects.all()  # Utilizza self.model invece di Profile
+        for key, value in params.items():
+            if value:
+                queryset = queryset.filter(**{key: value})
+        
+        if order_param == 'asc':
+            queryset = queryset.order_by(order_by_param)
+        else:
+            queryset = queryset.order_by('-' + order_by_param)
+        
+        search_param = params.get('search')
+        if search_param:
+            queryset = queryset.filter(
+                Q(first_name__icontains=search_param) |
+                Q(last_name__icontains=search_param) |
+                Q(email__icontains=search_param)
+            )
+        
+        paginator = Paginator(queryset, page_size_param)
+        page_number = page_param
+        try:
+            queryset = paginator.page(page_number)
+        except PageNotAnInteger:
+            queryset = paginator.page(1)
+        except EmptyPage:
+            queryset = paginator.page(paginator.num_pages)
+        
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ProfileListAPIView(GenericListAPIView):
+    model = Profile  # Utilizza il modello del profilo
+    serializer_class = ProfileSerializer  # Utilizza il serializer del profilo
+    filter_params = ['role', 'search']  # Aggiungi altri parametri specifici per i filtri dei profili
+    default_page_size = 20  # Personalizza la dimensione predefinita della pagina per i profili
+    default_order_by = 'last_name'  # Personalizza il campo predefinito per l'ordinamento dei profili
+
+
+
+class WorksiteListView(ListAPIView):
+    queryset = Worksites.objects.filter(is_active=True)
+    serializer_class = WorksiteSerializer
+    permission_classes = [IsAuthenticated] # Uncomment if needed
+
+    pagination_class = CustomPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'address']
+    filterset_class = WorksitesFilter
+    parser_classes = (MultiPartParser, FormParser)
+
+    
+
+class ProfileListCreateAPIView2(APIView):
+    def get(self, request, format=None):
+        profiles = Profile.objects.all()
+
+        # Estrai i parametri dalla richiesta GET
+        role_param = request.GET.get('role')
+        page_param = request.GET.get('page', 1)
+        page_size_param = request.GET.get('page_size', 10)
+        order_param = request.GET.get('order', 'asc')
+        order_by_param = request.GET.get('order_by', 'id')
+        search_param = request.GET.get('search')
+
+        # Filtra per ruolo se presente
+        if role_param:
+            profiles = profiles.filter(type=role_param)
+
+        # Logica di ordinamento
+        if order_param == 'asc':
+            profiles = profiles.order_by(order_by_param)
+        else:
+            profiles = profiles.order_by('-' + order_by_param)
+
+        # Logica di ricerca
+        if search_param is not None:
+            if search_param.strip():
+                profiles = profiles.filter(
+                    Q(first_name__icontains=search_param) |
+                    Q(last_name__icontains=search_param) |
+                    Q(email__icontains=search_param)
+                )
+
+        # Paginazione
+        paginator = Paginator(profiles, page_size_param)
+        page_number = page_param
+        try:
+            profiles = paginator.page(page_number)
+        except PageNotAnInteger:
+            profiles = paginator.page(1)
+        except EmptyPage:
+            profiles = paginator.page(paginator.num_pages)
+
+        serializer = ProfileSerializer(profiles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, format=None):
+        profile_data = {
+            'first_name': request.data.get('first_name', None),
+            'last_name': request.data.get('last_name', None),
+            'mobile_number': request.data.get('mobile_number', None),
+            'email': request.data.get('email', None),
+            'image': request.data.get('image', None)
+        }
+
+
+        profile_data = {key: value for key, value in profile_data.items() if value is not None}
+
+        new_professionista = Profile.objects.create(**profile_data)
+
+        serializer = ProfileSerializer(new_professionista)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_profiles(request):
