@@ -1,5 +1,9 @@
 from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework import filters
+
+from worksites.filters import WorksitesFilter, WorksitesFilter2
+from worksites.models import CollabWorksitesOrder, Worksites
+from worksites.serializers import CollabWorksitesOrderSerializer, WorksiteSerializer
 from .models import Profile
 from .serializers import ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +12,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view,parser_classes, permission_classes
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -60,7 +64,6 @@ class ProfileListCreateAPIView(ListCreateAPIView):
             )
 
         return queryset
-    
 
 class GenericListAPIView(APIView):
     model = None
@@ -68,68 +71,101 @@ class GenericListAPIView(APIView):
     filter_params = None
     default_page_size = 10
     default_order_by = 'id'
-    
+    search_param_name = 'search'
+    filterset_class = None
+
     def get(self, request, format=None):
-        params = {}
-        for param in self.filter_params:
-            params[param] = request.GET.get(param)
-        
-        page_param = request.GET.get('page', 1)
-        page_size_param = request.GET.get('page_size', self.default_page_size)
-        order_param = request.GET.get('order', 'asc')
-        order_by_param = request.GET.get('order_by', self.default_order_by)
-        
-        queryset = self.model.objects.all()  # Utilizza self.model invece di Profile
-        for key, value in params.items():
-            if value:
-                queryset = queryset.filter(**{key: value})
-        
-        if order_param == 'asc':
-            queryset = queryset.order_by(order_by_param)
-        else:
-            queryset = queryset.order_by('-' + order_by_param)
-        
-        search_param = params.get('search')
-        if search_param:
-            queryset = queryset.filter(
-                Q(first_name__icontains=search_param) |
-                Q(last_name__icontains=search_param) |
-                Q(email__icontains=search_param)
-            )
-        
-        paginator = Paginator(queryset, page_size_param)
-        page_number = page_param
         try:
-            queryset = paginator.page(page_number)
-        except PageNotAnInteger:
-            queryset = paginator.page(1)
-        except EmptyPage:
-            queryset = paginator.page(paginator.num_pages)
-        
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            params = {}
+            for param in self.filter_params:
+                params[param] = request.GET.get(param)
 
-class ProfileListAPIView(GenericListAPIView):
-    model = Profile  # Utilizza il modello del profilo
-    serializer_class = ProfileSerializer  # Utilizza il serializer del profilo
-    filter_params = ['role', 'search']  # Aggiungi altri parametri specifici per i filtri dei profili
-    default_page_size = 20  # Personalizza la dimensione predefinita della pagina per i profili
-    default_order_by = 'last_name'  # Personalizza il campo predefinito per l'ordinamento dei profili
+            page_param = request.GET.get('page', 1)
+            page_size_param = request.GET.get('page_size', self.default_page_size)
+            order_param = request.GET.get('order', 'asc')
+            order_by_param = request.GET.get('order_by', self.default_order_by)
+
+            queryset = self.model.objects.all()
+            for key, value in params.items():
+                if value:
+                    queryset = queryset.filter(**{key: value})
+
+            if order_param == 'asc':
+                queryset = queryset.order_by(order_by_param)
+            else:
+                queryset = queryset.order_by('-' + order_by_param)
+
+            search_param = request.GET.get(self.search_param_name)
+            if search_param:
+                filter_fields = self.get_search_fields()
+                search_q = Q()
+                for field in filter_fields:
+                    search_q |= Q(**{field + '__icontains': search_param})
+                queryset = queryset.filter(search_q)
+
+            paginator = Paginator(queryset, page_size_param)
+            
+            try:
+                queryset = paginator.page(page_param)
+            except PageNotAnInteger:
+                queryset = paginator.page(1)
+            except EmptyPage:
+                return Response({
+                    'count': 0,
+                    'page_size': page_size_param,
+                    'current_page': page_param,
+                    'results': []
+                }, status=status.HTTP_200_OK)
+
+            serializer = self.serializer_class(queryset, many=True)
+            data = {
+                'count': paginator.count,
+                'page_size': page_size_param,
+                'current_page': page_param,
+                'results': serializer.data
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_search_fields(self):
+        raise NotImplementedError("Subclasses must implement get_search_fields method")
 
 
 
-class WorksiteListView(ListAPIView):
-    queryset = Worksites.objects.filter(is_active=True)
+class WorksiteListAPIView(GenericListAPIView):
+    model = Worksites
     serializer_class = WorksiteSerializer
-    permission_classes = [IsAuthenticated] # Uncomment if needed
+    filter_params = ['name', 'address']
+    default_page_size = 20
+    default_order_by = 'name'
+    filterset_class = WorksitesFilter2
 
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ['name', 'address']
-    filterset_class = WorksitesFilter
-    parser_classes = (MultiPartParser, FormParser)
-
+    def get_search_fields(self):
+        return ['name', 'address']
     
+class ProfileListAPIView(GenericListAPIView):
+    model = Profile
+    serializer_class = ProfileSerializer
+    filter_params = ['role']
+    default_page_size = 20
+    default_order_by = 'last_name'
+
+
+    def get_search_fields(self):
+        return ['first_name', 'last_name', 'email', 'mobile_number', ]
+
+class CollabWorksiteListAPIView(GenericListAPIView):
+    model = CollabWorksitesOrder
+    serializer_class = CollabWorksitesOrderSerializer
+    filter_params = ['worksite']
+    default_page_size = 20
+    default_order_by = 'profile'
+
+    def get_search_fields(self):
+        return ['profile__first_name', 'profile__last_name', 'profile__email', 'profile__mobile_number']
+
 
 class ProfileListCreateAPIView2(APIView):
     def get(self, request, format=None):
