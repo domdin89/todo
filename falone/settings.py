@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'apartments',
     'worksites',
     'board',
+    'api'
 ]
 
 MIDDLEWARE = [

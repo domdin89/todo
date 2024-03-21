@@ -25,6 +25,7 @@ urlpatterns = [
     path('', include('worksites.urls')),
     path('', include('accounts.urls')),
     path('', include('board.urls')),
+    path('api/v1/', include('api.urls')),
 
 ]
 

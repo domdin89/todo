@@ -1,11 +1,13 @@
 from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework import filters
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth.models import User
 
 from worksites.filters import WorksitesFilter, WorksitesFilter2
 from worksites.models import CollabWorksitesOrder, Worksites
 from worksites.serializers import CollabWorksitesOrderSerializer, WorksiteSerializer
 from .models import Profile
-from .serializers import ProfileSerializer
+from .serializers import CustomTokenObtainPairSerializer, ProfileSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
@@ -18,6 +20,22 @@ from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import GenericAPIView
+
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user = User.objects.get(username=request.data['username'])
+        except:
+            user = User.objects.get(email=request.data['username'])
+        if user and user.is_active:
+            request.data['username'] = user.username
+            return super().post(request, *args, **kwargs)
+        elif user and not user.is_active:
+            return Response({'detail':'Utente non attivato.'}, status=403)
 
 
 
