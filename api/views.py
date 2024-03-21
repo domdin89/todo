@@ -17,12 +17,10 @@ from apartments.models import ClientApartments
 @api_view(['GET'])
 @validate_token
 def worksites(request):
-    #profile_id = request.profile_id
+    profile_id = request.profile_id
     
 
-    worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=2).distinct()
-
-
+    worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=profile_id).distinct()
 
 
     serializer = WorksiteSerializer(worksites, many=True)
