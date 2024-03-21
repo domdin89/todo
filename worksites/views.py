@@ -27,11 +27,13 @@ from django.db.models import Q
 from django.db import IntegrityError
 from django.db.utils import IntegrityError
 from django.db.models import Max
+from django.contrib.auth.models import User
+import random
 
 
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer, ProfileSerializerRole
-from apartments.models import ApartmentSub, Apartments
+from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
@@ -774,6 +776,7 @@ class CollaboratorUpdateView(RetrieveUpdateAPIView):
     
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_collaborator(request, id):
     try:
         collaborator = CollabWorksites.objects.get(id=id)
@@ -869,6 +872,7 @@ class TechnicianNotInWorksiteView(ListAPIView):
     
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_worksite_status(request, id):
     # Ottieni tutti gli status ordinati
     statuses = Status.objects.all().order_by('order')
@@ -893,6 +897,7 @@ def get_worksite_status(request, id):
     return Response(statuses_data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def update_worksite_status(request):
 
     worksite_id = request.data.get('worksite')
@@ -918,6 +923,7 @@ def update_worksite_status(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def undo_worksite_status(request):
 
     worksite_id = request.data.get('worksite')
@@ -938,6 +944,7 @@ def undo_worksite_status(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_worksite_status_date(request):
 
     wk_status_id = request.data.get('id')
@@ -956,6 +963,7 @@ def update_worksite_status_date(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def edit_order_collabworksite(request):
     profiles = request.data.get('profiles', [])
 
@@ -966,3 +974,40 @@ def edit_order_collabworksite(request):
         collab.save()
 
     return Response('tutto regolare', status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def apartment_code_generator(request):
+    apartment_id = request.data.get('apartment_id')
+    profile_id = request.data.get('profile_id', None)
+    
+    while True:
+        name = "user_"
+        name2= ''.join([str(random.randint(0,9)) for _ in range(8)])
+
+        if not User.objects.filter(username=f"{name}{name2}").exists():
+            if not profile_id:
+                user = User.objects.create(
+                    username=f"{name}{name2}",
+                    password= f'{name}{name2}'
+                )
+
+                profile = Profile.objects.create(
+                    user=user,
+                    type='USER',
+                    need_change_password=True
+                )
+
+                while True:
+                    pin= ''.join([str(random.randint(0,9)) for _ in range(6)])
+                    if not ApartmentAccessCode.objects.filter(pin=pin).exists():
+                        ApartmentAccessCode.objects.create(
+                            apartment_id = apartment_id,
+                            profile = profile,
+                            pin = pin
+                        )
+
+
+                    return Response('tutto regolare', status=status.HTTP_200_OK)
+            
+
+

@@ -5,6 +5,8 @@ app_name = 'worksites'
 urlpatterns = [
         #get
         path('worksites', views.worksites),
+
+        path('validate-token', views.apartment_code_validator)
 ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

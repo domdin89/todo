@@ -2,6 +2,7 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework import filters
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from worksites.filters import WorksitesFilter, WorksitesFilter2
 from worksites.models import CollabWorksitesOrder, Worksites
@@ -37,6 +38,16 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         elif user and not user.is_active:
             return Response({'detail':'Utente non attivato.'}, status=403)
 
+
+
+def login_without_password(profile):
+    user = User.objects.get(username=profile.user.username)
+   
+    if user and user.is_active:
+        jwt_token = RefreshToken.for_user(user)
+
+        return jwt_token, jwt_token.access_token
+        
 
 
 class TecniciProfileListCreate(ListCreateAPIView):

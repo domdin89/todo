@@ -28,7 +28,7 @@ class ApartmentSub(models.Model):
 class ClientApartments(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False) #è stato verificato che l'utente è giusto
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
 
@@ -45,4 +45,13 @@ class CheckListWorksites(models.Model):
     order = models.IntegerField()
     is_done = models.BooleanField(default=False)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
-    
+
+
+class ApartmentAccessCode(models.Model):
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    pin = models.CharField(max_length=6, blank=True, null=True, unique=True)
+    jwt_token_new = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    is_valid = models.BooleanField(default=True)
+    date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    date_update = models.DateTimeField(auto_now=True, blank=True, null=True)

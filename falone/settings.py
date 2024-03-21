@@ -17,6 +17,7 @@ import pymysql
 import os
 from .storage_backends import StaticStorage, PublicMediaStorage
 from datetime import timedelta
+from nacl.secret import SecretBox
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -29,7 +30,6 @@ pymysql.install_as_MySQLdb()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-
 
 
 # Quick-start development settings - unsuitable for production

@@ -25,6 +25,7 @@ urlpatterns = [
         path('worksite/new', views.WorksitePostNew),
         path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
+        path('apartment-new-code', views.apartment_code_generator),
 
         path('profile/update/<int:id>', views.profile_edit),
         path('profile/delete/<int:id>', views.profile_delete),
