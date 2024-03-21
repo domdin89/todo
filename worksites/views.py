@@ -40,6 +40,12 @@ from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contract
 from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 from django.db.models import Q
 
+import base64
+from io import BytesIO
+import qrcode
+import random
+import os
+
 
 # def prova(request):
     
@@ -891,7 +897,7 @@ def get_worksite_status(request, id):
 
         # Serializza lo status e aggiungi i dati del WorksitesStatus attivo
         status_data = StatusSerializer(status).data
-        status_data['active'] = WorksiteStatusSerializer(active_status).data if active_status else None
+        status_data['active'] = WorksiteStatusSerializer(active_status).data if active_status else None # type: ignore
         statuses_data.append(status_data)
 
     return Response(statuses_data)
@@ -979,35 +985,51 @@ def edit_order_collabworksite(request):
 def apartment_code_generator(request):
     apartment_id = request.data.get('apartment_id')
     profile_id = request.data.get('profile_id', None)
-    
-    while True:
-        name = "user_"
-        name2= ''.join([str(random.randint(0,9)) for _ in range(8)])
+    BASE_URL = os.getenv('DEFAULT_URL', None)
 
-        if not User.objects.filter(username=f"{name}{name2}").exists():
-            if not profile_id:
-                user = User.objects.create(
-                    username=f"{name}{name2}",
-                    password= f'{name}{name2}'
-                )
+    try:
+        while True:
+            name = "user_"
+            name2 = ''.join([str(random.randint(0,9)) for _ in range(8)])
 
-                profile = Profile.objects.create(
-                    user=user,
-                    type='USER',
-                    need_change_password=True
-                )
+            if not User.objects.filter(username=f"{name}{name2}").exists():
+                if not profile_id:
+                    user = User.objects.create(
+                        username=f"{name}{name2}",
+                        password=f'{name}{name2}'
+                    )
 
-                while True:
-                    pin= ''.join([str(random.randint(0,9)) for _ in range(6)])
-                    if not ApartmentAccessCode.objects.filter(pin=pin).exists():
-                        ApartmentAccessCode.objects.create(
-                            apartment_id = apartment_id,
-                            profile = profile,
-                            pin = pin
-                        )
+                    profile = Profile.objects.create(
+                        user=user,
+                        type='USER',
+                        need_change_password=True
+                    )
+
+                    while True:
+                        pin = ''.join([str(random.randint(0,9)) for _ in range(6)])
+                        if not ApartmentAccessCode.objects.filter(pin=pin).exists():
+                            # Genera il QR Code
+                            full_url = f"{BASE_URL}/add-new-cantiere?pin={pin}"
 
 
-                    return Response('tutto regolare', status=status.HTTP_200_OK)
-            
+                            qr = qrcode.make(full_url)
+                            qr_io = BytesIO()
+                            qr.save(qr_io, format='PNG')
+                            qr_io.seek(0)
+                            qr_base64 = base64.b64encode(qr_io.read()).decode('utf-8')
+                            
+                            # Crea l'oggetto ApartmentAccessCode con il QR Code salvato come stringa base64
+                            access_code = ApartmentAccessCode.objects.create(
+                                apartment_id=apartment_id,
+                                profile=profile,
+                                pin=pin,
+                                qrcode=qr_base64  # Assumendo che questo sia il campo per la stringa base64
+                            )
+
+                            return JsonResponse({'message': 'Tutto regolare'}, status=status.HTTP_200_OK)
+    except IntegrityError as e:
+        return Response({'error':f'{str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': f'Errore imprevisto: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

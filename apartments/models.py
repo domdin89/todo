@@ -55,3 +55,4 @@ class ApartmentAccessCode(models.Model):
     is_valid = models.BooleanField(default=True)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
+    qrcode = models.TextField(blank=True, null=True)

@@ -65,7 +65,8 @@ INSTALLED_APPS = [
     'apartments',
     'worksites',
     'board',
-    'api'
+    'api',
+    'firebase'
 ]
 
 MIDDLEWARE = [
