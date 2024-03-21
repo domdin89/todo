@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('worksites.urls')),
     path('', include('accounts.urls')),
     path('', include('board.urls')),
+    path('', include('firebase.urls')),
     path('api/v1/', include('api.urls')),
     path('.well-known/apple-app-site-association', views.apple_app_site_association, name='apple_app_site_association'),
 
