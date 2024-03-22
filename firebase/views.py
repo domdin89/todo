@@ -223,7 +223,7 @@ def latest_app(request, platform):
         'API-Key': f'{api_key}'
     }
     
-    response = requests.get(f'{microservizio_url}{platform}/', headers=headers)
+    response = requests.get(f'{microservizio_url}', headers=headers)
     
     if response.status_code == 200:
         data = response.json()
