@@ -18,6 +18,7 @@ from apartments.models import ApartmentAccessCode, ClientApartments
 @validate_token
 def worksites(request):
     profile_id = request.profile_id
+    print(f'profile id {profile_id}')
     worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=profile_id).distinct()
 
     serializer = WorksiteSerializer(worksites, many=True)
