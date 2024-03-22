@@ -107,7 +107,9 @@ def firebase_push(request):
         'Content-Type': 'application/json'
     }
     data = {
-        "firebase_token": request.data.get('firebase_token', os.environ.get('FIREBASE_APP_NAME')),
+        "firebase_tokens": [
+            request.data.get('firebase_token', os.environ.get('FIREBASE_APP_NAME'))
+        ],
         'title': request.data.get('title', os.environ.get('FIREBASE_APP_NAME')),
         'subtitle': request.data.get('subtitle', 'Subtitle'),
         'body': request.data.get('body', 'Corpo della notifica'),
