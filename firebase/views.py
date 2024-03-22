@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from .models import Firebase, LastVersion
 from .serializer import LastVersionSerializer
 from datetime import datetime
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAdminUser
 import jwt, os, re, requests
 from django.utils import timezone
@@ -18,13 +17,15 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import json
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 
 SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-@permission_classes([AllowAny])
 @api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])  # Explicitly specify no authentication for this view
 def token_save(request):
     
 
@@ -69,8 +70,9 @@ def token_save(request):
         # Se la richiesta non ha avuto successo, restituisci un messaggio di errore
         return Response({'error': 'Impossibile recuperare l\'ultima versione dell\'app dal microservizio'}, status=response.status_code)
     
-@permission_classes([AllowAny])
 @api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])  # Explicitly specify no authentication for this view
 def latest_app(request, platform):
     base_url=os.environ.get('NOTIFICATION_SENDER_URL')
     microservizio_url = f'{base_url}/latest_app?platform={platform}'
