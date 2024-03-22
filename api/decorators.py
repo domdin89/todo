@@ -24,7 +24,7 @@ def validate_token(view_func):
             profile_id = check_and_decode_token(token)
             profile = Profile.objects.get(user_id=profile_id)
             if profile.is_active:
-                request.profile_id = profile_id  # Store the profile_id in the request object for later use
+                request.profile_id = profile.id  # Store the profile_id in the request object for later use
             else:
                 return Response({'message': 'Utente non attivo'}, status=status.HTTP_401_UNAUTHORIZED)
         except InvalidToken:
