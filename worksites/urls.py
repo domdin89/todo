@@ -11,6 +11,7 @@ urlpatterns = [
         path('worksites/count', views.worksites_count),
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
+        path('get-apartment-accesscode', views.get_apartment_accesscode),
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
@@ -26,6 +27,7 @@ urlpatterns = [
         path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
         path('apartment-new-code', views.apartment_code_generator),
+        
 
         path('profile/update/<int:id>', views.profile_edit),
         path('profile/delete/<int:id>', views.profile_delete),

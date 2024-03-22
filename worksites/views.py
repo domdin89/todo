@@ -37,7 +37,7 @@ from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentAccessCodeSerializer, ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 from django.db.models import Q
 
 import base64
@@ -1032,4 +1032,13 @@ def apartment_code_generator(request):
     except Exception as e:
         return Response({'error': f'Errore imprevisto: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+@api_view(['GET'])
+def get_apartment_accesscode(request):
+    apartment_id = request.data.get('apartment_id')
+    access_codes = ApartmentAccessCode.objects.filter(apartment_id=apartment_id, is_valid=True)
+    serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 

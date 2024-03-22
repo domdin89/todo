@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apartments.models import ApartmentSub, Apartments
+from apartments.models import ApartmentSub, Apartments, ApartmentAccessCode
 from .models import CollabWorksitesOrder, FoglioParticella, Status, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
@@ -14,6 +14,12 @@ class ContractorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contractor
         fields = "__all__"
+
+class ApartmentAccessCodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApartmentAccessCode
+        fields = "__all__"
+
 
 class FinancierSerializer(serializers.ModelSerializer):
     class Meta:
