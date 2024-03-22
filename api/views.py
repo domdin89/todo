@@ -2,12 +2,13 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 
 from accounts.views import login_without_password
+from apartments.serializers import ApartmentBaseSerializer
 from worksites.serializers import WorksiteSerializer
 from .decorators import validate_token
 from rest_framework.response import Response
 
 from worksites.models import Worksites
-from apartments.models import ApartmentAccessCode, ClientApartments
+from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 
 
 
@@ -18,10 +19,21 @@ from apartments.models import ApartmentAccessCode, ClientApartments
 @validate_token
 def worksites(request):
     profile_id = request.profile_id
-    print(f'profile id {profile_id}')
     worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=profile_id).distinct()
 
     serializer = WorksiteSerializer(worksites, many=True)
+
+    return Response({'results': serializer.data})
+
+
+@api_view(['GET'])
+@validate_token
+def apartments(request):
+    profile_id = request.profile_id
+    worksite = request.query_params.get('worksite')
+
+    apartments = Apartments.objects.filter(clientapartments__profile_id=profile_id, worksite_id=worksite)
+    serializer = ApartmentBaseSerializer(apartments, many=True)
 
     return Response({'results': serializer.data})
 

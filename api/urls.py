@@ -5,6 +5,7 @@ app_name = 'worksites'
 urlpatterns = [
         #get
         path('worksites', views.worksites),
+        path('apartments', views.apartments),
         path('validate-token', views.apartment_code_validator)
 ]
 
