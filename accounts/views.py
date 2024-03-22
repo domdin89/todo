@@ -273,8 +273,8 @@ def get_profiles(request):
     # Costruisci la queryset in base ai parametri
     profiles = Profile.objects.all()
 
-    if role_param:
-        profiles = profiles.filter(type=role_param)
+    if role_param == 'TECNICI':
+        profiles = profiles.filter(Q(type='TECNICI') | Q(type='STAFF'))
 
     if search_param:
         profiles = profiles.filter(
