@@ -1036,7 +1036,7 @@ def apartment_code_generator(request):
 
 @api_view(['GET'])
 def get_apartment_accesscode(request):
-    apartment_id = request.data.get('apartment_id')
+    apartment_id = request.query_params.get('apartment_id')
     access_codes = ApartmentAccessCode.objects.filter(apartment_id=apartment_id, is_valid=True)
     serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
 
