@@ -107,9 +107,7 @@ def firebase_push(request):
         'Content-Type': 'application/json'
     }
     data = {
-        "firebase_tokens": [
-            "fS4k4_AC6kQphfDcbFR3Dn:APA91bHQ9my2QhdEGRiNxKueDlLH7vCQV6mzV_U0iT-yB0aK8ZiDPapppkk0NAw9xHEtD1ZOKRZsOolSslFBiAlserbQ0HziiWvKpmNDaF3Ixt1javfHgJQeAsDYzqxqPhq9hr1uHJOZ"
-        ],
+        "firebase_token": request.data.get('firebase_token', os.environ.get('FIREBASE_APP_NAME')),
         'title': request.data.get('title', os.environ.get('FIREBASE_APP_NAME')),
         'subtitle': request.data.get('subtitle', 'Subtitle'),
         'body': request.data.get('body', 'Corpo della notifica'),
