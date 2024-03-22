@@ -215,7 +215,7 @@ def firebase_push(request, userId):
 @api_view(['GET'])
 def latest_app(request, platform):
     base_url=os.environ.get('NOTIFICATION_SENDER_URL')
-    microservizio_url = f'{base_url}/latest_app/'
+    microservizio_url = f'{base_url}/latest_app?platform={platform}'
     
     api_key = os.environ.get('NOTIFICATION_SENDER_API_KEY')
     
