@@ -72,9 +72,9 @@ def worksites(request):
 
 
 @api_view(['GET'])
-#@validate_token
+@validate_token
 def apartments(request):
-    profile_id = 2
+    profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)
     worksite = request.query_params.get('worksite')
     apartments = None
