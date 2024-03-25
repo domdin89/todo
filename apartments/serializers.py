@@ -18,11 +18,20 @@ class ApartmentSubSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ApartmentBaseSerializer(serializers.ModelSerializer):
-    subs = ApartmentSubSerializer(many=True, read_only=True)
+    subs = serializers.SerializerMethodField()
     
     class Meta:
         model = Apartments
-        fields = ['id','worksite', 'floor', 'note', 'owner', 'owner_phone', 'owner_email', 'owner_cf', 'link', 'date', 'date_update', 'subs'] 
+        fields = ['id','worksite', 'floor', 'note', 'owner', 'owner_phone', 'owner_email', 'owner_cf', 'link', 'date', 'date_update', 'subs']
+
+
+    def get_subs(self, obj):
+        # Ottieni il worksite dal contesto
+        
+        # Filtra i CollabWorksites che sono validi e appartengono al worksite specifico
+        valid_subs = obj.collabworksites.filter(subs__is_valid=True, subs__apartment_id=obj.id)
+        
+        return ApartmentSubSerializer(valid_subs, many=True).data 
 
 
 class WorksiteApartmentsSerializer(serializers.ModelSerializer):
