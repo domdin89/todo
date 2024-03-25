@@ -6,7 +6,11 @@ urlpatterns = [
         #get
         path('worksites', views.worksites),
         path('apartments', views.apartments),
-        path('validate-token', views.apartment_code_validator)
+        path('validate-token', views.apartment_code_validator),
+
+        path('edit_profile', views.edit_profile),
+
+        #path('edit-profile', views.edit_profile)
 ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
