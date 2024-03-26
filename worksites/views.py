@@ -11,6 +11,9 @@ from django.db import transaction
 from django.core.paginator import Paginator
 from rest_framework import status
 from django.db.models import Min
+from django.core.files.base import ContentFile
+from PIL import Image
+
 
 from rest_framework import generics, mixins, serializers, status, viewsets
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -58,6 +61,42 @@ import os
 #             version = "N/D"  # Versione non disponibile
 #     return JsonResponse({'mysql_version': version})
 
+def compress_image(image_file, quality=85):
+    """
+    Compresses the provided image file and returns the compressed image.
+
+    Parameters:
+    - image_file: The image file object (uploaded file).
+    - quality: The quality level of the compressed image (0 - 100). Default is 85.
+
+    Returns:
+    - The compressed image file object.
+    """
+    try:
+        # Apri l'immagine utilizzando Pillow
+        image = Image.open(image_file)
+
+        # Comprimi l'immagine
+        output_buffer = BytesIO()
+
+        if image.format == 'JPEG':
+            output_format = 'JPEG'
+        elif image.format == 'PNG':
+            output_format = 'PNG'
+        else:
+            # If it's neither JPEG nor PNG, you can choose a default format
+            output_format = 'JPEG'
+
+        image.save(output_buffer, format=output_format, quality=quality)
+
+        # Crea un nuovo file temporaneo per l'immagine compressa
+        compressed_image_file = ContentFile(output_buffer.getvalue(), name=image_file.name)
+
+        return compressed_image_file
+
+    except Exception as e:
+        print(f"An error occurred while compressing the image: {e}")
+        return None
 
 
 class CustomPagination(PageNumberPagination):
@@ -345,11 +384,13 @@ def WorksitePostNew(request):
 
             # Ottieni il file immagine
             image_file = request.FILES.get('image')
+            if image_file:
+                compressed_image_file = compress_image(image_file)
             is_visible = request.data.get('is_visible', None),
 
             # Crea il cantiere
             post_data = {
-                'image': image_file,
+                'image': compressed_image_file,
                 'name': request.data.get('name', None),
                 'address': request.data.get('address', None),
                 'lat': request.data.get('lat', 0),

@@ -26,10 +26,6 @@ class ApartmentBaseSerializer(serializers.ModelSerializer):
 
 
     def get_subs(self, obj):
-        print(f'obj {obj}')
-        # Ottieni il worksite dal contesto
-        
-        # Filtra i CollabWorksites che sono validi e appartengono al worksite specifico
         valid_subs = obj.subs.filter(is_valid=True, apartment_id=obj.id)
         
         return ApartmentSubSerializer(valid_subs, many=True).data 
