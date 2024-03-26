@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('apartments.urls')),
     path('', include('worksites.urls')),
     path('', include('accounts.urls')),
+    path('', include('file_manager.urls')),
     path('', include('board.urls')),
     path('', include('firebase.urls')),
     path('api/v1/', include('api.urls')),
