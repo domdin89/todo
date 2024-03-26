@@ -1125,6 +1125,7 @@ def apartment_code_generator_tecnici(request):
     
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_apartment_accesscode(request):
     apartment_id = request.query_params.get('apartment_id')
     access_codes = ApartmentAccessCode.objects.filter(apartment_id=apartment_id, is_valid=True)
@@ -1133,6 +1134,7 @@ def get_apartment_accesscode(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_apartment_accesscode_tecnici(request):
     profile_id = request.query_params.get('profile_id')
     access_codes = ApartmentAccessCode.objects.filter(profile_id=profile_id, is_valid=True)

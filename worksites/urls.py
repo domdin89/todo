@@ -12,6 +12,7 @@ urlpatterns = [
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
         path('get-apartment-accesscode', views.get_apartment_accesscode),
+        path('get-apartment-accesscode-tecnici', views.get_apartment_accesscode_tecnici),
 
         path('collabworksites', views.CollaboratorListView.as_view()),
 
