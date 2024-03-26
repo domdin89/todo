@@ -48,7 +48,7 @@ class CheckListWorksites(models.Model):
 
 
 class ApartmentAccessCode(models.Model):
-    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE, blank=True, null=True)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     pin = models.CharField(max_length=6, blank=True, null=True, unique=True)
     jwt_token_new = models.CharField(max_length=255, blank=True, null=True, unique=True)

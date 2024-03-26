@@ -13,7 +13,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework import status
 
 from django.contrib.auth.models import User
-from worksites.models import Worksites
+from worksites.models import CollabWorksites, Worksites
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 
 
@@ -98,11 +98,13 @@ def apartment_code_validator(request):
     if pin:
         access_code = ApartmentAccessCode.objects.get(pin=pin, is_valid=True)
 
-        ClientApartments.objects.create(
-            profile=access_code.profile,
-            apartment=access_code.apartment,
-            is_active=True,
-        )
+        if access_code.apartment:
+            ClientApartments.objects.create(
+                profile=access_code.profile,
+                apartment=access_code.apartment,
+                is_active=True,
+            )            
+            
 
         jwt_token, access_token = login_without_password(access_code.profile) # type: ignore
 

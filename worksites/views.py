@@ -1048,7 +1048,7 @@ def apartment_code_generator(request):
 
                     while True:
                         pin = ''.join([str(random.randint(0,9)) for _ in range(6)])
-                        if not ApartmentAccessCode.objects.filter(pin=pin).exists():
+                        if not ApartmentAccessCode.objects.filter(pin=pin, is_valid=True).exists():
                             # Genera il QR Code
                             full_url = f"{BASE_URL}/add-new-cantiere?pin={pin}"
 
@@ -1074,6 +1074,55 @@ def apartment_code_generator(request):
         return Response({'error': f'Errore imprevisto: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['POST'])
+def apartment_code_generator_tecnici(request):
+    profile_id = request.data.get('profile_id', None)
+    BASE_URL = os.getenv('DEFAULT_URL', None)
+
+    try:
+        while True:
+            name = "user_"
+            name2 = ''.join([str(random.randint(0,9)) for _ in range(8)])
+
+            if not User.objects.filter(username=f"{name}{name2}").exists():
+                if profile_id:
+                    user = User.objects.create(
+                        username=f"{name}{name2}",
+                        password=f'{name}{name2}'
+                    )
+
+                    profile = Profile.objects.get(id=profile_id)
+                    profile.user = user
+                    profile.need_change_password = True
+
+                    profile.save()
+
+                    while True:
+                        pin = ''.join([str(random.randint(0,9)) for _ in range(6)])
+                        if not ApartmentAccessCode.objects.filter(pin=pin, is_valid=True).exists():
+                            # Genera il QR Code
+                            full_url = f"{BASE_URL}/add-new-cantiere?pin={pin}"
+
+
+                            qr = qrcode.make(full_url)
+                            qr_io = BytesIO()
+                            qr.save(qr_io, format='PNG')
+                            qr_io.seek(0)
+                            qr_base64 = base64.b64encode(qr_io.read()).decode('utf-8')
+                            
+                            # Crea l'oggetto ApartmentAccessCode con il QR Code salvato come stringa base64
+                            access_code = ApartmentAccessCode.objects.create(
+                                profile=profile,
+                                pin=pin,
+                                qrcode=qr_base64  # Assumendo che questo sia il campo per la stringa base64
+                            )
+
+                            return JsonResponse({'message': 'Pin tecnici generato con successo'}, status=status.HTTP_200_OK)
+    except IntegrityError as e:
+        return Response({'error':f'{str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'error': f'Errore imprevisto: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 @api_view(['GET'])
 def get_apartment_accesscode(request):
@@ -1083,3 +1132,10 @@ def get_apartment_accesscode(request):
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def get_apartment_accesscode_tecnici(request):
+    profile_id = request.query_params.get('profile_id')
+    access_codes = ApartmentAccessCode.objects.filter(profile_id=profile_id, is_valid=True)
+    serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
