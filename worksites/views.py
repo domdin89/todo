@@ -384,13 +384,13 @@ def WorksitePostNew(request):
 
             # Ottieni il file immagine
             image_file = request.FILES.get('image')
-            if image_file:
-                compressed_image_file = compress_image(image_file)
+            # if image_file:
+            #     compressed_image_file = compress_image(image_file)
             is_visible = request.data.get('is_visible', None),
 
             # Crea il cantiere
             post_data = {
-                'image': compressed_image_file,
+                'image': image_file,
                 'name': request.data.get('name', None),
                 'address': request.data.get('address', None),
                 'lat': request.data.get('lat', 0),
