@@ -66,7 +66,8 @@ INSTALLED_APPS = [
     'worksites',
     'board',
     'api',
-    'firebase'
+    'firebase',
+    'file_manager',
 ]
 
 MIDDLEWARE = [
