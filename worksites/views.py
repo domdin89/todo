@@ -692,6 +692,7 @@ def profile_edit(request, id):  # Aggiunta dell'argomento worksite_id
     'last_name' : request.data.get('last_name', profile.last_name),
     'mobile_number' : request.data.get('mobile_number', profile.mobile_number),
     'email' : request.data.get('email', profile.email),
+    'type' : request.data.get('type', profile.type),
     'image' : request.FILES.get('image', profile.image)
     }
 

@@ -317,7 +317,7 @@ def profile_create(request):
         'mobile_number': request.data.get('mobile_number'),
         'email': request.data.get('email'),
         'image': request.FILES.get('image'),
-        'type': 'TECNICI'
+        'type': request.data.get('type'),
     }
     
     # Filtra i campi None
