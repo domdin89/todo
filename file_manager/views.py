@@ -19,7 +19,7 @@ def get_directories(request):
 
     try:
         if parent_id:
-            directories = Directory.objects.filter(parent_id=parent_id)
+            directories = Directory.objects.filter(id=parent_id)
         else:
             directories = Directory.objects.filter(worksite_id=worksite_id)
 
