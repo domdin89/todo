@@ -1,13 +1,20 @@
 from rest_framework import serializers
-from .models import Directory
+from .models import Directory, File
+
+class FileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = File
+        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date']
 
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
+    files = FileSerializer(read_only=True, many=True)
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'children']
+        fields = ['id', 'name', 'parent', 'worksite', 'children', 'files']
 
     def get_field_names(self, declared_fields, info):
         depth = self.context.get('depth', 0)
@@ -24,6 +31,7 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
         if obj.subdirectories.all().exists():
             return DirectorySerializerNoParent(obj.subdirectories.all(), many=True, context={'depth': self.context.get('depth', 0) + 1}).data
         return []
+    
 
 class DirectorySerializer(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
