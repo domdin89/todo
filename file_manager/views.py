@@ -48,7 +48,12 @@ def get_file(request):
     file_path = get_file_path(file_id)
     
     # Crea un client S3
-    s3_client = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY, region_name=settings.AWS_S3_REGION_NAME)
+    s3_client = boto3.client('s3',
+                      region_name=settings.AWS_S3_REGION_NAME,
+                      endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+                      )
     
     # Genera l'URL firmato
     signed_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': file_path}, ExpiresIn=3600)  # URL valido per 1 ora
