@@ -42,7 +42,8 @@ def get_file_path(file_id):
     
 @api_view(['GET'])
 #@permission_classes([IsAdminUser])
-def get_file(request, file_id):
+def get_file(request):
+    file_id = request.query_params.get('file_id')
     # Assumi di avere una funzione che recupera il percorso del file su S3 in base a file_id
     file_path = get_file_path(file_id)
     
