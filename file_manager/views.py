@@ -36,7 +36,7 @@ def get_directories(request):
 def get_file_path(file_id):
     try:
         file = File.objects.get(id=file_id)
-        return "media/files/" + file.file.name
+        return "media/" + file.file.name
     except File.DoesNotExist:
         return None
     
@@ -46,7 +46,6 @@ def get_file(request):
     file_id = request.query_params.get('file_id')
     # Assumi di avere una funzione che recupera il percorso del file su S3 in base a file_id
     file_path = get_file_path(file_id)
-    print('file path', file_path)
     
     # Crea un client S3
     s3_client = boto3.client('s3',
