@@ -7,5 +7,6 @@ urlpatterns = [
     path('get_file', views.get_file),
 
     path('directory_new', views.directory_new),
+    path('file_new', views.file_new),
     # Eventuali altre URL...
 ]

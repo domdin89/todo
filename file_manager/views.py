@@ -6,8 +6,10 @@ from rest_framework.permissions import IsAdminUser
 from .serializers import DirectorySerializerChildren
 import boto3
 from django.http import JsonResponse
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from django.conf import settings
+from rest_framework.parsers import MultiPartParser
+
 
 @api_view(['GET'])
 #@permission_classes([IsAdminUser])
@@ -81,3 +83,22 @@ def directory_new(request):
         return JsonResponse({'error': 'Cartella parent non trovata.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+#@permission_classes([IsAdminUser])
+def file_new(request):
+    directory_id = request.data.get('directory_id')
+    name = request.data.get('name', None)
+    file = request.data.get('file', None)
+
+    if not name or not directory_id:
+        return JsonResponse({'error': 'Il nome della cartella e il parent id sono obbligatori.'}, status=400)
+    
+    try:
+        file_new = File.objects.create(name=name, directory_id=directory_id, file=file)
+        return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201)
+    except Directory.DoesNotExist:
+        return JsonResponse({'error': 'File non trovato.'}, status=404)
+    
