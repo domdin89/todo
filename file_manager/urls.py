@@ -1,9 +1,11 @@
 from django.urls import path
-from .views import get_directories, get_file
+from . import views
 
 urlpatterns = [
     # Altre URL della tua app...
-    path('directories/', get_directories, name='get_directories'),
-    path('get_file', get_file, name='get_file'),
+    path('directories/', views.get_directories),
+    path('get_file', views.get_file),
+
+    path('directory_new', views.directory_new),
     # Eventuali altre URL...
 ]

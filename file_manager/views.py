@@ -59,3 +59,25 @@ def get_file(request):
     signed_url = s3_client.generate_presigned_url('get_object', Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': file_path}, ExpiresIn=3600)  # URL valido per 1 ora
     
     return JsonResponse({'url': signed_url})
+
+@api_view(['POST'])
+#@permission_classes([IsAdminUser])
+def directory_new(request):
+    name = request.data.get('name')
+    parent_id = request.data.get('parent_id', None)
+
+    if not name:
+        return JsonResponse({'error': 'Il nome della cartella è obbligatorio.'}, status=400)
+    
+    # Crea la cartella (directory)
+    try:
+        if parent_id:
+            parent = Directory.objects.get(id=parent_id)
+            directory = Directory.objects.create(name=name, parent=parent)
+        else:
+            directory = Directory.objects.create(name=name)
+        return JsonResponse({'message': 'Cartella creata con successo.', 'id': directory.id}, status=201)
+    except Directory.DoesNotExist:
+        return JsonResponse({'error': 'Cartella parent non trovata.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
