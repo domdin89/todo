@@ -36,7 +36,7 @@ def get_directories(request):
 def get_file_path(file_id):
     try:
         file = File.objects.get(id=file_id)
-        return file.file
+        return file.file.name
     except File.DoesNotExist:
         return None
     
