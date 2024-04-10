@@ -33,7 +33,7 @@ from django.db.models import Max
 from django.contrib.auth.models import User
 import random
 
-
+from file_manager.models import Directory
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer, ProfileSerializerRole
 from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments
@@ -415,6 +415,7 @@ def WorksitePostNew(request):
             # Crea il cantiere solo se tutti i campi obbligatori sono presenti
             try:
                 worksite = Worksites.objects.create(**post_data)
+                directory = Directory.objects.create(name=worksite.name, worksite=worksite)
             except ValidationError as e:
                 return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
             
