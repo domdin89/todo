@@ -9,6 +9,7 @@ urlpatterns = [
         path('validate-token', views.apartment_code_validator),
 
         path('edit_profile', views.edit_profile),
+        path('directories-by-apartments', views.get_directories_by_apartments),
 
         #path('edit-profile', views.edit_profile)
 ]

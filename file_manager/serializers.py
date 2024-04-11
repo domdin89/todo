@@ -1,11 +1,46 @@
 from rest_framework import serializers
 from .models import Directory, File
 
+def get_file_path(file_id):
+    try:
+        file = File.objects.get(id=file_id)
+        return "media/private/" + file.file.name
+    except File.DoesNotExist:
+        return None
+    
 class FileSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = File
-        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date']
+        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date', 'url']
 
+    def get_url(self, obj):
+        # Here you can implement logic similar to your `get_file` function
+        # For example, using boto3 to generate a signed URL for the file object.
+        import boto3
+        from django.conf import settings
+
+        # Assume get_file_path is a function that retrieves the S3 path for the file
+        file_path = get_file_path(obj.id)
+        
+        s3_client = boto3.client(
+            's3',
+            region_name=settings.AWS_S3_REGION_NAME,
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+        )
+        
+        # Generate the signed URL
+        signed_url = s3_client.generate_presigned_url(
+            'get_object', 
+            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': file_path}, 
+            ExpiresIn=3600  # URL valid for 1 hour
+        )
+        
+        return signed_url
+    
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()

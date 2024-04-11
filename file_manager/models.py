@@ -12,7 +12,6 @@ class Directory(models.Model):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subdirectories')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE,  null=True, blank=True)
-    apa = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
     created_by = models.ForeignKey(Profile, on_delete=models.CASCADE,  null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 

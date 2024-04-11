@@ -14,6 +14,8 @@ from rest_framework import status
 
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Worksites
+from file_manager.models import Directory
+from file_manager.serializers import DirectorySerializerChildren
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 
 
@@ -116,3 +118,27 @@ def apartment_code_validator(request):
             "access": str(access_token),
             "refresh": str(jwt_token),
         })
+    
+@api_view(['GET'])
+@validate_token
+def get_directories_by_apartments(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+
+    apartment_id = request.query_params.get('apartment_id')
+    parent_id = request.query_params.get('parent_id')
+
+    if not apartment_id:
+        return Response({"error": "apartment_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        if parent_id:
+            directories = Directory.objects.filter(id=parent_id)
+        else:
+            directories = Directory.objects.filter(apartment_id=apartment_id)
+
+        serializer = DirectorySerializerChildren(directories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
