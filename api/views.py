@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 
-from accounts.models import Profile
+from accounts.models import Privacy, Profile
+from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
 from worksites.serializers import WorksiteSerializer
@@ -23,7 +24,7 @@ from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 @validate_token
 def edit_profile(request):
     profile_id = request.profile_id
-    required_fields = ['username', 'email', 'password']
+    required_fields = ['email', 'password']
     for field in required_fields:
         if field not in request.data:
             return Response({'error': f'{field} is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -35,7 +36,6 @@ def edit_profile(request):
         profile.last_name= request.data['last_name']
         profile.mobile_number= request.data['mobile_number']
         profile.user.email = request.data['email']
-        profile.user.username = request.data['username']
 
         password = request.data['password']
         confirm_password = request.data['confirm_password']
@@ -142,3 +142,11 @@ def get_directories_by_apartments(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['GET'])
+def get_privacy(request):
+    privacy = Privacy.objects.filter().first()
+    serializer=PrivacySerializer(privacy)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

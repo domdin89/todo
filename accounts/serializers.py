@@ -2,7 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.db.models import CharField
 from django.db.models.functions import Concat
-from accounts.models import Profile
+from accounts.models import Privacy, Profile
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -48,3 +48,9 @@ class ProfileSerializerRole(serializers.ModelSerializer):
             if role['date_end'] is None:
                 role.pop('date_end', None)
         return data
+
+
+class PrivacySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Privacy
+        fields = '__all__'

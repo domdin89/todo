@@ -10,7 +10,7 @@ urlpatterns = [
 
         path('edit_profile', views.edit_profile),
         path('directories-by-apartments', views.get_directories_by_apartments),
-
+        path('get-privacy', views.get_privacy)
         #path('edit-profile', views.edit_profile)
 ]
 
