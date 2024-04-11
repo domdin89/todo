@@ -173,7 +173,7 @@ def get_directories(request):
         else:
             directories = Directory.objects.filter(worksite_id=worksite_id,apartment_id=None)
 
-        serializer = DirectorySerializer(directories, many=True)
+        serializer = DirectorySerializerChildren(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
