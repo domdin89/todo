@@ -116,7 +116,7 @@ class DirectorySerializer(serializers.ModelSerializer):
         return None
 
 class DirectorySerializerNoParent(serializers.ModelSerializer):
-
+    files = FileSerializer(read_only=True, many=True)
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'worksite']
+        fields = ['id', 'name', 'worksite', 'files']
