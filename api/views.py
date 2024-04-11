@@ -156,6 +156,30 @@ def get_directories_by_apartments(request):
     
 
 @api_view(['GET'])
+@validate_token
+def get_directories(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+
+    worksite_id = request.query_params.get('worksite_id')
+    parent_id = request.query_params.get('parent_id')
+
+    if not worksite_id:
+        return Response({"error": "worksite_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        if parent_id:
+            directories = Directory.objects.filter(id=parent_id,apartment_id=None)
+        else:
+            directories = Directory.objects.filter(worksite_id=worksite_id,apartment_id=None)
+
+        serializer = DirectorySerializerChildren(directories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
 def get_privacy(request):
     privacy = Privacy.objects.filter().first()
     serializer=PrivacySerializer(privacy)
