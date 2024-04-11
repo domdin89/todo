@@ -18,8 +18,18 @@ from worksites.models import CollabWorksites, Worksites
 from file_manager.models import Directory
 from file_manager.serializers import DirectorySerializerChildren
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
+from accounts.serializers import ProfileSerializer
 
 
+@api_view(['GET'])
+@validate_token
+def get_profile(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+
+    serializer = ProfileSerializer(profile)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
 @api_view(['PUT'])
 @validate_token
 def edit_profile(request):
@@ -53,6 +63,7 @@ def edit_profile(request):
         return Response({'message': 'Profilo aggiornato correttamente successfully'}, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
