@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Directory, File
 from rest_framework.permissions import IsAdminUser
-from .serializers import DirectorySerializerChildren
+from .serializers import DirectorySerializerChildren, DirectorySerializerChildrenMain
 import boto3
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes, parser_classes
@@ -29,7 +29,7 @@ def get_directories(request):
         else:
             directories = Directory.objects.filter(worksite_id=worksite_id)
 
-        serializer = DirectorySerializerChildren(directories, many=True)
+        serializer = DirectorySerializerChildrenMain(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
