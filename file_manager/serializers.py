@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Directory, File
+from apartments.serializers import ApartmentBaseSerializer
 
 def get_file_path(file_id):
     try:
@@ -90,3 +91,23 @@ class DirectorySerializerNoParent(serializers.ModelSerializer):
     class Meta:
         model = Directory
         fields = ['id', 'name', 'worksite']
+
+class DirectorySerializerNoChildren(serializers.ModelSerializer):
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
+
+class DirectorySerializerNew(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+    #apartment = ApartmentBaseSerializer(read_only=True)
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment']  # Aggiungi tutti i campi che vuoi includere
+
+    def get_children(self, obj):
+        # Filtra i subdirectories per includere solo quelli senza un apartment associato
+        if obj.subdirectories.filter(apartment__isnull=True).exists():
+            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment__isnull=True), many=True, context=self.context).data
+        return []

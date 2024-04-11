@@ -16,7 +16,7 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Worksites
 from file_manager.models import Directory
-from file_manager.serializers import DirectorySerializer, DirectorySerializerChildren
+from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildren
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 from accounts.serializers import ProfileSerializer
 
@@ -162,22 +162,25 @@ def get_directories(request):
     profile = Profile.objects.get(id=profile_id)
 
     worksite_id = request.query_params.get('worksite_id')
-    parent_id = request.query_params.get('parent_id')
 
     if not worksite_id:
         return Response({"error": "worksite_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        if parent_id:
-            directories = Directory.objects.filter(id=parent_id,apartment_id=None)
-        else:
-            directories = Directory.objects.filter(worksite_id=worksite_id,apartment_id=None)
-
-        serializer = DirectorySerializerChildren(directories, many=True)
+        directories = Directory.objects.filter(worksite_id=worksite_id, parent__isnull=True).distinct()
+        serializer = DirectorySerializerNew(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+@validate_token
+def get_directory_new(request):
+
+
 
 @api_view(['GET'])
 def get_privacy(request):
