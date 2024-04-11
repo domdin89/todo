@@ -91,7 +91,7 @@ class DirectorySerializerChildrenMain(serializers.ModelSerializer):
         # Filter subdirectories to exclude those with apartment_id != None
         child_directories = obj.subdirectories.filter(apartment_id=None)
         if child_directories.exists():
-            return DirectorySerializerNoParent(child_directories, many=True, context={'depth': self.context.get('depth', 0) + 1}).data
+            return DirectorySerializerChildren(child_directories, many=True, context={'depth': self.context.get('depth', 0) + 1}).data
         return []
 
     
