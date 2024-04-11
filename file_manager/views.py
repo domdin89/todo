@@ -38,7 +38,7 @@ def get_directories(request):
 def get_file_path(file_id):
     try:
         file = File.objects.get(id=file_id)
-        return "media/" + file.file.name
+        return "media/private/" + file.file.name
     except File.DoesNotExist:
         return None
     

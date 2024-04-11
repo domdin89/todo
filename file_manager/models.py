@@ -2,12 +2,17 @@ from django.db import models
 import os
 
 from accounts.models import Profile
+from apartments.models import Apartments
 from worksites.models import Worksites
+from falone.storage_backends import PrivateMediaStorage
+
 
 class Directory(models.Model):
     name = models.CharField(max_length=255)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subdirectories')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE,  null=True, blank=True)
+    apa = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
     created_by = models.ForeignKey(Profile, on_delete=models.CASCADE,  null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
@@ -21,7 +26,7 @@ class File(models.Model):
     name = models.CharField(max_length=255)
     extension = models.CharField(max_length=10, blank=True, null=True)
     directory = models.ForeignKey(Directory, on_delete=models.CASCADE, related_name='files')
-    file = models.FileField(upload_to='files/')
+    file = models.FileField(upload_to='files/', storage=PrivateMediaStorage())
     size = models.PositiveBigIntegerField(blank=True, null=True)  # Dimensione del file in byte
     mime_type = models.CharField(max_length=50, blank=True, null=True)  # Tipo MIME del file
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
