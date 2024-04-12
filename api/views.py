@@ -176,11 +176,6 @@ def get_directories(request):
 
 
 
-@api_view(['GET'])
-@validate_token
-def get_directory_new(request):
-
-
 
 @api_view(['GET'])
 def get_privacy(request):
