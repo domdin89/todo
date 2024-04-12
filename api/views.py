@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser
 
 from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
@@ -30,6 +31,7 @@ def get_profile(request):
     serializer = ProfileSerializer(profile)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+    
 @api_view(['PUT'])
 @validate_token
 def edit_profile(request):
@@ -41,7 +43,6 @@ def edit_profile(request):
     try:
         profile = Profile.objects.get(id=profile_id)
 
-        password = request.data['password']
         profile.first_name= request.data['first_name']
         profile.last_name= request.data['last_name']
         profile.mobile_number= request.data['mobile_number']
@@ -50,7 +51,7 @@ def edit_profile(request):
         password = request.data['password']
         confirm_password = request.data['confirm_password']
 
-        if password == confirm_password:
+        if password and password == confirm_password:
             profile.user.password = make_password(password)
         else:
             return Response({'message': 'Attenzione, le due password non coincidono'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,10 +61,31 @@ def edit_profile(request):
         profile.user.save()
         profile.save()
 
-        return Response({'message': 'Profilo aggiornato correttamente successfully'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_201_CREATED)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+@validate_token
+def edit_profile_partial(request):
+    profile_id = request.profile_id
+    
+    try:
+        profile = Profile.objects.get(id=profile_id)
+
+        image = request.FILES['image', profile.image]
+        profile.first_name= request.data['first_name', profile.first_name]
+        profile.last_name= request.data['last_name', profile.last_name]
+        profile.mobile_number= request.data['mobile_number', profile.mobile_number]
+        profile.user.email = request.data['email', profile.user.email]
+
+        profile.user.save()
+        profile.save()
+
+        return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
