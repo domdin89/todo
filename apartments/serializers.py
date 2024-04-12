@@ -11,11 +11,6 @@ class ApartmentSerializer(serializers.ModelSerializer):
         model = Apartments
         fields = '__all__'
 
-class ApartmentSubSerializerNew(serializers.ModelSerializer):
-    class Meta:
-        model = ApartmentSub
-        fields = '__all__'
-
 class ApartmentSubSerializer(serializers.ModelSerializer):
     foglio_particella = FoglioParticellaSerializer(read_only=True)
     class Meta:
