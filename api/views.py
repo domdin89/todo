@@ -45,17 +45,11 @@ def edit_profile(request):
         profile = Profile.objects.get(id=profile_id)
 
         profile.image = request.FILES.get('image', "")
-        print(f'image {profile.image}')
         profile.first_name = request.data.get('first_name', "")
-        print(f'image {profile.first_name}')
         profile.last_name = request.data.get('last_name', "")
-        print(f'image {profile.last_name}')
         profile.mobile_number = request.data.get('mobile_number', "")
-        print(f'image {profile.mobile_number}')
         profile.user.email = request.data.get('email', "")
-        print(f'image {profile.user.email}')
         profile.email = request.data.get('email', "")
-        print(f'image {profile.email}')
         img_visible = request.data.get('img_visible')
         if img_visible:
             profile.img_visible = True
