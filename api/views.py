@@ -37,12 +37,15 @@ def get_profile(request):
 @validate_token
 def edit_profile(request):
     profile_id = request.profile_id
+    
     required_fields = ['email', 'password']
     for field in required_fields:
         if field not in request.data:
             return Response({'error': f'{field} is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         profile = Profile.objects.get(id=profile_id)
+
+        access_code = ApartmentAccessCode.objects.get(profile=profile)
 
         profile.image = request.FILES.get('image', "")
         profile.first_name = request.data.get('first_name', "")
@@ -76,7 +79,8 @@ def edit_profile(request):
             return Response({'message': 'Attenzione, le due password non coincidono'}, status=status.HTTP_400_BAD_REQUEST)
 
         profile.need_change_password = False
-
+        access_code.is_valid = False
+        access_code.save()
         profile.user.save()
         profile.save()
 
@@ -181,9 +185,9 @@ def apartment_code_validator(request):
         profile = Profile.objects.get(id=access_code.profile.id)
         serializer = ProfileSerializer(profile)
 
-        if str(access_token) and str(jwt_token):
-            access_code.is_valid = False
-            access_code.save()
+        # if str(access_token) and str(jwt_token):
+        #     access_code.is_valid = False
+        #     access_code.save()
         
         return Response({
             "access": str(access_token),
