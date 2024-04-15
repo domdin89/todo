@@ -98,7 +98,22 @@ def edit_profile_partial(request):
         profile.last_name = request.data.get('last_name', profile.last_name)
         profile.mobile_number = request.data.get('mobile_number', profile.mobile_number)
         profile.user.email = request.data.get('email', profile.user.email)
-        print(f'image {profile.user.email}')
+        profile.email = request.data.get('email', profile.user.email)
+        img_visible = request.data.get('img_visible')
+        if img_visible:
+            profile.img_visible = True
+        else:
+            profile.img_visible = False
+        email_visible = request.data.get('email_visible')
+        if email_visible:
+            profile.email_visible = True
+        else:
+            profile.email_visible = False
+        phone_visible = request.data.get('phone_visible')
+        if phone_visible:
+            profile.phone_visible = True
+        else:
+            profile.phone_visible = False
 
         profile.user.save()
         profile.save()
