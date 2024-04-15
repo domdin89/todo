@@ -219,12 +219,16 @@ def get_directories(request):
     profile = Profile.objects.get(id=profile_id)
 
     worksite_id = request.query_params.get('worksite_id')
+    parent_id = request.query_params.get('parent_id')
 
     if not worksite_id:
         return Response({"error": "worksite_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        directories = Directory.objects.filter(worksite_id=worksite_id, parent__isnull=True).distinct()
+        if parent_id:
+            directories = Directory.objects.filter(worksite_id=worksite_id, id=parent_id, apartment__isnull=True)
+        else:
+            directories = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True).distinct()
         serializer = DirectorySerializerNew(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
