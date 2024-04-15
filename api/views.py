@@ -54,17 +54,17 @@ def edit_profile(request):
         profile.user.email = request.data.get('email', "")
         profile.email = request.data.get('email', "")
         img_visible = request.data.get('img_visible')
-        if img_visible:
+        if img_visible == 'true':
             profile.img_visible = True
         else:
             profile.img_visible = False
         email_visible = request.data.get('email_visible')
-        if email_visible:
+        if email_visible == 'true':
             profile.email_visible = True
         else:
             profile.email_visible = False
         phone_visible = request.data.get('phone_visible')
-        if phone_visible:
+        if phone_visible == 'true':
             profile.phone_visible = True
         else:
             profile.phone_visible = False
@@ -104,17 +104,17 @@ def edit_profile_partial(request):
         profile.user.email = request.data.get('email', profile.user.email)
         profile.email = request.data.get('email', profile.user.email)
         img_visible = request.data.get('img_visible')
-        if img_visible:
+        if img_visible == 'true':
             profile.img_visible = True
         else:
             profile.img_visible = False
         email_visible = request.data.get('email_visible')
-        if email_visible:
+        if email_visible  == 'true':
             profile.email_visible = True
         else:
             profile.email_visible = False
         phone_visible = request.data.get('phone_visible')
-        if phone_visible:
+        if phone_visible  == 'true':
             profile.phone_visible = True
         else:
             profile.phone_visible = False
