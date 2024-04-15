@@ -178,6 +178,9 @@ def apartment_code_validator(request):
 
         jwt_token, access_token = login_without_password(access_code.profile) # type: ignore
 
+        profile = Profile.objects.get(id=access_code.profile.id)
+        serializer = ProfileSerializer(profile)
+
         if str(access_token) and str(jwt_token):
             access_code.is_valid = False
             access_code.save()
@@ -185,6 +188,7 @@ def apartment_code_validator(request):
         return Response({
             "access": str(access_token),
             "refresh": str(jwt_token),
+            "profile": serializer.data
         })
     
 @api_view(['GET'])
