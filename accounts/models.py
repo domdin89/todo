@@ -34,6 +34,10 @@ class Profile(models.Model):
     ]
     type = models.CharField(max_length=7, choices=TYPE, default='USER')
 
+    img_visible = models.BooleanField(default=False ) 
+    email_visible= models.BooleanField(default=False ) 
+    phone_visible= models.BooleanField(default=False ) 
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} {self.type}"
     

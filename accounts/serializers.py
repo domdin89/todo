@@ -2,6 +2,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.db.models import CharField
 from django.db.models.functions import Concat
+from django.contrib.auth.models import User
 from accounts.models import Privacy, Profile
 
 
@@ -17,10 +18,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return token
 
-
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email']
 
 class ProfileSerializer(serializers.ModelSerializer):
-
+    user = UserSerializer()
     class Meta:
         model = Profile
         fields = [

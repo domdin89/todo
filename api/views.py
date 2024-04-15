@@ -33,6 +33,7 @@ def get_profile(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
     
 @api_view(['PUT'])
+@parser_classes([MultiPartParser])
 @validate_token
 def edit_profile(request):
     profile_id = request.profile_id
@@ -43,13 +44,37 @@ def edit_profile(request):
     try:
         profile = Profile.objects.get(id=profile_id)
 
-        profile.first_name= request.data['first_name']
-        profile.last_name= request.data['last_name']
-        profile.mobile_number= request.data['mobile_number']
-        profile.user.email = request.data['email']
+        profile.image = request.FILES.get('image', "")
+        print(f'image {profile.image}')
+        profile.first_name = request.data.get('first_name', "")
+        print(f'image {profile.first_name}')
+        profile.last_name = request.data.get('last_name', "")
+        print(f'image {profile.last_name}')
+        profile.mobile_number = request.data.get('mobile_number', "")
+        print(f'image {profile.mobile_number}')
+        profile.user.email = request.data.get('email', "")
+        print(f'image {profile.user.email}')
+        profile.email = request.data.get('email', "")
+        print(f'image {profile.email}')
+        img_visible = request.data.get('img_visible')
+        if img_visible:
+            profile.img_visible = True
+        else:
+            profile.img_visible = False
+        email_visible = request.data.get('email_visible')
+        if email_visible:
+            profile.email_visible = True
+        else:
+            profile.email_visible = False
+        phone_visible = request.data.get('phone_visible')
+        if phone_visible:
+            profile.phone_visible = True
+        else:
+            profile.phone_visible = False
+       
 
-        password = request.data['password']
-        confirm_password = request.data['confirm_password']
+        password = request.data.get('password')
+        confirm_password = request.data.get('confirm_password')
 
         if password and password == confirm_password:
             profile.user.password = make_password(password)
@@ -74,16 +99,17 @@ def edit_profile_partial(request):
     try:
         profile = Profile.objects.get(id=profile_id)
 
-        image = request.FILES['image', profile.image]
-        profile.first_name= request.data['first_name', profile.first_name]
-        profile.last_name= request.data['last_name', profile.last_name]
-        profile.mobile_number= request.data['mobile_number', profile.mobile_number]
-        profile.user.email = request.data['email', profile.user.email]
+        profile.image = request.FILES.get('image', profile.image)
+        profile.first_name = request.data.get('first_name', profile.first_name)
+        profile.last_name = request.data.get('last_name', profile.last_name)
+        profile.mobile_number = request.data.get('mobile_number', profile.mobile_number)
+        profile.user.email = request.data.get('email', profile.user.email)
+        print(f'image {profile.user.email}')
 
         profile.user.save()
         profile.save()
 
-        return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
