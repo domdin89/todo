@@ -47,7 +47,7 @@ class DirectorySerializerNoChildren(serializers.ModelSerializer):
     class Meta:
         model = Directory
         fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
-        
+
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
@@ -70,7 +70,7 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
 
     def get_children(self, obj):
         # Filtra i subdirectories per includere solo quelli senza un apartment associato
-        if obj.subdirectories.filter(apartment__isnull=True).exists():
+        if obj.subdirectories.filter().exists():
             return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment=obj.apartment), many=True, context=self.context).data
         return []
     
