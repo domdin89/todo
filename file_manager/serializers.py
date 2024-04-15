@@ -41,7 +41,13 @@ class FileSerializer(serializers.ModelSerializer):
         )
         
         return signed_url
-    
+
+class DirectorySerializerNoChildren(serializers.ModelSerializer):
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
+        
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
@@ -98,11 +104,7 @@ class DirectorySerializerNoParent(serializers.ModelSerializer):
         model = Directory
         fields = ['id', 'name', 'worksite']
 
-class DirectorySerializerNoChildren(serializers.ModelSerializer):
 
-    class Meta:
-        model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
 
 class DirectorySerializerNew(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
