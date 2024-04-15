@@ -45,7 +45,7 @@ class FileSerializer(serializers.ModelSerializer):
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
-    files = FileSerializer(read_only=True, many=True)
+    files = serializers.SerializerMethodField()
 
     class Meta:
         model = Directory
@@ -63,9 +63,15 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
         return None
 
     def get_children(self, obj):
-        if obj.subdirectories.all().exists():
-            return DirectorySerializerNoParent(obj.subdirectories.all(), many=True, context={'depth': self.context.get('depth', 0) + 1}).data
+        # Filtra i subdirectories per includere solo quelli senza un apartment associato
+        if obj.subdirectories.filter(apartment__isnull=True).exists():
+            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment=obj.apartment), many=True, context=self.context).data
         return []
+    
+    def get_files(self, obj):
+        files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
+        serializer = FileSerializer(files, many=True)
+        return serializer.data
     
 
 class DirectorySerializer(serializers.ModelSerializer):
