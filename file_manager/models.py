@@ -29,6 +29,7 @@ class File(models.Model):
     size = models.PositiveBigIntegerField(blank=True, null=True)  # Dimensione del file in byte
     mime_type = models.CharField(max_length=50, blank=True, null=True)  # Tipo MIME del file
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    visible_in_app = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

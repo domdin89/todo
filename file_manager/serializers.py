@@ -101,10 +101,11 @@ class DirectorySerializerNoChildren(serializers.ModelSerializer):
 class DirectorySerializerNew(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     #apartment = ApartmentBaseSerializer(read_only=True)
+    files = serializers.SerializerMethodField()
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment']  # Aggiungi tutti i campi che vuoi includere
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files']  # Aggiungi tutti i campi che vuoi includere
 
     def get_children(self, obj):
         # Filtra i subdirectories per includere solo quelli senza un apartment associato
@@ -112,5 +113,10 @@ class DirectorySerializerNew(serializers.ModelSerializer):
             return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment__isnull=True, worksite=obj.worksite), many=True, context=self.context).data
         return []
 
+    def get_files(self, obj):
+        files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
+        serializer = FileSerializer(files, many=True)
+        return serializer.data
 
-        
+
+
