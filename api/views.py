@@ -260,6 +260,8 @@ def get_privacy(request):
 @validate_token
 def boards(request):
     profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+
 
     boards = Boards.objects.filter(Q(recipients__apartment__clientapartments__profile=profile) | 
     Q(recipients__worksites__apartments__clientapartments__profile=profile) |
