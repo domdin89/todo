@@ -263,10 +263,11 @@ def boards(request):
     profile = Profile.objects.get(id=profile_id)
 
 
-    boards = Boards.objects.filter(Q(recipients__apartment__clientapartments__profile=profile) | 
-    Q(recipients__worksites__apartments__clientapartments__profile=profile) |
-    Q(recipients__profile=profile)
-    )
+    boards = Boards.objects.filter(
+        Q(recipients__apartment__clientapartments__profile=profile) | 
+        Q(recipients__worksites__apartments__clientapartments__profile=profile) |
+        Q(recipients__profile=profile)
+    ).distinct()  # Ensures unique instances are returned
 
     serializer = BoardsSerializer(boards, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
