@@ -267,7 +267,7 @@ def boards(request):
         Q(recipients__apartment__clientapartments__profile=profile) | 
         Q(recipients__worksites__apartments__clientapartments__profile=profile) |
         Q(recipients__profile=profile)
-    ).distinct()  # Ensures unique instances are returned
+    ).distinct().order_by('-date')
 
     serializer = BoardsSerializer(boards, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
