@@ -71,7 +71,7 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
     def get_children(self, obj):
         # Filtra i subdirectories per includere solo quelli senza un apartment associato
         if obj.subdirectories.filter().exists():
-            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment=obj.apartment), many=True, context=self.context).data
+            return DirectorySerializerNoChildren(obj.subdirectories.all(), many=True, context=self.context).data
         return []
     
     def get_files(self, obj):
