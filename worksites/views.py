@@ -1076,9 +1076,9 @@ def apartment_code_generator(request):
         return Response({'error': f'Errore imprevisto: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
-def apartment_code_generator_tecnici(request):
-    profile_id = request.data.get('profile_id', None)
+
+def apartment_code_generator_tecnici(profile_id):
+    
     BASE_URL = os.getenv('DEFAULT_URL', None)
 
     try:
@@ -1120,7 +1120,7 @@ def apartment_code_generator_tecnici(request):
                                 qrcode=qr_base64  # Assumendo che questo sia il campo per la stringa base64
                             )
 
-                            return JsonResponse({'message': 'Pin tecnici generato con successo'}, status=status.HTTP_200_OK)
+                            return access_code
     except IntegrityError as e:
         return Response({'error':f'{str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -1141,6 +1141,12 @@ def get_apartment_accesscode(request):
 def get_apartment_accesscode_tecnici(request):
     profile_id = request.query_params.get('profile_id')
     access_codes = ApartmentAccessCode.objects.filter(profile_id=profile_id, is_valid=True)
-    serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
+    if len(access_codes) > 0:
+        serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
+    else:
+        apartment_code_generator_tecnici(profile_id)
+        access_codes = ApartmentAccessCode.objects.filter(profile_id=profile_id, is_valid=True)
+        if len(access_codes) > 0:
+            serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
