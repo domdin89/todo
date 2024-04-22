@@ -178,3 +178,6 @@ def new_apartment(request):
 
 
     return Response("Sub aggiornato con successo", status=status.HTTP_200_OK)
+
+
+

@@ -162,6 +162,56 @@ def reset_permission(request):
 
 
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def permission_file(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    file_id = request.data.get('file_id', None)
+
+    try:
+        if file_id:
+            file = File.objects.get(id=file_id)
+            file_id.visible_in_app = True
+            file.save()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def reset_file_permission(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    file_id = request.data.get('file_id', None)
+
+    try:
+        if file_id:
+            file = File.objects.get(id=file_id)
+            file_id.visible_in_app = False
+            file.save()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 
 def get_file_path(file_id):
     try:
