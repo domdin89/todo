@@ -173,7 +173,7 @@ def permission_file(request):
     try:
         if file_id:
             file = File.objects.get(id=file_id)
-            file_id.visible_in_app = True
+            file.visible_in_app = True
             file.save()
 
         else:
@@ -197,7 +197,7 @@ def reset_file_permission(request):
     try:
         if file_id:
             file = File.objects.get(id=file_id)
-            file_id.visible_in_app = False
+            file.visible_in_app = False
             file.save()
 
         else:
