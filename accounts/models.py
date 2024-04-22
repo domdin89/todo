@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from ckeditor.fields import RichTextField
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.db import models
+from django.core.exceptions import ValidationError
 
 
 
@@ -22,7 +25,7 @@ class Profile(models.Model):
 
     token = models.CharField(max_length=150, blank=True, null=True, )
     is_active = models.BooleanField(default=True )    
-    need_change_password = models.BooleanField(default=False )
+    need_change_password = models.BooleanField(default=True )
     email = models.CharField(max_length=100, blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -64,3 +67,4 @@ class PrivacyAcceptance(models.Model):
 
     def __str__(self):
         return f'{self.privacy}'
+    
