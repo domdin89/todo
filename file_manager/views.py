@@ -75,7 +75,10 @@ def directory_new(request):
     try:
         if parent_id:
             parent = Directory.objects.get(id=parent_id)
-            directory = Directory.objects.create(name=name, parent=parent)
+            if parent.apartment:
+                directory = Directory.objects.create(name=name, parent=parent, apartment=parent.apartment)
+            else:
+                directory = Directory.objects.create(name=name, parent=parent)
         else:
             directory = Directory.objects.create(name=name)
         return JsonResponse({'message': 'Cartella creata con successo.', 'id': directory.id}, status=201)
