@@ -160,9 +160,10 @@ def apartments(request):
         apartments = Apartments.objects.filter(worksite_id=worksite,
                                                worksite__collaborations__profile_id=profile_id, 
                                                worksite__collaborations__is_valid=True, 
+                                               is_active=True
                                                ).distinct()
     else:
-        apartments = Apartments.objects.filter(clientapartments__profile_id=profile_id, worksite_id=worksite, subs__is_valid=True).distinct()
+        apartments = Apartments.objects.filter(clientapartments__profile_id=profile_id, worksite_id=worksite, subs__is_valid=True, is_active=True).distinct()
     serializer = ApartmentBaseSerializer(apartments, many=True)
 
     return Response({'results': serializer.data})
