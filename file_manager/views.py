@@ -135,6 +135,34 @@ def permission_directory(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def reset_permission(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    directory_id = request.data.get('directory_id', None)
+
+    try:
+        if directory_id:
+            directory = Directory.objects.get(id=directory_id)
+            directory.worksite_id = None
+            directory.apartment = None
+            directory.save()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 def get_file_path(file_id):
     try:
         file = File.objects.get(id=file_id)
