@@ -185,7 +185,7 @@ def apartment_code_validator(request):
 
         jwt_token, access_token = login_without_password(access_code.profile) # type: ignore
 
-        profile = Profile.objects.get(id=access_code.profile)
+        profile = access_code.profile
         serializer = ProfileSerializer(profile)
 
         # if str(access_token) and str(jwt_token):
