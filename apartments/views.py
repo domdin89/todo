@@ -14,6 +14,7 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view,parser_classes
+from file_manager.models import Directory
 
 
 class CustomPagination(PageNumberPagination):
@@ -153,6 +154,8 @@ def new_apartment(request):
     apartment_data = {key: value for key, value in apartment_data.items() if value is not None}
 
     apartment = Apartments.objects.create(**apartment_data)
+    parent = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True, parent__isnull=True).first()
+    directory = Directory.objects.create(name=apartment.note, apartment=apartment, parent=parent)
 
     # Creazione dei subappartamenti se presenti nel payload
     subs_data = request.data.get('subs', [])
@@ -171,5 +174,7 @@ def new_apartment(request):
         sub_data = {key: value for key, value in sub_data.items() if value is not None}
 
         sub = ApartmentSub.objects.create(**sub_data)
+
+
 
     return Response("Sub aggiornato con successo", status=status.HTTP_200_OK)
