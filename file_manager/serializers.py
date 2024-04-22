@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Directory, File
 from apartments.serializers import ApartmentBaseSerializer
+from worksites.serializers import WorksiteStandardSerializer
 
 def get_file_path(file_id):
     try:
@@ -14,7 +15,7 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
-        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date', 'url']
+        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date', 'url', 'visible_in_app']
 
     def get_url(self, obj):
         # Here you can implement logic similar to your `get_file` function
@@ -43,6 +44,8 @@ class FileSerializer(serializers.ModelSerializer):
         return signed_url
 
 class DirectorySerializerNoChildren(serializers.ModelSerializer):
+    worksite = WorksiteStandardSerializer()
+    apartment = ApartmentBaseSerializer()
 
     class Meta:
         model = Directory
