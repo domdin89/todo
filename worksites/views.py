@@ -1090,7 +1090,8 @@ def apartment_code_generator_tecnici(request):
                 if profile_id:
                     user = User.objects.create(
                         username=f"{name}{name2}",
-                        password=f'{name}{name2}'
+                        password=f'{name}{name2}',
+                        email=f"{name}{name2}",
                     )
 
                     profile = Profile.objects.get(id=profile_id)
