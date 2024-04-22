@@ -210,6 +210,29 @@ def reset_file_permission(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_file(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    file_id = request.data.get('file_id', None)
+
+    try:
+        if file_id:
+            file = File.objects.get(id=file_id)
+            file.delete()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
 
 
