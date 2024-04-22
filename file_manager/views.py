@@ -27,7 +27,7 @@ def get_directories(request):
         if parent_id:
             directories = Directory.objects.filter(id=parent_id)
         else:
-            directories = Directory.objects.filter(worksite_id=worksite_id)
+            directories = Directory.objects.filter(worksite_id=worksite_id, parent__isnull=True)
 
         serializer = DirectorySerializerChildren(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
