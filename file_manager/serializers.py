@@ -51,6 +51,38 @@ class DirectorySerializerNoChildren(serializers.ModelSerializer):
         model = Directory
         fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
 
+class DirectorySerializerChildrenApp(serializers.ModelSerializer):
+    parent = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'children', 'files']
+
+    def get_field_names(self, declared_fields, info):
+        depth = self.context.get('depth', 0)
+        if depth >= 2:  # Limita la profondità della ricorsione a 2
+            return ['id', 'name']
+        return super().get_field_names(declared_fields, info)
+
+    def get_parent(self, obj):
+        if obj.parent:
+            return DirectorySerializer(obj.parent, context={'depth': self.context.get('depth', 0) + 1}).data
+        return None
+
+    def get_children(self, obj):
+        # Filtra i subdirectories per includere solo quelli senza un apartment associato
+        if obj.subdirectories.filter().exists():
+            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment=obj.apartment), many=True, context=self.context).data
+        return []
+    
+    def get_files(self, obj):
+        files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
+        serializer = FileSerializer(files, many=True)
+        return serializer.data
+    
+
 class DirectorySerializerChildren(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
@@ -78,7 +110,7 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
         return []
     
     def get_files(self, obj):
-        files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
+        files = File.objects.filter(directory_id=obj.id)
         serializer = FileSerializer(files, many=True)
         return serializer.data
     

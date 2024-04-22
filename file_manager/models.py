@@ -14,6 +14,7 @@ class Directory(models.Model):
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE,  null=True, blank=True)
     created_by = models.ForeignKey(Profile, on_delete=models.CASCADE,  null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+    date_update = models.DateTimeField(auto_now=True,blank=True, null=True)
 
     class Meta:
         unique_together = (('name', 'worksite'), ('name', 'parent'))

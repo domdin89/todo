@@ -12,7 +12,7 @@ from rest_framework.parsers import MultiPartParser
 
 
 @api_view(['GET'])
-#@permission_classes([IsAdminUser])
+@permission_classes([IsAdminUser])
 def get_directories(request):
     """
     Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
@@ -43,7 +43,7 @@ def get_file_path(file_id):
         return None
     
 @api_view(['GET'])
-#@permission_classes([IsAdminUser])
+@permission_classes([IsAdminUser])
 def get_file(request):
     file_id = request.query_params.get('file_id')
     # Assumi di avere una funzione che recupera il percorso del file su S3 in base a file_id
@@ -63,7 +63,7 @@ def get_file(request):
     return JsonResponse({'url': signed_url})
 
 @api_view(['POST'])
-#@permission_classes([IsAdminUser])
+@permission_classes([IsAdminUser])
 def directory_new(request):
     name = request.data.get('name')
     parent_id = request.data.get('parent_id', None)
@@ -87,7 +87,7 @@ def directory_new(request):
 
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
-#@permission_classes([IsAdminUser])
+@permission_classes([IsAdminUser])
 def file_new(request):
     directory_id = request.data.get('directory_id')
     name = request.data.get('name', None)
@@ -101,4 +101,43 @@ def file_new(request):
         return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201)
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'File non trovato.'}, status=404)
-    
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def permission_directory(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    worksite_id = request.data.get('worksite_id', None)
+    apartment_id = request.data.get('apartment_id', None)
+    directory_id = request.data.get('directory_id', None)
+
+    try:
+        if worksite_id and directory_id:
+            directory = Directory.objects.get(id=directory_id)
+            directory.worksite_id = worksite_id
+            directory.apartment = None
+            directory.save()
+
+        elif apartment_id and directory_id:
+            directory = Directory.objects.get(id=directory_id)
+            directory.worksite = None
+            directory.apartment_id = apartment_id
+            directory.save()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def get_file_path(file_id):
+    try:
+        file = File.objects.get(id=file_id)
+        return "media/private/" + file.file.name
+    except File.DoesNotExist:
+        return None

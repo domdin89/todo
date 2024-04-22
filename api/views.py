@@ -17,7 +17,7 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Worksites
 from file_manager.models import Directory
-from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildren
+from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 from accounts.serializers import ProfileSerializer
 from board.models import Boards
@@ -217,7 +217,7 @@ def get_directories_by_apartments(request):
         else:
             directories = Directory.objects.filter(apartment_id=apartment_id)
 
-        serializer = DirectorySerializerChildren(directories, many=True)
+        serializer = DirectorySerializerChildrenApp(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
