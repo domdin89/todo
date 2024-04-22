@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
+
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'  # Allows clients to dynamically adjust page size
 
@@ -38,6 +39,7 @@ class BoardsListView(ListCreateAPIView):
             queryset = queryset.order_by(order_by_field)  # Ordinamento ascendente
         
         return queryset
+
 
 
 class BoardsWorksiteListView(ListCreateAPIView):

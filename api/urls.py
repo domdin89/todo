@@ -6,6 +6,7 @@ urlpatterns = [
         #get
         path('worksites', views.worksites),
         path('apartments', views.apartments),
+        path('boards', views.boards),
         path('validate-token', views.apartment_code_validator),
 
         path('edit_profile', views.edit_profile),

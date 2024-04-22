@@ -20,6 +20,9 @@ from file_manager.models import Directory
 from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildren
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 from accounts.serializers import ProfileSerializer
+from board.models import Boards
+from board.serializers import BoardsSerializer
+from django.db.models import Q
 
 
 @api_view(['GET'])
@@ -244,11 +247,27 @@ def get_directories(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
 @api_view(['GET'])
 def get_privacy(request):
     privacy = Privacy.objects.filter().first()
     serializer=PrivacySerializer(privacy)
 
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+@validate_token
+def boards(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+
+
+    boards = Boards.objects.filter(
+        Q(recipients__apartment__clientapartments__profile=profile) | 
+        Q(recipients__worksites__apartments__clientapartments__profile=profile) |
+        Q(recipients__profile=profile)
+    ).distinct().order_by('-date')
+
+    serializer = BoardsSerializer(boards, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)

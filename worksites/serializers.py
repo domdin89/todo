@@ -135,7 +135,7 @@ class ProfileSerializerPD(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'mobile_number', 'email',
-            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites'
+            'type', 'image', 'token', 'is_active', 'date', 'date_update', 'collabworksites', 'img_visible', 'phone_visible', 'email_visible'
         ]
         extra_kwargs = {
             'image': {'required': False},
