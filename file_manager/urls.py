@@ -9,7 +9,7 @@ urlpatterns = [
     path('directory_new', views.directory_new),
     path('permission-dir', views.permission_directory),
     path('permission-reset', views.reset_permission),
-    path('directory-delete', views.delete_file),
+    path('directory-delete', views.delete_directory),
 
     path('permission-file', views.permission_file),
     path('permission-reset-file', views.reset_file_permission),
