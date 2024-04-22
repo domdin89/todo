@@ -216,7 +216,7 @@ def delete_file(request):
     """
     Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
     """
-    file_id = request.data.get('file_id', None)
+    file_id = request.query_params.get('file_id', None)
 
     try:
         if file_id:
@@ -227,7 +227,29 @@ def delete_file(request):
             return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
 
         
-        return Response({'message': 'Permessi modificati con successo.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Cancellazione effettuata con successo.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_directory(request):
+    """
+    Restituisce le directory basate sull'ID di un worksite, con opzione di filtrare per parent_id.
+    """
+    directory_id = request.query_params.get('directory_id', None)
+
+    try:
+        if directory_id:
+            directory = Directory.objects.get(id=directory_id)
+            directory.delete()
+
+        else:
+            return Response({'message': 'Attenzione, campi mancanti.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+        return Response({'message': 'Cancellazione effettuata con successo.'}, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
