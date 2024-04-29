@@ -25,6 +25,7 @@ from board.serializers import BoardsSerializer
 from django.db.models import Q
 from django.contrib.auth import authenticate
 import random
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @api_view(['GET'])
@@ -340,17 +341,28 @@ def send_link(request, profile, token):
 def confirm_account(request):
     token = request.GET.get('token')
 
-    profile = Profile.objects.get(token=token)
-
-    if profile.token == token:
-        # Token is valid, confirm the user's account
-        profile.is_active = True
-        profile.save()
-        # Redirect to some success page or login page
-        return Response({"message": "Profilo confermato con successo"}, status=status.HTTP_200_OK)
-    else:
+    try:
+        profile = Profile.objects.get(token=token)
+    except Profile.DoesNotExist:
         return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
-        # Token is invalid, handle the error or redirect to some error page
+
+    if profile.token != token:
+        return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Token is valid, confirm the user's account
+    profile.is_active = True
+    profile.save()
+
+    user = profile.user
+
+    access_token = AccessToken.for_user(user)
+    refresh_token = RefreshToken.for_user(user)
+
+    return Response({
+        "access_token": str(access_token),
+        "refresh_token": str(refresh_token)
+    }, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @validate_token
