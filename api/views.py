@@ -354,22 +354,25 @@ def confirm_account(request):
     token = request.data.get('token')
 
     try:
-        profile = Profile.objects.filter(token=token).first()
+        profile = Profile.objects.filter(token=token, user__is_active=False).first()
+        profile.token = None
+        user = profile.user
+        user.is_active = True
+        user.save()
+        profile.save()
+
+        access_token = AccessToken.for_user(user)
+        refresh_token = RefreshToken.for_user(user)
+
+        return Response({
+            "access_token": str(access_token),
+            "refresh_token": str(refresh_token)
+        }, status=status.HTTP_200_OK)
+
     except Profile.DoesNotExist:
         return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = profile.user
-    user.is_active = True
-    user.save()
-
-    access_token = AccessToken.for_user(user)
-    refresh_token = RefreshToken.for_user(user)
-
-    return Response({
-        "access_token": str(access_token),
-        "refresh_token": str(refresh_token)
-    }, status=status.HTTP_200_OK)
-
+    
 
 @api_view(['POST'])
 @validate_token
