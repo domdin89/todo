@@ -357,7 +357,7 @@ def confirm_account(request):
 def delete_account(request):
     profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)
-    profile.is_active = False
+    profile.is_active = True
 
     profile.save()
 
