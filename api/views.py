@@ -28,6 +28,8 @@ import random
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+
 
 
 
