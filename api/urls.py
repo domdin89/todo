@@ -6,6 +6,7 @@ urlpatterns = [
         path('register', views.register),
         path('register-confirm', views.confirm_account),
         path('delete-account', views.delete_account),
+        path('confirm-account', views.confirm_account),
         #get
         path('worksites', views.worksites),
         path('apartments', views.apartments),
