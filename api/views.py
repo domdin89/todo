@@ -365,8 +365,8 @@ def confirm_account(request):
         refresh_token = RefreshToken.for_user(user)
 
         return Response({
-            "access_token": str(access_token),
-            "refresh_token": str(refresh_token)
+            "access": str(access_token),
+            "refresh": str(refresh_token)
         }, status=status.HTTP_200_OK)
 
     except Profile.DoesNotExist:
