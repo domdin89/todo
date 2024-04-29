@@ -26,6 +26,11 @@ from django.db.models import Q
 from django.contrib.auth import authenticate
 import random
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.conf import settings
+
+
 
 
 @api_view(['GET'])
@@ -292,68 +297,84 @@ def register(request):
         if password != confirm_password:
             return Response({"message": "Attenzione, le due password devono coincidere"}, status=status.HTTP_400_BAD_REQUEST)
 
+        if User.objects.filter(email=email, is_active=True).exists():
+        # L'email esiste già nel database, gestisci di conseguenza (ad esempio, mostra un messaggio di errore)
+            return Response({"message": "Attenzione, email già presente"}, status=status.HTTP_400_BAD_REQUEST)
+        elif User.objects.filter(email=email, is_active=False).exists():
+            user = User.objects.filter(email=email, is_active=False).first()
+            profile = Profile.objects.filter(user_id=user.id).first()
+            send_link(request, profile, profile.token)
 
-        user = User.objects.create_user(username=email, email=email)
+            return Response({"message": "Token reinviato con successo"}, status=status.HTTP_200_OK)
+        else:
+            user = User.objects.create_user(username=email, email=email, is_active=False)
+            # Set the password for the user
+            user.set_password(password)
+            user.save()
         
-        # Set the password for the user
-        user.set_password(password)
-        user.save()
-        
-        # Create a Profile object
-        profile = Profile.objects.create(
-            user=user,
-            first_name=first_name,
-            last_name=last_name,
-            mobile_number=mobile_number,
-            token=pin,
-            is_active=False,
-            need_change_password=False,
-        )
+            # Create a Profile object
+            profile = Profile.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+                mobile_number=mobile_number,
+                token=pin,
+                need_change_password=False,
+                type = 'USER'
+            )
 
-        send_link(profile, pin)
+            send_link(request, profile, pin)
 
         # Return a success response
-        return Response({"message": "Profilo creato con successo"}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Profilo creato con successo"}, status=status.HTTP_201_CREATED)
     else:
         return Response({"error": "Invalid request method."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def send_link(request, profile, token):
+def send_link(request, profile, pin):
     context = {
         'token': pin,
         'profile': profile
     }
-    message_txt = render_to_string('auth/registration-link.txt', context)
-    message_html = render_to_string('auth/registration-link.html', context)
+    message_txt = render_to_string('accounts/auth/registration-link.txt', context)
+    message_html = render_to_string('accounts/auth/registration-link.html', context)
 
-    send_mail(
+    # prova = send_mail(
+    #     subject='Falone conferma account',
+    #     message=message_txt,
+    #     html_message=message_html,
+    #     from_email=settings.EMAIL_SENDER,
+    #     recipient_list=[profile.email],
+    #     fail_silently=False,
+    # )
+
+    print(f'email {profile.user.email}')
+
+    prova = send_mail(
         subject='Falone conferma account',
         message=message_txt,
         html_message=message_html,
-        from_email=settings.EMAIL_SENDER,
-        recipient_list=[profile.email],
+        from_email=settings.EMAIL_SENDER,  # Inserisci qui l'indirizzo email del mittente
+        recipient_list=[profile.user.email],  # Inserisci qui l'indirizzo email del destinatario
         fail_silently=False,
     )
+
+    print(f'email {prova}')
 
     return Response({'message': 'ok'})
 
 @api_view(['POST'])
 def confirm_account(request):
-    token = request.GET.get('token')
+    token = request.data.get('token')
 
     try:
-        profile = Profile.objects.get(token=token)
+        profile = Profile.objects.filter(token=token).first()
     except Profile.DoesNotExist:
         return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if profile.token != token:
-        return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Token is valid, confirm the user's account
-    profile.is_active = True
-    profile.save()
-
     user = profile.user
+    user.is_active = True
+    user.save()
 
     access_token = AccessToken.for_user(user)
     refresh_token = RefreshToken.for_user(user)

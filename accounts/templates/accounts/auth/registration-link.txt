@@ -1,6 +1,6 @@
 
     Ciao {{ profile.first_name }}
-    Clicca sul seguente link per completare la registrazione:
+    Ecco il codice di sblocco da inserire per completare la registrazione:
    {{token}}
     Lo staff,Falone
 
