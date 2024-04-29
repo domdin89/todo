@@ -23,6 +23,8 @@ from accounts.serializers import ProfileSerializer
 from board.models import Boards
 from board.serializers import BoardsSerializer
 from django.db.models import Q
+from django.contrib.auth import authenticate
+import random
 
 
 @api_view(['GET'])
@@ -272,3 +274,81 @@ def boards(request):
 
     serializer = BoardsSerializer(boards, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def register(request):
+    if request.method == 'POST':
+        pin = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        mobile_number = request.data.get('mobile_number', None)
+        email = request.data.get('email')
+        password = request.data.get('password')
+        confirm_password = request.data.get('confirm_password')
+
+        if password != confirm_password:
+            return Response({"message": "Attenzione, le due password devono coincidere"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        user = User.objects.create_user(username=email, email=email)
+        
+        # Set the password for the user
+        user.set_password(password)
+        user.save()
+        
+        # Create a Profile object
+        profile = Profile.objects.create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            mobile_number=mobile_number,
+            token=pin,
+            is_active=False,
+            need_change_password=False,
+            is_active=False
+        )
+
+        send_link(profile, pin)
+
+        # Return a success response
+        return Response({"message": "Profilo creato con successo"}, status=status.HTTP_201_CREATED)
+    else:
+        return Response({"error": "Invalid request method."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+def send_link(request, profile, token):
+    context = {
+        'token': pin,
+        'profile': profile
+    }
+    message_txt = render_to_string('auth/registration-link.txt', context)
+    message_html = render_to_string('auth/registration-link.html', context)
+
+    send_mail(
+        subject='Falone conferma account',
+        message=message_txt,
+        html_message=message_html,
+        from_email=settings.EMAIL_SENDER,
+        recipient_list=[profile.email],
+        fail_silently=False,
+    )
+
+    return Response({'message': 'ok'})
+
+@api_view(['POST'])
+def confirm_account(request):
+    token = request.GET.get('token')
+
+    profile = Profile.objects.get(token=token)
+
+    if profile.token == token:
+        # Token is valid, confirm the user's account
+        profile.is_active = True
+        profile.save()
+        # Redirect to some success page or login page
+        return Response({"message": "Profilo confermato con successo"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
+        # Token is invalid, handle the error or redirect to some error page

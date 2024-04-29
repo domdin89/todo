@@ -1,6 +1,6 @@
 {
     "python.analysis.typeCheckingMode": "basic",
-    "workbench.colorTheme": "Cobalt2",
+    "workbench.colorTheme": "Dracula",
     "ecl.launchConfiguration": "not found",
     "ecl.targetCluster": {},
     "git.ignoreLimitWarning": true

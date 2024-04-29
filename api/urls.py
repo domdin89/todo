@@ -3,6 +3,8 @@ from . import views
 
 app_name = 'worksites'
 urlpatterns = [
+        path('register', views.register),
+        path('register-confirm', views.confirm_account),
         #get
         path('worksites', views.worksites),
         path('apartments', views.apartments),

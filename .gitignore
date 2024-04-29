@@ -114,3 +114,4 @@ node_modules
 notebooks/
 data/
 static/site_static/
+file_manager/migrations/
