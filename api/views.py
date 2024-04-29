@@ -307,7 +307,6 @@ def register(request):
             token=pin,
             is_active=False,
             need_change_password=False,
-            is_active=False
         )
 
         send_link(profile, pin)
