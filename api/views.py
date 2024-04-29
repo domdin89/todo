@@ -352,3 +352,14 @@ def confirm_account(request):
     else:
         return Response({"message": "Attenzione, pin non corretto"}, status=status.HTTP_400_BAD_REQUEST)
         # Token is invalid, handle the error or redirect to some error page
+
+@api_view(['POST'])
+@validate_token
+def delete_account(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+    profile.is_active = False
+
+    profile.save()
+
+    return Response({'message': 'account cancellato con successo'})
