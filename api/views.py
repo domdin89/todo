@@ -25,8 +25,7 @@ from board.serializers import BoardsSerializer
 from django.db.models import Q
 from django.contrib.auth import authenticate
 import random
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.template.loader import render_to_string
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -339,17 +338,6 @@ def send_link(request, profile, pin):
     message_txt = render_to_string('accounts/auth/registration-link.txt', context)
     message_html = render_to_string('accounts/auth/registration-link.html', context)
 
-    # prova = send_mail(
-    #     subject='Falone conferma account',
-    #     message=message_txt,
-    #     html_message=message_html,
-    #     from_email=settings.EMAIL_SENDER,
-    #     recipient_list=[profile.email],
-    #     fail_silently=False,
-    # )
-
-    print(f'email {profile.user.email}')
-
     prova = send_mail(
         subject='Falone conferma account',
         message=message_txt,
@@ -358,8 +346,6 @@ def send_link(request, profile, pin):
         recipient_list=[profile.user.email],  # Inserisci qui l'indirizzo email del destinatario
         fail_silently=False,
     )
-
-    print(f'email {prova}')
 
     return Response({'message': 'ok'})
 
