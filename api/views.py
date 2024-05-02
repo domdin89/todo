@@ -159,6 +159,24 @@ def worksites(request):
 
 @api_view(['GET'])
 @validate_token
+def worksite_detail(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+    worksite_id = request.query_params.get('worksite')
+
+
+    if profile.type == "STAFF":
+        worksites = Worksites.objects.get(id=worksite_id, collaborations__profile_id=profile_id, collaborations__is_valid=True)
+    else:
+        return Response({'results': '[]'})
+
+    serializer = WorksiteSerializer(worksites)
+
+    return Response({'results': serializer.data})
+
+
+@api_view(['GET'])
+@validate_token
 def apartments(request):
     profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)

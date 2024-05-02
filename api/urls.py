@@ -9,6 +9,7 @@ urlpatterns = [
         path('confirm-account', views.confirm_account),
         #get
         path('worksites', views.worksites),
+        path('worksite-detail', views.worksite_detail),
         path('apartments', views.apartments),
         path('boards', views.boards),
         path('validate-token', views.apartment_code_validator),
