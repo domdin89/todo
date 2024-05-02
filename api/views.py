@@ -6,7 +6,7 @@ from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
-from worksites.serializers import WorksiteSerializer
+from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer
 from .decorators import validate_token
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
@@ -170,7 +170,7 @@ def worksite_detail(request):
     else:
         return Response({'results': '[]'})
 
-    serializer = WorksiteSerializer(worksites)
+    serializer = WorksiteDetailSerializer(worksites)
 
     return Response({'results': serializer.data})
 
