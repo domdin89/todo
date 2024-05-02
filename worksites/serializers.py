@@ -212,3 +212,23 @@ class WorksiteSerializer(serializers.ModelSerializer):
         )
         ret['collaborationsOrder'] = valid_collaborations
         return ret
+
+
+class WorksiteDetailSerializer(serializers.ModelSerializer):
+    financier = FinancierSerializer(read_only=True)
+    contractor = ContractorSerializer(read_only=True)
+    categories = WorksiteCategoriesSerializer(many=True, read_only=True)  
+    #foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
+    foglio_particelle = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = Worksites
+        fields = ['id', 'image', 'name', 'address', 'lat', 'lon', 'is_visible', 'net_worth', 'percentage_worth', 'financier', 'contractor', 'link', 'date', 
+                  'date_update', 
+                  'categories', 'status', 'codice_commessa', 'codice_CIG', 'codice_CUP', 'date_start', 'date_end', 'foglio_particelle']
+    
+    def get_foglio_particelle(self, obj):
+        foglio_particelle = obj.foglio_particelle.filter(foglio_particella__is_active=True)
+        serializer = WorksiteFoglioParticellaSerializer(foglio_particelle, many=True)
+        return serializer.data
