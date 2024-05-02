@@ -102,7 +102,8 @@ def compress_image(image_file, quality=85):
 class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     page_query_param = 'page'
-    max_page_size = 50
+    max_page_size = 100
+
 class BaseAPIView(GenericAPIView):
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend, SearchFilter, OrderingFilter)
@@ -897,6 +898,7 @@ class WorksiteProfileUserListView(ListCreateAPIView):
 class TechnicianNotInWorksiteView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializerPD  # Usa il serializer appropriato per Profile
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         # Seleziona tutti i profili di tipo 'TECNICI'
