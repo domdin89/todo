@@ -494,6 +494,10 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
                 new_contractor = Contractor.objects.create(name=contractor)
             except json.JSONDecodeError as e:
                 return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+        date_end = request.data.get('date_end')
+        if not is_valid_date(date_end):
+            date_end = None
 
         post_data = {
             'name': request.data.get('name', worksite.name),
@@ -506,7 +510,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
             'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
             'link': request.data.get('link', worksite.link),
             'date_start': request.data.get('date_start', worksite.date_start),
-            'date_end': request.data.get('date_end') if is_valid_date(request.data.get('date_end')) else None,
+            'date_end': date_end,
             'status': request.data.get('status', worksite.status),
             'codice_commessa': request.data.get('codice_commessa', worksite.codice_commessa),
             'codice_CIG': request.data.get('codice_CIG', worksite.codice_CIG),
