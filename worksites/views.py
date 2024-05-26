@@ -520,7 +520,7 @@ def update_worksite(request, worksite_id):  # Aggiunta dell'argomento worksite_i
         }
 
         # Rimuovi i campi vuoti o non validi
-        post_data = {key: value for key, value in post_data.items() if value is not None}
+        #post_data = {key: value for key, value in post_data.items() if value is not None}
 
         # Aggiorna i campi del cantiere
         for key, value in post_data.items():
