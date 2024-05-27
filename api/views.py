@@ -6,7 +6,7 @@ from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
-from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer
+from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
 from .decorators import validate_token
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
@@ -27,7 +27,7 @@ from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments, Cli
 from accounts.serializers import ProfileSerializer
 from board.models import Boards
 from board.serializers import BoardsSerializer
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.contrib.auth import authenticate
 import random
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
