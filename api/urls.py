@@ -11,6 +11,7 @@ urlpatterns = [
         path('worksites', views.worksites),
         path('worksite-detail', views.worksite_detail),
         path('apartments', views.apartments),
+        path('apartments-app', views.ApartmentListViewApp.as_view),
         path('boards', views.boards),
         path('validate-token', views.apartment_code_validator),
 
