@@ -293,19 +293,29 @@ def apartment_code_validator(request):
 def get_directories_by_apartments(request):
     profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)
+    directories = None
 
     apartment_id = request.query_params.get('apartment_id')
     parent_id = request.query_params.get('parent_id')
 
     if not apartment_id:
         return Response({"error": "apartment_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        apartment = Apartments.objects.get(id=apartment_id)
 
     try:
         if parent_id:
             directories = Directory.objects.filter(id=parent_id, apartment_id=apartment_id)
         else:
             directories = Directory.objects.filter(apartment_id=apartment_id)
+            if not directories:
+                Directory.objects.create(
+                    apartment_id=apartment_id
+                )
+                directories = Directory.objects.filter(apartment_id=apartment_id)
 
+
+        
         serializer = DirectorySerializerChildrenApp(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
