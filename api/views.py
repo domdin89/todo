@@ -8,7 +8,7 @@ from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
-from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer
+from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
 from worksites.views import is_valid_date
 from .decorators import validate_token
 from rest_framework.response import Response
@@ -16,16 +16,21 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
 
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
 from file_manager.models import Directory, File
 from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
-from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
+from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
+
 from accounts.serializers import ProfileSerializer
 from board.models import Boards
 from board.serializers import BoardsSerializer
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.contrib.auth import authenticate
 import random
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -60,7 +65,7 @@ def edit_profile(request):
     try:
         profile = Profile.objects.get(id=profile_id)
 
-        access_code = ApartmentAccessCode.objects.get(profile=profile)
+        access_code = ApartmentAccessCode.objects.filter(profile=profile, is_valid=True).first()
 
         profile.image = request.FILES.get('image', "")
         profile.first_name = request.data.get('first_name', "")
@@ -177,6 +182,63 @@ def worksite_detail(request):
 
     return Response({'results': serializer.data})
 
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    page_query_param = 'page'
+    max_page_size = 100
+
+class ApartmentListViewApp(APIView):
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        order_by = '-id'
+        worksite_id = request.query_params.get('worksite')
+        search_query = request.query_params.get('search')
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')
+
+        if order_param == 'desc':
+            order_by = '-' + order_by_field
+        else:
+            order_by = order_by_field
+
+
+        query_params = Q() 
+
+        if search_query:
+            query_params &= Q(apartment__owner__icontains=search_query) | Q(apartment__note__icontains=search_query) | Q(sub__icontains=search_query)
+        query_params &= Q(apartment__worksite_id=worksite_id,
+                            is_valid=True,
+                            apartment__is_active=True)
+
+        queryset = ApartmentSub.objects.filter(
+          query_params
+        ).select_related('apartment').distinct()
+        
+        apartment_ids = queryset.values_list('apartment__id', flat=True)
+
+        # Applicare la paginazione agli ID dei profili
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(apartment_ids, request)
+
+        if page is not None:
+            # Recuperare i profili paginati basandosi sugli ID
+            apartments = Apartments.objects.filter(id__in=page).distinct().order_by(order_by)
+
+            # Preparare la risposta aggregata
+            response_data = []
+            for apartment in apartments:
+                apartment_data = queryset.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
+                apartments_data = {
+                    "apartments": ApartmentSerializer(apartment).data,
+                    "subs": ApartmentSubSerializer(apartment_data, many=True).data,
+                }
+                response_data.append(apartments_data)
+
+            return paginator.get_paginated_response(response_data)
+
+        return Response({"message": "No data found or invalid page number"})
 
 @api_view(['GET'])
 @validate_token
@@ -234,19 +296,33 @@ def apartment_code_validator(request):
 def get_directories_by_apartments(request):
     profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)
+    directories = None
 
     apartment_id = request.query_params.get('apartment_id')
     parent_id = request.query_params.get('parent_id')
 
     if not apartment_id:
         return Response({"error": "apartment_id è richiesto."}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        apartment = Apartments.objects.get(id=apartment_id)
 
     try:
         if parent_id:
             directories = Directory.objects.filter(id=parent_id, apartment_id=apartment_id)
         else:
             directories = Directory.objects.filter(apartment_id=apartment_id)
+            if not directories:
+                parent = Directory.objects.filter(worksite=apartment.worksite, apartment__isnull=True, parent__isnull=True).first()
+                Directory.objects.create(
+                    parent=parent,
+                    apartment_id=apartment_id,
+                    name=apartment.note
+                )
+                directories = Directory.objects.filter(apartment_id=apartment_id)
+                
 
+
+        
         serializer = DirectorySerializerChildrenApp(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
