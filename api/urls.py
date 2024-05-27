@@ -20,7 +20,10 @@ urlpatterns = [
         path('directories-by-apartments', views.get_directories_by_apartments),
         path('get-privacy', views.get_privacy),
         path('get-profile', views.get_profile),
-        #path('edit-profile', views.edit_profile)
+        
+        path('worksite/update/<int:worksite_id>', views.update_worksite),
+        path('directory_new', views.directory_new),
+        path('file_new', views.file_new),
 ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

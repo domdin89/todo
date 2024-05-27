@@ -35,7 +35,7 @@ def get_directories(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-def get_file_path(file_id):
+def get_file_path(file_id): # type: ignore
     try:
         file = File.objects.get(id=file_id)
         return "media/private/" + file.file.name
@@ -81,7 +81,7 @@ def directory_new(request):
                 directory = Directory.objects.create(name=name, parent=parent)
         else:
             directory = Directory.objects.create(name=name)
-        return JsonResponse({'message': 'Cartella creata con successo.', 'id': directory.id}, status=201)
+        return JsonResponse({'message': 'Cartella creata con successo.', 'id': directory.id}, status=201) # type: ignore
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'Cartella parent non trovata.'}, status=404)
     except Exception as e:
@@ -101,7 +101,7 @@ def file_new(request):
     
     try:
         file_new = File.objects.create(name=name, directory_id=directory_id, file=file)
-        return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201)
+        return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201) # type: ignore
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'File non trovato.'}, status=404)
 
@@ -119,14 +119,14 @@ def permission_directory(request):
     try:
         if worksite_id and directory_id:
             directory = Directory.objects.get(id=directory_id)
-            directory.worksite_id = worksite_id
+            directory.worksite_id = worksite_id # type: ignore
             directory.apartment = None
             directory.save()
 
         elif apartment_id and directory_id:
             directory = Directory.objects.get(id=directory_id)
             directory.worksite = None
-            directory.apartment_id = apartment_id
+            directory.apartment_id = apartment_id # type: ignore
             directory.save()
 
         else:
@@ -150,7 +150,7 @@ def reset_permission(request):
     try:
         if directory_id:
             directory = Directory.objects.get(id=directory_id)
-            directory.worksite_id = None
+            directory.worksite_id = None # type: ignore
             directory.apartment = None
             directory.save()
 

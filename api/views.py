@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
@@ -7,6 +9,7 @@ from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
 from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer
+from worksites.views import is_valid_date
 from .decorators import validate_token
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
@@ -15,8 +18,8 @@ from rest_framework.decorators import permission_classes
 from rest_framework import status
 
 from django.contrib.auth.models import User
-from worksites.models import CollabWorksites, Worksites
-from file_manager.models import Directory
+from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
+from file_manager.models import Directory, File
 from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
 from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
 from accounts.serializers import ProfileSerializer
@@ -29,7 +32,7 @@ from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-
+from django.db import transaction
 
 
 
@@ -321,8 +324,8 @@ def register(request):
             return Response({"message": "Attenzione, email già presente"}, status=status.HTTP_400_BAD_REQUEST)
         elif User.objects.filter(email=email, is_active=False).exists():
             user = User.objects.filter(email=email, is_active=False).first()
-            profile = Profile.objects.filter(user_id=user.id).first()
-            send_link(request, profile, profile.token)
+            profile = Profile.objects.filter(user_id=user.id).first() # type: ignore
+            send_link(request, profile, profile.token) # type: ignore
 
             return Response({"message": "Token reinviato con successo"}, status=status.HTTP_200_OK)
         else:
@@ -375,11 +378,11 @@ def confirm_account(request):
 
     try:
         profile = Profile.objects.filter(token=token, user__is_active=False).first()
-        profile.token = None
-        user = profile.user
-        user.is_active = True
-        user.save()
-        profile.save()
+        profile.token = None # type: ignore
+        user = profile.user # type: ignore
+        user.is_active = True # type: ignore
+        user.save() # type: ignore
+        profile.save() # type: ignore
 
         access_token = AccessToken.for_user(user)
         refresh_token = RefreshToken.for_user(user)
@@ -404,3 +407,112 @@ def delete_account(request):
     profile.save()
 
     return Response({'message': 'account cancellato con successo'})
+
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+@validate_token
+def update_worksite(request, worksite_id):
+
+    try:
+        worksite = Worksites.objects.get(id=worksite_id)
+    except Worksites.DoesNotExist:
+        return Response("Cantiere non trovato", status=status.HTTP_404_NOT_FOUND)
+
+    with transaction.atomic():
+
+        financier = request.data.get('financier', worksite.financier)
+        contractor = request.data.get('contractor', worksite.contractor)
+        new_financer = None
+        new_contractor = None
+
+        if financier:
+            try:
+                new_financer = Financier.objects.create(name=financier)
+            except json.JSONDecodeError as e:
+                return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+            
+        if contractor:
+            try:
+                new_contractor = Contractor.objects.create(name=contractor)
+            except json.JSONDecodeError as e:
+                return Response({'error': e}, status=status.HTTP_400_BAD_REQUEST)
+        
+        date_end = request.data.get('date_end')
+        if not is_valid_date(date_end):
+            date_end = None
+
+        post_data = {
+            'name': request.data.get('name', worksite.name),
+            'address': request.data.get('address', worksite.address),
+            'lat': request.data.get('lat', worksite.lat),
+            'lon': request.data.get('lon', worksite.lon),
+            'is_visible': True if request.data.get('is_visible', worksite.is_visible) == 'true' else False,
+            'net_worth': request.data.get('net_worth', worksite.net_worth),
+            'image': request.FILES.get('image', worksite.image),
+            'percentage_worth': request.data.get('percentage_worth', worksite.percentage_worth),
+            'link': request.data.get('link', worksite.link),
+            'date_start': request.data.get('date_start', worksite.date_start),
+            'date_end': date_end,
+            'status': request.data.get('status', worksite.status),
+            'codice_commessa': request.data.get('codice_commessa', worksite.codice_commessa),
+            'codice_CIG': request.data.get('codice_CIG', worksite.codice_CIG),
+            'codice_CUP': request.data.get('codice_CUP', worksite.codice_CUP),
+            'financier': new_financer,
+            'contractor': new_contractor
+        }
+
+        # Rimuovi i campi vuoti o non validi
+        #post_data = {key: value for key, value in post_data.items() if value is not None}
+
+        # Aggiorna i campi del cantiere
+        for key, value in post_data.items():
+            setattr(worksite, key, value)
+
+        # Salva il cantiere
+        worksite.save()
+
+    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@validate_token
+def directory_new(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+    name = request.data.get('name')
+    parent_id = request.data.get('parent_id', None)
+
+    if not name:
+        return JsonResponse({'error': 'Il nome della cartella è obbligatorio.'}, status=400)
+    
+    # Crea la cartella (directory)
+    try:
+        if parent_id:
+            parent = Directory.objects.get(id=parent_id)
+            if parent.apartment:
+                directory = Directory.objects.create(created_by=profile, name=name, parent=parent, apartment=parent.apartment)
+            else:
+                directory = Directory.objects.create(created_by=profile, name=name, parent=parent)
+        else:
+            directory = Directory.objects.create(created_by=profile, name=name)
+        return JsonResponse({'message': 'Cartella creata con successo.', 'id': directory.id}, status=201) # type: ignore
+    except Directory.DoesNotExist:
+        return JsonResponse({'error': 'Cartella parent non trovata.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+@validate_token
+def file_new(request):
+    directory_id = request.data.get('directory_id')
+    name = request.data.get('name', None)
+    file = request.data.get('file', None)
+
+    if not name or not directory_id:
+        return JsonResponse({'error': 'Il nome della cartella e il parent id sono obbligatori.'}, status=400)
+    
+    try:
+        file_new = File.objects.create(name=name, directory_id=directory_id, file=file)
+        return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201) # type: ignore
+    except Directory.DoesNotExist:
+        return JsonResponse({'error': 'File non trovato.'}, status=404)

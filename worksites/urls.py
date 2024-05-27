@@ -28,7 +28,7 @@ urlpatterns = [
         path('collabworksite/new', views.new_collabworksite),
         path('category/new', views.new_category),
         path('apartment-new-code', views.apartment_code_generator),
-        path('apartment-new-code-tecnici', views.apartment_code_generator_tecnici),
+        path('apartment-new-code-tecnici', views.apartment_code_generator_tecnici), # type: ignore
         
 
         path('profile/update/<int:id>', views.profile_edit),
