@@ -310,9 +310,11 @@ def get_directories_by_apartments(request):
             directories = Directory.objects.filter(apartment_id=apartment_id)
             if not directories:
                 Directory.objects.create(
-                    apartment_id=apartment_id
+                    apartment_id=apartment_id,
+                    name=apartment.note
                 )
                 directories = Directory.objects.filter(apartment_id=apartment_id)
+                
 
 
         
