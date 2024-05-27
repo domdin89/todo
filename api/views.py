@@ -62,7 +62,7 @@ def edit_profile(request):
     try:
         profile = Profile.objects.get(id=profile_id)
 
-        access_code = ApartmentAccessCode.objects.get(profile=profile)
+        access_code = ApartmentAccessCode.objects.filter(profile=profile, is_valid=True).first()
 
         profile.image = request.FILES.get('image', "")
         profile.first_name = request.data.get('first_name', "")
