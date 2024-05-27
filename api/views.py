@@ -13,12 +13,17 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
 
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Worksites
 from file_manager.models import Directory
 from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
-from apartments.models import ApartmentAccessCode, Apartments, ClientApartments
+from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
+
 from accounts.serializers import ProfileSerializer
 from board.models import Boards
 from board.serializers import BoardsSerializer
@@ -174,6 +179,63 @@ def worksite_detail(request):
 
     return Response({'results': serializer.data})
 
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    page_query_param = 'page'
+    max_page_size = 100
+
+class ApartmentListViewApp(APIView):
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        order_by = '-id'
+        worksite_id = request.query_params.get('worksite')
+        search_query = request.query_params.get('search')
+        order_param = self.request.GET.get('order', 'desc')
+        order_by_field = self.request.GET.get('order_by', 'id')
+
+        if order_param == 'desc':
+            order_by = '-' + order_by_field
+        else:
+            order_by = order_by_field
+
+
+        query_params = Q() 
+
+        if search_query:
+            query_params &= Q(apartment__owner__icontains=search_query) | Q(apartment__note__icontains=search_query) | Q(sub__icontains=search_query)
+        query_params &= Q(apartment__worksite_id=worksite_id,
+                            is_valid=True,
+                            apartment__is_active=True)
+
+        queryset = ApartmentSub.objects.filter(
+          query_params
+        ).select_related('apartment').distinct()
+        
+        apartment_ids = queryset.values_list('apartment__id', flat=True)
+
+        # Applicare la paginazione agli ID dei profili
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(apartment_ids, request)
+
+        if page is not None:
+            # Recuperare i profili paginati basandosi sugli ID
+            apartments = Apartments.objects.filter(id__in=page).distinct().order_by(order_by)
+
+            # Preparare la risposta aggregata
+            response_data = []
+            for apartment in apartments:
+                apartment_data = queryset.filter(apartment=apartment).prefetch_related(Prefetch('apartment', queryset=Apartments.objects.all()))
+                apartments_data = {
+                    "apartments": ApartmentSerializer(apartment).data,
+                    "subs": ApartmentSubSerializer(apartment_data, many=True).data,
+                }
+                response_data.append(apartments_data)
+
+            return paginator.get_paginated_response(response_data)
+
+        return Response({"message": "No data found or invalid page number"})
 
 @api_view(['GET'])
 @validate_token
