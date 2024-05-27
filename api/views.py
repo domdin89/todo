@@ -309,7 +309,9 @@ def get_directories_by_apartments(request):
         else:
             directories = Directory.objects.filter(apartment_id=apartment_id)
             if not directories:
+                parent = Directory.objects.filter(worksite=apartment.worksite, apartment__isnull=True, parent__isnull=True).first()
                 Directory.objects.create(
+                    parent=
                     apartment_id=apartment_id,
                     name=apartment.note
                 )
