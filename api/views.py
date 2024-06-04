@@ -566,6 +566,8 @@ def directory_new(request):
             parent = Directory.objects.get(id=parent_id)
             if parent.apartment:
                 directory = Directory.objects.create(created_by=profile, name=name, parent=parent, apartment=parent.apartment)
+            elif parent.worksite:
+                directory = Directory.objects.create(created_by=profile, name=name, parent=parent, apartment=parent.worksite)
             else:
                 directory = Directory.objects.create(created_by=profile, name=name, parent=parent)
         else:
