@@ -68,3 +68,10 @@ class PrivacyAcceptance(models.Model):
     def __str__(self):
         return f'{self.privacy}'
     
+
+class TokenPwd(models.Model):
+     profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, blank=True, null=True, )
+     uidb64 = models.CharField(blank=True, null=True, )
+     token = models.TextField(blank=True, null=True, )
+     is_valid = models.BooleanField(default=True)

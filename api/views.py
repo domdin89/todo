@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 
-from accounts.models import Privacy, Profile
+from accounts.models import Privacy, Profile, TokenPwd
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
@@ -19,7 +19,12 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-
+from django.shortcuts import get_object_or_404
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_text
+from django.http import HttpResponseRedirect
+from django.contrib.auth.models import User
 
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
@@ -38,6 +43,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.db import transaction
+import requests
 
 
 
@@ -594,3 +600,103 @@ def file_new(request):
         return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201) # type: ignore
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'File non trovato.'}, status=404)
+
+def create_tinyurl(request, url):
+    if request.method == 'POST':
+        api_token = '4UEg0RmH3QcYDpVak9OImrePpnDtNU2Qe6wPU1abikgzPnfehbHFvbNJlcwL'
+        url = url
+        domain = 'tinyurl.com'
+
+        if not url:
+            return Response({'error': 'URL is missing'})
+
+        try:
+            # Make a POST request to the TinyURL API
+            api_url = f'https://api.tinyurl.com/create?api_token={api_token}'
+            headers = {
+                'accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+            data = {
+                'url': url,
+                'domain': domain
+            }
+            response = requests.post(api_url, headers=headers, json=data)
+            response_data = response.json()
+
+            # Check if the response contains the shortened URL
+            if 'data' in response_data and 'tiny_url' in response_data['data']:
+                tinyurl = response_data['data']['tiny_url']
+                return tinyurl
+            else:
+                return Response({'error': 'Failed to create TinyURL'})
+
+        except requests.exceptions.RequestException as e:
+            return Response({'error': 'Failed to connect to TinyURL service'})
+
+    return Response({'error': 'Invalid request method'})
+
+@api_view(['POST'])
+def password_reset_request(request):
+    email = request.data.get('email')
+    profile = get_object_or_404(Profile, email=email)
+
+    token = default_token_generator.make_token(profile.user)
+    uid = urlsafe_base64_encode(force_bytes(profile.pk))
+
+    reset_link = f'https://falone-test.falone.madstudio.it/recover-password?uid={uid}&token={token}'
+
+
+    shortened_url = create_tinyurl(request, reset_link)
+
+    send_reset_email(profile, shortened_url)
+
+    token_save = TokenPwd.objects.create(
+        profile = profile,
+        uidb64 = uid,
+        token = token
+    )
+
+    return Response({
+                    'message': 'Link ripristino password inviato per email',
+                     }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def password_reset_confirm(request):
+    try:
+        uidb64 = request.data.get('uidb64')
+        token = request.data.get('token')
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        profile = Profile.objects.get(pk=uid)
+
+        user = profile.user
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
+
+    if default_token_generator.check_token(user, token):
+        # Handle the password reset here
+        # For example, you can update the user's password and log them in.
+        new_password = request.data.get('new_password')
+
+        user.set_password(new_password)
+
+        user.save()
+        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-success/')
+    else:
+        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
+def send_reset_email(user, reset_link):
+    context = {
+        'reset_link': reset_link,
+    }
+    message_txt = render_to_string('password_reset_link.txt', context)
+    message_html = render_to_string('password_reset_link.html', context)
+
+    send_mail(
+        subject='Password Reset',
+        message=message_txt,
+        html_message=message_html,
+        from_email=settings.EMAIL_SENDER,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
