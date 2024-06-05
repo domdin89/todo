@@ -22,7 +22,7 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
 
@@ -651,14 +651,11 @@ def password_reset_request(request):
 
     send_reset_email(profile, shortened_url)
 
-    token_save = TokenPwd.objects.create(
-        profile = profile,
-        uidb64 = uid,
-        token = token
-    )
 
     return Response({
                     'message': 'Link ripristino password inviato per email',
+                    'token': token,
+                    'uid': uid
                      }, status=status.HTTP_200_OK)
 
 
@@ -685,12 +682,15 @@ def password_reset_confirm(request):
         return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-success/')
     else:
         return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
+
 def send_reset_email(user, reset_link):
     context = {
         'reset_link': reset_link,
     }
     message_txt = render_to_string('password_reset_link.txt', context)
+    
     message_html = render_to_string('password_reset_link.html', context)
+    print(message_html)
 
     send_mail(
         subject='Password Reset',

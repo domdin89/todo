@@ -26,8 +26,8 @@ urlpatterns = [
         path('directory_new', views.directory_new),
         path('file_new', views.file_new),
 
-        path('api/v1/password/reset', views.password_reset_request, name='password_reset_request'),
-        path('api/v1/password/reset/confirm', views.password_reset_confirm, name='password_reset_confirm'),
+        path('password/reset', views.password_reset_request, name='password_reset_request'),
+        path('password/reset/confirm', views.password_reset_confirm, name='password_reset_confirm'),
         ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
