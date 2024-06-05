@@ -4,7 +4,8 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 
-from accounts.models import Privacy, Profile, TokenPwd
+from django.utils.encoding import force_bytes, force_text
+from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
@@ -77,7 +78,7 @@ def edit_profile(request):
         profile.first_name = request.data.get('first_name', "")
         profile.last_name = request.data.get('last_name', "")
         profile.mobile_number = request.data.get('mobile_number', "")
-        profile.user.email = request.data.get('email', "")
+        profile.user.email = request.data.get('email', "") # type: ignore
         profile.email = request.data.get('email', "")
         img_visible = request.data.get('img_visible')
         if img_visible == 'true':
@@ -100,14 +101,14 @@ def edit_profile(request):
         confirm_password = request.data.get('confirm_password')
 
         if password and password == confirm_password:
-            profile.user.password = make_password(password)
+            profile.user.password = make_password(password) # type: ignore
         else:
             return Response({'message': 'Attenzione, le due password non coincidono'}, status=status.HTTP_400_BAD_REQUEST)
 
         profile.need_change_password = False
-        access_code.is_valid = False
-        access_code.save()
-        profile.user.save()
+        access_code.is_valid = False # type: ignore
+        access_code.save() # type: ignore
+        profile.user.save() # type: ignore
         profile.save()
 
         return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_201_CREATED)
@@ -127,8 +128,8 @@ def edit_profile_partial(request):
         profile.first_name = request.data.get('first_name', profile.first_name)
         profile.last_name = request.data.get('last_name', profile.last_name)
         profile.mobile_number = request.data.get('mobile_number', profile.mobile_number)
-        profile.user.email = request.data.get('email', profile.user.email)
-        profile.email = request.data.get('email', profile.user.email)
+        profile.user.email = request.data.get('email', profile.user.email) # type: ignore
+        profile.email = request.data.get('email', profile.user.email) # type: ignore
         img_visible = request.data.get('img_visible')
         if img_visible == 'true':
             profile.img_visible = True
@@ -145,7 +146,7 @@ def edit_profile_partial(request):
         else:
             profile.phone_visible = False
 
-        profile.user.save()
+        profile.user.save() # type: ignore
         profile.save()
 
         return Response({'message': 'Profilo aggiornato correttamente'}, status=status.HTTP_200_OK)
@@ -641,10 +642,10 @@ def password_reset_request(request):
     email = request.data.get('email')
     profile = get_object_or_404(Profile, email=email)
 
-    token = default_token_generator.make_token(profile.user)
+    reset_token = default_token_generator.make_token(profile.user)
     uid = urlsafe_base64_encode(force_bytes(profile.pk))
 
-    reset_link = f'https://falone-test.falone.madstudio.it/recover-password?uid={uid}&token={token}'
+    reset_link = f'https://falone-test.falone.madstudio.it/recover-password?uid={uid}&reset_token={reset_token}'
 
 
     shortened_url = create_tinyurl(request, reset_link)
@@ -653,9 +654,7 @@ def password_reset_request(request):
 
 
     return Response({
-                    'message': 'Link ripristino password inviato per email',
-                    'token': token,
-                    'uid': uid
+                    'message': 'Link ripristino password inviato per email'
                      }, status=status.HTTP_200_OK)
 
 
@@ -676,9 +675,9 @@ def password_reset_confirm(request):
         # For example, you can update the user's password and log them in.
         new_password = request.data.get('new_password')
 
-        user.set_password(new_password)
+        user.set_password(new_password) # type: ignore
 
-        user.save()
+        user.save() # type: ignore
         return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-success/')
     else:
         return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
