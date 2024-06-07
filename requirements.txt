@@ -32,7 +32,7 @@ python-http-client==3.3.5
 python-stdnum==1.17
 requests==2.27.1
 sendgrid==6.9.5
-six==1.15.0
+#six==1.15.0
 simplejson==3.18.1
 soupsieve==2.3.1
 sqlparse==0.4.2

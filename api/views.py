@@ -4,7 +4,6 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 
-from django.utils.encoding import force_bytes, force_text
 from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
@@ -648,9 +647,9 @@ def password_reset_request(request):
     reset_link = f'https://falone-test.falone.madstudio.it/recover-password?uid={uid}&reset_token={reset_token}'
 
 
-    shortened_url = create_tinyurl(request, reset_link)
+    #shortened_url = create_tinyurl(request, reset_link)
 
-    send_reset_email(profile, shortened_url)
+    send_reset_email(profile, reset_link)
 
 
     return Response({
