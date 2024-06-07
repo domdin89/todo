@@ -644,7 +644,8 @@ def password_reset_request(request):
     reset_token = default_token_generator.make_token(profile.user)
     uid = urlsafe_base64_encode(force_bytes(profile.pk))
 
-    reset_link = f'https://falone-test.falone.madstudio.it/recover-password?uid={uid}&reset_token={reset_token}'
+    #reset_link = f'https://falone-test.falone.madstudio.it/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
+    reset_link = f'http://localhost:8080/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
 
 
     #shortened_url = create_tinyurl(request, reset_link)
@@ -660,9 +661,11 @@ def password_reset_request(request):
 @api_view(['POST'])
 def password_reset_confirm(request):
     try:
-        uidb64 = request.data.get('uidb64')
-        token = request.data.get('token')
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uidb64 = request.data.get('uid')
+        print(f'uid', uidb64)
+        token = request.data.get('reset_token')
+        print(f'token', token)
+        uid = force_str(urlsafe_base64_decode(uidb64))
         profile = Profile.objects.get(pk=uid)
 
         user = profile.user
@@ -673,8 +676,12 @@ def password_reset_confirm(request):
         # Handle the password reset here
         # For example, you can update the user's password and log them in.
         new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
 
-        user.set_password(new_password) # type: ignore
+        if new_password != confirm_password:
+            return Response({'message': 'Attenzione, le due password non coincidono'})
+        else:
+            user.set_password(new_password) # type: ignore
 
         user.save() # type: ignore
         return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-success/')
