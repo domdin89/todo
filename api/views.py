@@ -644,8 +644,8 @@ def password_reset_request(request):
     reset_token = default_token_generator.make_token(profile.user)
     uid = urlsafe_base64_encode(force_bytes(profile.pk))
 
-    #reset_link = f'https://falone-test.falone.madstudio.it/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
-    reset_link = f'http://localhost:8080/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
+    reset_link = f'https://falone-test.falone.madstudio.it/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
+    #reset_link = f'http://localhost:8080/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
 
 
     #shortened_url = create_tinyurl(request, reset_link)
@@ -662,15 +662,15 @@ def password_reset_request(request):
 def password_reset_confirm(request):
     try:
         uidb64 = request.data.get('uid')
-        print(f'uid', uidb64)
         token = request.data.get('reset_token')
-        print(f'token', token)
         uid = force_str(urlsafe_base64_decode(uidb64))
         profile = Profile.objects.get(pk=uid)
 
         user = profile.user
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
+        return Response({
+                    'message': "Attenzione, utente non trovato"
+                     }, status=status.HTTP_404_NOT_FOUND)
 
     if default_token_generator.check_token(user, token):
         # Handle the password reset here
@@ -684,9 +684,13 @@ def password_reset_confirm(request):
             user.set_password(new_password) # type: ignore
 
         user.save() # type: ignore
-        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-success/')
+        return Response({
+                    'message': 'Password modificata con successo'
+                     }, status=status.HTTP_200_OK)
     else:
-        return HttpResponseRedirect('https://falone-test.falone.madstudio.it/reset-password-fail/')
+        return Response({
+                    'message': "Attenzione, token non corretto"
+                     }, status=status.HTTP_403_FORBIDDEN)
 
 def send_reset_email(user, reset_link):
     context = {
