@@ -19,13 +19,5 @@ class Migration(migrations.Migration):
             model_name='worksitesprofile',
             name='approved',
             field=models.BooleanField(default=False),
-        ),
-        migrations.CreateModel(
-            name='Status',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('description', models.CharField(max_length=150)),
-                ('order', models.IntegerField()),
-            ],
-        ),
+        )
     ]
