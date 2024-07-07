@@ -4,8 +4,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from worksites.models import FoglioParticella
+from worksites.serializers import RoomSerializer
 from .serializers import ApartmentBaseSerializer, ClientApartmentsSerializer
-from .models import ApartmentSub, Apartments, ClientApartments
+from .models import ApartmentSub, Apartments, ClientApartments, Room
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
@@ -30,7 +31,7 @@ class ClientApartmentsListView(ListAPIView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        worksite = self.request.query_params.get('worksite')
+        worksite = self.request.query_params.get('worksite') # type: ignore
         if worksite:
             queryset = queryset.filter(apartment__worksite__id=worksite)
         return queryset
@@ -84,7 +85,7 @@ def update_apartment(request, id):  # Aggiunta dell'argomento worksite_id
         sub.save()
 
     apartment_data = {
-        'worksite_id': apartment.worksite.id,
+        'worksite_id': apartment.worksite.id, # type: ignore
         'floor': request.data.get('floor', None),
         'note': request.data.get('note', None),
         'owner': request.data.get('owner', None),
@@ -179,5 +180,11 @@ def new_apartment(request):
 
     return Response("Sub aggiornato con successo", status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def list_rooms(request):
+    apartment_id = request.query_params.get('apartment_id')
+    rooms = Room.objects.filter(apartment_id=apartment_id)
+    serializer = RoomSerializer(rooms, many=True)
 
+    return Response(serializer.data, status=status.HTTP_200_OK)
 

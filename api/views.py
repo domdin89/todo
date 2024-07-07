@@ -3,12 +3,12 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
-
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
-from worksites.serializers import WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
+from worksites.serializers import WbsSerializer, WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
 from worksites.views import is_valid_date
 from .decorators import validate_token
 from rest_framework.response import Response
@@ -30,7 +30,7 @@ from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
 from file_manager.models import Directory, File
 from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
-from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
+from apartments.models import WBS, ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
 
 from accounts.serializers import ProfileSerializer
 from board.models import Boards
@@ -384,7 +384,6 @@ def boards(request):
 
     serializer = BoardsSerializer(boards, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 @api_view(['POST'])
 def register(request):

@@ -8,6 +8,11 @@ from falone.storage_backends import PrivateMediaStorage
 
 
 class Directory(models.Model):
+    class DirectoryType(models.TextChoices):
+        WORKSITE = 'WORKSITE', 'WORKSITE'
+        APARTMENT = 'APARTMENT', 'APARTMENT'
+        ROOM = 'ROOM', 'ROOM'
+
     name = models.CharField(max_length=255)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subdirectories')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
@@ -15,6 +20,7 @@ class Directory(models.Model):
     created_by = models.ForeignKey(Profile, on_delete=models.CASCADE,  null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True,blank=True, null=True)
+    type = models.CharField(max_length=10, choices=DirectoryType.choices,blank=True, null=True)
 
     class Meta:
         unique_together = (('name', 'worksite'), ('name', 'parent'))

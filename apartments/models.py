@@ -56,3 +56,19 @@ class ApartmentAccessCode(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True, blank=True, null=True)
     qrcode = models.TextField(blank=True, null=True)
+
+class WBS(models.Model):
+    nome = models.CharField(max_length=100, blank=True, null=True)
+    order = models.IntegerField(blank=True, null=True)
+
+class Room(models.Model):
+    nome = models.CharField(max_length=100, blank=True, null=True)
+    apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE)
+
+class WBSRoom(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    wbs = models.ForeignKey(WBS, on_delete=models.CASCADE)
+
+class WBSWorksite(models.Model):
+    worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
+    wbs = models.ForeignKey(WBS, on_delete=models.CASCADE)

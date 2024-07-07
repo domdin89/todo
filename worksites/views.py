@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from collections import defaultdict
-
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import CharField, Count, F, Prefetch, Value as V
 from django.db.models.functions import Concat
 from django.forms import ValidationError
@@ -36,11 +36,11 @@ import random
 from file_manager.models import Directory
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer, ProfileSerializerRole
-from apartments.models import ApartmentAccessCode, ApartmentSub, Apartments
+from apartments.models import WBS, ApartmentAccessCode, ApartmentSub, Apartments, Room, WBSWorksite
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentAccessCodeSerializer, ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentAccessCodeSerializer, ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WBSSerializer, WBSWorksiteSerializer, WbsSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 from django.db.models import Q
 
 import base64
@@ -416,7 +416,7 @@ def WorksitePostNew(request):
             # Crea il cantiere solo se tutti i campi obbligatori sono presenti
             try:
                 worksite = Worksites.objects.create(**post_data)
-                directory = Directory.objects.create(name=worksite.name, worksite=worksite)
+                #directory = Directory.objects.create(name=worksite.name, worksite=worksite)
             except ValidationError as e:
                 return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
             
@@ -665,33 +665,6 @@ def delete_foglio_particella(request, id):
     worksite_foglio_particella.delete()
 
     return Response("Relazione WorksitesFoglioParticella eliminata e collegamenti ApartmentSubs correlati rimossi", status=status.HTTP_200_OK)
-
-api_view(['PUT'])
-@parser_classes([MultiPartParser])
-@permission_classes([IsAuthenticated])
-def profile_edit2(request, id):
-
-    profile = Profile.objects.get(id=id)
-
-    post_data = {
-    'first_name' : request.data.get('first_name', profile.first_name),
-    'last_name' : request.data.get('last_name', profile.last_name),
-    'mobile_number' : request.data.get('mobile_number', profile.mobile_number),
-    'email' : request.data.get('email', profile.email),
-    'image' : request.FILES.get('image', profile.image)
-    }
-
-    post_data = {key: value for key, value in post_data.items() if value is not None}
-
-    # Aggiorna i campi del cantiere
-    for key, value in post_data.items():
-        setattr(profile, key, value)
-
-    # Salva il cantiere
-    profile.save()
-
-
-    return Response("Cantiere aggiornato con successo", status=status.HTTP_200_OK)
 
 
 @api_view(['PUT'])
@@ -958,6 +931,18 @@ def get_worksite_status(request, id):
 
     return Response(statuses_data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_worksite_wbs(request):
+    # Ottieni tutti gli status ordinati
+    worksite_id=request.GET.get('worksite_id', None), 
+    wbs = WBS.objects.filter(wbsworksite__worksite_id=worksite_id).order_by('order')
+    
+    # Prepariamo la lista dei dati finali
+    serializer = WBSSerializer(wbs, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_worksite_status(request):
@@ -1163,3 +1148,204 @@ def get_apartment_accesscode_tecnici(request):
             serializer = ApartmentAccessCodeSerializer(access_codes, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def wbs(request):
+
+    page = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+    order = request.GET.get('order', 'asc')
+    order_by = request.GET.get('order_by', 'id')
+    search_param = request.GET.get('search', None)
+    
+    wbs = WBS.objects.all()
+
+    if search_param:
+        wbs = wbs.filter(
+            nome__icontains=search_param
+        )
+
+    if order == 'desc':
+        wbs = wbs.order_by('-' + order_by)
+    else:
+        wbs = wbs.order_by(order_by)
+
+    # Applica la paginazione
+    paginator = Paginator(wbs, page_size)
+    try:
+        wbs_page = paginator.page(page)
+    except PageNotAnInteger:
+        wbs_page = paginator.page(1)
+    except EmptyPage:
+        wbs_page = paginator.page(paginator.num_pages)
+
+    serializer = WbsSerializer(wbs_page, many=True, context={'request': request})
+    return Response({
+        'count': paginator.count,
+        'total_pages': paginator.num_pages,
+        'current_page': page,
+        'page_size': page_size,
+        'results': serializer.data
+    })
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
+def wbs_new(request):
+    # Estrai i dati dalla richiesta
+    post_data = {
+        'nome': request.data.get('nome'),
+        'order': request.data.get('order', None),
+    }
+    
+    # Filtra i campi None
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    if not post_data:  # Se post_data è vuoto dopo la rimozione di valori None
+        return Response({"detail": "Dati insufficienti per creare un profilo."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Crea un nuovo profilo
+    try:
+        wbs = WBS(**post_data)
+        wbs.save()
+    except Exception as e:  # Cattura eventuali errori durante la creazione del profilo
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"detail": "Profilo creato con successo."}, status=status.HTTP_201_CREATED)
+
+@api_view(['PUT'])
+@parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
+def wbs_edit(request): 
+    wbs_id = request.GET.get('id', None)
+    wbs = WBS.objects.get(id=wbs_id)
+
+    post_data = {
+        'nome': request.data.get('nome'),
+        'order': request.data.get('order', None),
+    }
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    for key, value in post_data.items():
+        setattr(wbs, key, value)
+
+    wbs.save()
+
+    return Response("Profilo aggiornato con successo", status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_profiles(request):
+    # Estrai i parametri della query
+    role_param = request.GET.get('role', None)
+    page = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+    order = request.GET.get('order', 'asc')
+    order_by = request.GET.get('order_by', 'first_name')
+    search_param = request.GET.get('search', None)
+
+    # Costruisci la queryset in base ai parametri
+    profiles = Profile.objects.all()
+
+    if role_param == 'TECNICI':
+        profiles = profiles.filter(Q(type='TECNICI') | Q(type='STAFF'))
+
+    if search_param:
+        profiles = profiles.filter(
+            Q(first_name__icontains=search_param) |
+            Q(last_name__icontains=search_param) |
+            Q(email__icontains=search_param)
+        )
+
+    if order == 'desc':
+        profiles = profiles.order_by('-' + order_by)
+    else:
+        profiles = profiles.order_by(order_by)
+
+    # Applica la paginazione
+    paginator = Paginator(profiles, page_size)
+    try:
+        profiles_page = paginator.page(page)
+    except PageNotAnInteger:
+        profiles_page = paginator.page(1)
+    except EmptyPage:
+        profiles_page = paginator.page(paginator.num_pages)
+
+    serializer = ProfileSerializer(profiles_page, many=True, context={'request': request})
+    return Response({
+        'count': paginator.count,
+        'total_pages': paginator.num_pages,
+        'current_page': page,
+        'page_size': page_size,
+        'results': serializer.data
+    })
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+@permission_classes([IsAuthenticated])
+def profile_create(request):
+    # Estrai i dati dalla richiesta
+    post_data = {
+        'first_name': request.data.get('first_name'),
+        'last_name': request.data.get('last_name'),
+        'mobile_number': request.data.get('mobile_number'),
+        'email': request.data.get('email'),
+        'image': request.FILES.get('image'),
+        'type': request.data.get('type'),
+    }
+    
+    # Filtra i campi None
+    post_data = {key: value for key, value in post_data.items() if value is not None}
+
+    if not post_data:  # Se post_data è vuoto dopo la rimozione di valori None
+        return Response({"detail": "Dati insufficienti per creare un profilo."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Crea un nuovo profilo
+    try:
+        profile = Profile(**post_data)
+        profile.save()
+    except Exception as e:  # Cattura eventuali errori durante la creazione del profilo
+        return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"detail": "Profilo creato con successo."}, status=status.HTTP_201_CREATED)
+    
+
+@api_view(['PUT'])
+#@parser_classes([MultiPartParser])
+def apartment_rooms(request):  # Aggiunta dell'argomento worksite_id
+    try:
+        apartment_id = request.data.get('apartment')
+        apartment = Apartments.objects.get(id=apartment_id)
+    except Apartments.DoesNotExist:
+        return Response("Appartamento non trovato", status=status.HTTP_404_NOT_FOUND)
+    
+    #rooms = Room.objects.filter(apartment=apartment)
+
+    # Creazione dei subappartamenti se presenti nel payload
+    rooms_data = request.data.get('rooms', [])
+    for room_data in rooms_data:
+        room_id = room_data.get('id', None)
+        nome = room_data.get('nome', None)
+        
+        if room_id:
+            # Update the existing room
+            try:
+                room = Room.objects.get(id=room_id, apartment=apartment)
+                if nome:
+                    room.nome = nome
+                room.save()
+            except Room.DoesNotExist:
+                return Response(f"Stanza con id {room_id} non trovata", status=status.HTTP_404_NOT_FOUND)
+        else:
+            # Create a new room
+            new_room_data = {
+                'nome': nome,
+                'apartment': apartment,
+            }
+            new_room_data = {key: value for key, value in new_room_data.items() if value is not None}
+            Room.objects.create(**new_room_data)
+
+    return Response("Stanze aggiornate con successo", status=status.HTTP_200_OK)
+

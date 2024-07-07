@@ -6,32 +6,44 @@ from django.urls import reverse_lazy
 
 app_name = 'worksites'
 urlpatterns = [
-        #get
+        #worksite
         path('worksites', views.WorksiteListView.as_view()),
         path('worksites/count', views.worksites_count),
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
+        path('worksite-wbs', views.get_worksite_wbs),
+        path('worksite/new', views.WorksitePostNew),
+
+        #collabWorkite
+        path('collabworksites', views.CollaboratorListView.as_view()),
+        path('collabworksite/new', views.new_collabworksite),
+
+        #profiles
+        path('profiles', views.get_profiles),
+        path('profile-new', views.profile_create),
+        path('profile/update/<int:id>', views.profile_edit),
+
+        #apartment
+        path('apartment', views.ApartmentListView.as_view()),
         path('get-apartment-accesscode', views.get_apartment_accesscode),
         path('get-apartment-accesscode-tecnici', views.get_apartment_accesscode_tecnici),
 
-        path('collabworksites', views.CollaboratorListView.as_view()),
-
-        path('apartment', views.ApartmentListView.as_view()),
-
         path('worksitesprofile', views.WorksiteProfileListView.as_view()),
-
         path('worksitesprofile_user', views.WorksiteProfileUserListView.as_view()),
         path('profileWorskite', views.TechnicianNotInWorksiteView.as_view()),
+        path('apartment-rooms', views.apartment_rooms),
 
-        #post
-        path('worksite/new', views.WorksitePostNew),
-        path('collabworksite/new', views.new_collabworksite),
+        #wbs
+        path('wbs', views.wbs),
+        path('wbs-new', views.wbs_new),
+        path('wbs-update', views.wbs_edit),
+
+        
+        
         path('category/new', views.new_category),
         path('apartment-new-code', views.apartment_code_generator),
         path('apartment-new-code-tecnici', views.apartment_code_generator_tecnici), # type: ignore
         
-
-        path('profile/update/<int:id>', views.profile_edit),
         path('profile/delete/<int:id>', views.profile_delete),
 
         path('worksite-status/next', views.update_worksite_status, name='next_worksite_status'),

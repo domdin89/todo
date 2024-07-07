@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from accounts.serializers import ProfileSerializer
-from .models import Apartments, ClientApartments, ApartmentSub
+from .models import Apartments, ClientApartments, ApartmentSub, Room
 from worksites.serializers import FoglioParticellaSerializer, WorksiteSerializer
 
 class ApartmentSerializer(serializers.ModelSerializer):

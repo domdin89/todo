@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apartments.models import ApartmentSub, Apartments, ApartmentAccessCode
+from apartments.models import WBS, ApartmentSub, Apartments, ApartmentAccessCode, Room, WBSWorksite
 from .models import CollabWorksitesOrder, FoglioParticella, Status, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
@@ -68,11 +68,30 @@ class ApartmentSubSerializer(serializers.ModelSerializer):
         model= ApartmentSub
         fields='__all__'
 
+class RoomSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Room
+        fields = '__all__'
+    
+class WbsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WBS
+        fields = '__all__'
+
+
 class ApartmentSerializer(serializers.ModelSerializer):
     #sub = ApartmentSubSerializer(read_only=True, many=True)
+    rooms = serializers.SerializerMethodField()
     class Meta:
         model= Apartments
         fields='__all__'
+    
+    def get_rooms(self, obj):
+        apartment_id = obj.id
+        room_count = Room.objects.filter(apartment_id=apartment_id).count()
+        return room_count
 
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
@@ -187,9 +206,7 @@ class WorksiteSerializer(serializers.ModelSerializer):
     contractor = ContractorSerializer(read_only=True)
     categories = WorksiteCategoriesSerializer(many=True, read_only=True)  
     collaborationsOrder = CollabWorksitesOrderSerializer(many=True, read_only=True) # Assumendo una relazione ManyToMany con collaborators
-    #foglio_particelle = WorksiteFoglioParticellaSerializer(many=True, read_only=True)
     foglio_particelle = serializers.SerializerMethodField()
-
 
     class Meta:
         model = Worksites
@@ -204,8 +221,7 @@ class WorksiteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        # Assicurati che 'collaborationsOrder' sia già un elenco ordinato come desiderato.
-        # L'ordinamento qui è solo a scopo dimostrativo se 'ret['collaborationsOrder']' non è già ordinato.
+
         valid_collaborations = sorted(
             [collab for collab in ret['collaborationsOrder'] if collab['is_valid']], 
             key=lambda x: x['order']
@@ -232,3 +248,16 @@ class WorksiteDetailSerializer(serializers.ModelSerializer):
         foglio_particelle = obj.foglio_particelle.filter(foglio_particella__is_active=True)
         serializer = WorksiteFoglioParticellaSerializer(foglio_particelle, many=True)
         return serializer.data
+    
+
+class WBSWorksiteSerializer(serializers.ModelSerializer):
+
+      class Meta:
+        model = WBSWorksite
+        fields='__all__'
+
+class WBSSerializer(serializers.ModelSerializer):
+
+      class Meta:
+        model = WBS
+        fields='__all__'

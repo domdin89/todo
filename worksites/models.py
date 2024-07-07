@@ -100,7 +100,7 @@ class WorksitesStatus(models.Model):
                     worksite=self.worksite,
                     status=self.status,
                     active=True
-                ).exclude(id=self.id).update(active=False)
+                ).exclude(id=self.id).update(active=False) # type: ignore
                 
             super(WorksitesStatus, self).save(*args, **kwargs)
 
