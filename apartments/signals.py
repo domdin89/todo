@@ -26,7 +26,7 @@ def initRoomWBS(sender, instance, created, **kwargs):
             )
 
             if WBS.objects.exists():
-                wbs_items = WBS.objects.all()
+                wbs_items = WBS.objects.filter(wbsworksite__is_active=True, wbsworksite__worksite=instance.apartment.worksite)
                 wbs_room_objects = [
                     WBSRoom(wbs=wbs_item, room=instance) for wbs_item in wbs_items
                 ]

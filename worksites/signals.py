@@ -26,7 +26,7 @@ def initWorksiteWBS(sender, instance, created, **kwargs):
             main_directory, created = Directory.objects.get_or_create(
                 name=instance.name,
                 worksite=instance,
-                defaults={'type': Directory.DirectoryType.WORKSITE}
+                type=Directory.DirectoryType.WORKSITE
             )
 
             if WBS.objects.exists():  # Verifica se ci sono WBS nel database
@@ -43,6 +43,25 @@ def initWorksiteWBS(sender, instance, created, **kwargs):
                         worksite=instance,
                         type=Directory.DirectoryType.WBS
                     )
+        except Exception as e:
+            print(f"Error during initWorksiteWBS signal: {e}")
+            pass
+
+@receiver(post_save, sender=WBSWorksite)
+def initWBSWorksite(sender, instance, created, **kwargs):
+    if created:  # Esegui solo se l'istanza è stata appena creata
+        try:           
+            main_dir, created = Directory.objects.get_or_create(
+                worksite=instance.worksite,
+                type=Directory.DirectoryType.WORKSITE
+            )
+            
+            Directory.objects.create(
+                name=instance.wbs.nome,  # Usa il nome del WBS come nome della Directory
+                parent=main_dir,  # Imposta la directory principale come parent
+                worksite=instance.worksite,
+                type=Directory.DirectoryType.WBS
+            )
         except Exception as e:
             print(f"Error during initWorksiteWBS signal: {e}")
             pass
