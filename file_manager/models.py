@@ -2,7 +2,7 @@ from django.db import models
 import os
 
 from accounts.models import Profile
-from apartments.models import Apartments
+from apartments.models import Apartments, Room
 from worksites.models import Worksites
 from falone.storage_backends import PrivateMediaStorage
 
@@ -12,11 +12,13 @@ class Directory(models.Model):
         WORKSITE = 'WORKSITE', 'WORKSITE'
         APARTMENT = 'APARTMENT', 'APARTMENT'
         ROOM = 'ROOM', 'ROOM'
+        WBS = 'WBS', 'WBS'
 
     name = models.CharField(max_length=255)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subdirectories')
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE,  null=True, blank=True)
     apartment = models.ForeignKey(Apartments, on_delete=models.CASCADE,  null=True, blank=True)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE,  null=True, blank=True)
     created_by = models.ForeignKey(Profile, on_delete=models.CASCADE,  null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
     date_update = models.DateTimeField(auto_now=True,blank=True, null=True)

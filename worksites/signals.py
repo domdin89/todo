@@ -24,7 +24,7 @@ def initWorksiteWBS(sender, instance, created, **kwargs):
         try:
             # Assicurati di avere una directory principale per questo cantiere
             main_directory, created = Directory.objects.get_or_create(
-                name=f"Main Directory for {instance.name}",
+                name=instance.name,
                 worksite=instance,
                 defaults={'type': Directory.DirectoryType.WORKSITE}
             )
@@ -40,7 +40,8 @@ def initWorksiteWBS(sender, instance, created, **kwargs):
                     Directory.objects.create(
                         name=wbs_worksite.wbs.nome,  # Usa il nome del WBS come nome della Directory
                         parent=main_directory,  # Imposta la directory principale come parent
-                        type=Directory.DirectoryType.WORKSITE
+                        worksite=instance,
+                        type=Directory.DirectoryType.WBS
                     )
         except Exception as e:
             print(f"Error during initWorksiteWBS signal: {e}")

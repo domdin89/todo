@@ -156,7 +156,7 @@ def new_apartment(request):
 
     apartment = Apartments.objects.create(**apartment_data)
     parent = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True, parent__isnull=True).first()
-    directory = Directory.objects.create(name=apartment.note, apartment=apartment, parent=parent)
+    directory = Directory.objects.create(name=apartment.note, apartment=apartment, parent=parent, type="APARTMENT")
 
     # Creazione dei subappartamenti se presenti nel payload
     subs_data = request.data.get('subs', [])
