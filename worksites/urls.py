@@ -12,6 +12,7 @@ urlpatterns = [
         path('worksites/<int:pk>/', views.WorksiteDetail.as_view()),
         path('worksite-status/<int:id>/', views.get_worksite_status, name='get_worksite_status'),
         path('worksite-wbs', views.get_worksite_wbs),
+        path('worksite-wbs-associate', views.associate_worksite_wbs),
         path('worksite/new', views.WorksitePostNew),
 
         #collabWorkite

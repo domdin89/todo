@@ -72,3 +72,4 @@ class WBSRoom(models.Model):
 class WBSWorksite(models.Model):
     worksite = models.ForeignKey(Worksites, on_delete=models.CASCADE)
     wbs = models.ForeignKey(WBS, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)

@@ -261,3 +261,16 @@ class WBSSerializer(serializers.ModelSerializer):
       class Meta:
         model = WBS
         fields='__all__'
+
+
+class WBSSelectedSerializer(serializers.ModelSerializer):
+    selected = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = WBS
+        fields = '__all__'
+    
+    def get_selected(self, obj):
+        # Ottieni la lista dei valori selected dal contesto
+        selected_ids = self.context.get('selected_ids', [])
+        return obj.id in selected_ids

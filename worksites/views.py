@@ -49,7 +49,7 @@ from apartments.models import WBS, ApartmentAccessCode, ApartmentSub, Apartments
 from worksites.decorators import validate_token
 from worksites.filters import WorksitesFilter
 from .models import (Categories, CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Profile, Status, Worksites, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus)
-from .serializers import (ApartmentAccessCodeSerializer, ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WBSSerializer, WBSWorksiteSerializer, WbsSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
+from .serializers import (ApartmentAccessCodeSerializer, ApartmentSerializer, ApartmentSubSerializer, CollabWorksitesNewSerializer, CollabWorksitesOrderSerializer, CollabWorksitesSerializer, CollabWorksitesSerializer2, CollaborationSerializer, CollaborationSerializerEdit, FoglioParticellaSerializer, ProfileSerializer2, ProfileSerializerPD, StatusSerializer, WBSSelectedSerializer, WBSSerializer, WBSWorksiteSerializer, WbsSerializer, WorksiteFoglioParticellaSerializer, WorksiteProfileSerializer, WorksiteSerializer, WorksiteStandardSerializer, WorksiteStatusSerializer, WorksiteUserProfileSerializer)
 from django.db.models import Q
 
 import base64
@@ -943,14 +943,47 @@ def get_worksite_status(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_worksite_wbs(request):
+    worksite_id = request.query_params.get('worksite_id')
+    
     # Ottieni tutti gli status ordinati
-    worksite_id=request.GET.get('worksite_id', None), 
-    wbs = WBS.objects.filter(wbsworksite__worksite_id=worksite_id).order_by('order')
+    wbs_all = WBS.objects.filter().order_by('order')
+    
+    # Ottieni solo quelli filtrati
+    wbs_filtered = WBS.objects.filter(wbsworksite__worksite_id=worksite_id, wbsworksite__is_active=True).order_by('order')
+    
+    # Ottieni gli ID degli elementi filtrati
+    filtered_ids = wbs_filtered.values_list('id', flat=True)
     
     # Prepariamo la lista dei dati finali
-    serializer = WBSSerializer(wbs, many=True)
+    serializer = WBSSelectedSerializer(wbs_all, many=True, context={'selected_ids': filtered_ids})
     
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def associate_worksite_wbs(request):
+    worksite_id = request.data.get('worksite_id')
+    wbs_id = request.data.get('wbs_id')
+    worksite = Worksites.objects.get(id=worksite_id)
+    wbs = WBS.objects.get(id=wbs_id)
+
+    
+    wbs_filtered = WBSWorksite.objects.filter(worksite_id=worksite_id, wbs_id=wbs_id).first()
+
+    if wbs_filtered and wbs_filtered.is_active:
+        wbs_filtered.is_active = False
+        wbs_filtered.save()
+        return Response({'message': 'Dissociazione eseguita con successo'}, status=status.HTTP_200_OK)
+    elif wbs_filtered and not wbs_filtered.is_active:
+        wbs_filtered.is_active = True
+        wbs_filtered.save()
+        return Response({'message': 'Dissociazione eseguita con successo'}, status=status.HTTP_200_OK)
+    else:
+        wbs_filtered = WBSWorksite.objects.create(worksite=worksite, wbs=wbs)
+        return Response({'message': 'Associazione eseguita con successo'}, status=status.HTTP_200_OK)
+    
+    
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
