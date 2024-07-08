@@ -55,6 +55,9 @@ def initWBSWorksite(sender, instance, created, **kwargs):
                 worksite=instance.worksite,
                 type=Directory.DirectoryType.WORKSITE
             )
+            print('main dir', main_dir)
+            print('instance.wbs.nome', instance.wbs.nome)
+            print('instance.worksite', instance.worksite)
             
             Directory.objects.create(
                 name=instance.wbs.nome,  # Usa il nome del WBS come nome della Directory
@@ -62,6 +65,22 @@ def initWBSWorksite(sender, instance, created, **kwargs):
                 worksite=instance.worksite,
                 type=Directory.DirectoryType.WBS
             )
+
+            print('instance.worksite', instance.worksite)
+            
+            
+            rooms_directory = Directory.objects.filter(type='ROOM', room__apartment__worksite=instance.worksite)
+            print('rooms_directory', rooms_directory)
+
+            for room_directory in rooms_directory:
+                print('room_directory', room_directory)
+                Directory.objects.create(
+                        name=instance.wbs.nome,
+                        parent=room_directory, # type: ignore
+                        room=room_directory.room,
+                        type=Directory.DirectoryType.WBS
+                    )
+
         except Exception as e:
             print(f"Error during initWorksiteWBS signal: {e}")
             pass
