@@ -15,4 +15,4 @@ class Migration(migrations.Migration):
             name='date_update',
             field=models.DateTimeField(auto_now=True, null=True),
         ),
-    ]
+    ] 

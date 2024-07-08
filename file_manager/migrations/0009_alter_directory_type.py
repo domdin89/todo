@@ -15,4 +15,4 @@ class Migration(migrations.Migration):
             name='type',
             field=models.CharField(blank=True, choices=[('WORKSITE', 'WORKSITE'), ('APARTMENT', 'APARTMENT'), ('ROOM', 'ROOM'), ('WBS', 'WBS')], max_length=10, null=True),
         ),
-    ]
+    ] 
