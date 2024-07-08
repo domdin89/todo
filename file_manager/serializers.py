@@ -49,8 +49,9 @@ class DirectorySerializerNoChildren(serializers.ModelSerializer):
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'apartment']  # Aggiungi tutti i campi che vuoi includere
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'type', 'room', 'apartment']  # Aggiungi tutti i campi che vuoi includere
 
+# SERIALIZER FATTO SOLO PER TECNICI VISIBLE IN APP
 class DirectorySerializerChildrenApp(serializers.ModelSerializer):
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
@@ -81,6 +82,38 @@ class DirectorySerializerChildrenApp(serializers.ModelSerializer):
         files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
         serializer = FileSerializer(files, many=True)
         return serializer.data
+
+# SERIALIZER FATTO SOLO PER STAFF VISIBLE IN APP
+class DirectorySerializerChildrenAppStaff(serializers.ModelSerializer):
+    parent = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'children', 'files']
+
+    def get_field_names(self, declared_fields, info):
+        depth = self.context.get('depth', 0)
+        if depth >= 2:  # Limita la profondità della ricorsione a 2
+            return ['id', 'name']
+        return super().get_field_names(declared_fields, info)
+
+    def get_parent(self, obj):
+        if obj.parent:
+            return DirectorySerializer(obj.parent, context={'depth': self.context.get('depth', 0) + 1}).data
+        return None
+
+    def get_children(self, obj):
+        # Filtra i subdirectories per includere solo quelli senza un apartment associato
+        if obj.subdirectories.filter().exists():
+            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment=obj.apartment), many=True, context=self.context).data
+        return []
+    
+    def get_files(self, obj):
+        files = File.objects.filter(directory_id=obj.id)
+        serializer = FileSerializer(files, many=True)
+        return serializer.data
     
 
 class DirectorySerializerChildren(serializers.ModelSerializer):
@@ -90,7 +123,7 @@ class DirectorySerializerChildren(serializers.ModelSerializer):
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'children', 'files']
+        fields = ['id', 'name', 'parent', 'worksite', 'children', 'files', 'type', 'room', 'apartment']
 
     def get_field_names(self, declared_fields, info):
         depth = self.context.get('depth', 0)
@@ -120,7 +153,7 @@ class DirectorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite']
+        fields = ['id', 'name', 'parent', 'worksite', 'type', 'room', 'apartment']
 
     def get_field_names(self, declared_fields, info):
         depth = self.context.get('depth', 0)
@@ -140,7 +173,7 @@ class DirectorySerializerNoParent(serializers.ModelSerializer):
         fields = ['id', 'name', 'worksite']
 
 
-
+# QUESTO SERIALIZER FA VISUALIZZARE SOLO I FILE VISIBLE IN APP
 class DirectorySerializerNew(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     #apartment = ApartmentBaseSerializer(read_only=True)
@@ -163,3 +196,23 @@ class DirectorySerializerNew(serializers.ModelSerializer):
 
 
 
+# QUESTO SERIALIZER FA VISUALIZZARE TUTTI I FILE PER STAFF
+class DirectorySerializerNewStaff(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+    #apartment = ApartmentBaseSerializer(read_only=True)
+    files = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Directory
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files']  # Aggiungi tutti i campi che vuoi includere
+
+    def get_children(self, obj):
+        # Filtra i subdirectories per includere solo quelli senza un apartment associato
+        if obj.subdirectories.filter(apartment__isnull=True).exists():
+            return DirectorySerializerNoChildren(obj.subdirectories.filter(apartment__isnull=True, worksite=obj.worksite), many=True, context=self.context).data
+        return []
+
+    def get_files(self, obj):
+        files = File.objects.filter(directory_id=obj.id)
+        serializer = FileSerializer(files, many=True)
+        return serializer.data

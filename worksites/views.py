@@ -13,7 +13,16 @@ from rest_framework import status
 from django.db.models import Min
 from django.core.files.base import ContentFile
 from PIL import Image
-
+import os
+import django
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
+import qrcode
+from PIL import Image
+from io import BytesIO
+from django.http import HttpResponse
 
 from rest_framework import generics, mixins, serializers, status, viewsets
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -1349,3 +1358,68 @@ def apartment_rooms(request):  # Aggiunta dell'argomento worksite_id
 
     return Response("Stanze aggiornate con successo", status=status.HTTP_200_OK)
 
+
+def create_qr_code(data):
+    qr = qrcode.QRCode( # type: ignore
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L, # type: ignore
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    return img
+
+@api_view(['GET'])
+def gen_pdf(request):
+    apartment_id = request.GET.get('apartment_id', None)
+
+    if apartment_id is None:
+        return HttpResponse("Missing apartment_id parameter", status=400)
+
+    pdf_file = BytesIO()
+    c = canvas.Canvas(pdf_file, pagesize=letter)
+    width, height = letter
+    
+    rooms = Room.objects.filter(apartment_id=apartment_id)
+
+    if not rooms.exists():
+        return HttpResponse("No rooms found for the given apartment_id", status=404)
+
+    for room in rooms:
+        y_position = height - 120
+
+        c.setFont("Helvetica-Bold", 40)
+        text_width = c.stringWidth(f"Stanza: {room.nome}", "Helvetica-Bold", 40)
+        c.drawString((width - text_width) / 2, y_position, f"Stanza: {room.nome}")
+
+        y_position -= 60
+        c.setFont("Helvetica", 20)
+        text_width = c.stringWidth(f"Appartamento: {room.apartment.note}", "Helvetica", 20)
+        c.drawString((width - text_width) / 2, y_position, f"Appartamento: {room.apartment.note}")
+
+        y_position -= 40
+        text_width = c.stringWidth(f"Cantiere: {room.apartment.worksite.name}", "Helvetica", 20)
+        c.drawString((width - text_width) / 2, y_position, f"Cantiere: {room.apartment.worksite.name}")
+
+        y_position -= 40
+
+        qr_code_image = create_qr_code(f'myfalone://directory-room?id={room.id}') # type: ignore
+        temp_buffer = BytesIO()
+        qr_code_image.save(temp_buffer, format="PNG")
+        temp_buffer.seek(0)
+        qr_code_image_reader = ImageReader(temp_buffer)
+
+        qr_code_size = 5 * inch
+        c.drawImage(qr_code_image_reader, (width - qr_code_size) / 2, y_position - qr_code_size, qr_code_size, qr_code_size)
+
+        c.showPage()
+
+    c.save()
+    pdf_file.seek(0)
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="output.pdf"'
+    return response

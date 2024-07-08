@@ -38,6 +38,9 @@ urlpatterns = [
         path('wbs-new', views.wbs_new),
         path('wbs-update', views.wbs_edit),
 
+        #PDF gen
+        path('gen-pdf', views.gen_pdf),
+
         
         
         path('category/new', views.new_category),

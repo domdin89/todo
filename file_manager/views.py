@@ -100,7 +100,7 @@ def file_new(request):
         return JsonResponse({'error': 'Il nome della cartella e il parent id sono obbligatori.'}, status=400)
     
     try:
-        file_new = File.objects.create(name=name, directory_id=directory_id, file=file)
+        file_new = File.objects.create(name=name, directory_id=directory_id, file=file, visible_in_app=False)
         return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201) # type: ignore
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'File non trovato.'}, status=404)

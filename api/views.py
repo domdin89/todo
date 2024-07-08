@@ -29,7 +29,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import User
 from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
 from file_manager.models import Directory, File
-from file_manager.serializers import DirectorySerializer,DirectorySerializerNew, DirectorySerializerChildrenApp
+from file_manager.serializers import DirectorySerializer, DirectorySerializerChildrenAppStaff,DirectorySerializerNew, DirectorySerializerChildrenApp, DirectorySerializerNewStaff
 from apartments.models import WBS, ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
 
 from accounts.serializers import ProfileSerializer
@@ -328,8 +328,10 @@ def get_directories_by_apartments(request):
                 
 
 
-        
-        serializer = DirectorySerializerChildrenApp(directories, many=True)
+        if profile.type == 'STAFF':
+            serializer = DirectorySerializerChildrenAppStaff(directories, many=True)
+        else:
+            serializer = DirectorySerializerChildrenApp(directories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
@@ -339,6 +341,7 @@ def get_directories_by_apartments(request):
 @api_view(['GET'])
 @validate_token
 def get_directories(request):
+
     profile_id = request.profile_id
     profile = Profile.objects.get(id=profile_id)
 
@@ -353,7 +356,12 @@ def get_directories(request):
             directories = Directory.objects.filter(worksite_id=worksite_id, id=parent_id, apartment__isnull=True)
         else:
             directories = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True).distinct()
-        serializer = DirectorySerializerNew(directories, many=True)
+        
+        if profile.type == 'STAFF':
+            serializer = DirectorySerializerNewStaff(directories, many=True)
+        else:
+            serializer = DirectorySerializerNew(directories, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
@@ -595,7 +603,7 @@ def file_new(request):
         return JsonResponse({'error': 'Il nome della cartella e il parent id sono obbligatori.'}, status=400)
     
     try:
-        file_new = File.objects.create(name=name, directory_id=directory_id, file=file, visible_in_app=True)
+        file_new = File.objects.create(name=name, directory_id=directory_id, file=file, visible_in_app=False)
         return JsonResponse({'message': 'File caricato con successo.', 'file': file_new.id}, status=201) # type: ignore
     except Directory.DoesNotExist:
         return JsonResponse({'error': 'File non trovato.'}, status=404)
