@@ -1405,9 +1405,13 @@ def create_qr_code(data):
     img = qr.make_image(fill_color="black", back_color="white")
     return img
 
+
+
 @api_view(['GET'])
 def gen_pdf(request):
     apartment_id = request.GET.get('apartment_id', None)
+
+    subs = ApartmentSub.objects.filter(is_valid=True, apartment_id=apartment_id)
 
     if apartment_id is None:
         return HttpResponse("Missing apartment_id parameter", status=400)
@@ -1436,6 +1440,12 @@ def gen_pdf(request):
         y_position -= 40
         text_width = c.stringWidth(f"Cantiere: {room.apartment.worksite.name}", "Helvetica", 20)
         c.drawString((width - text_width) / 2, y_position, f"Cantiere: {room.apartment.worksite.name}")
+
+        for sub in subs:
+            y_position -= 30
+            c.setFont("Helvetica", 16)
+            text_width = c.stringWidth(f"Foglio: {sub.foglio_particella.foglio}, Particella: {sub.foglio_particella.particella}, Sub: {sub.sub}", "Helvetica", 16)
+            c.drawString((width - text_width) / 2, y_position, f"Foglio: {sub.foglio_particella.foglio}, Particella: {sub.foglio_particella.particella}, Sub: {sub.sub}")
 
         y_position -= 40
 
