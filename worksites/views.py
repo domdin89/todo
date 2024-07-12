@@ -1412,7 +1412,8 @@ def gen_pdf(request):
     apartment_id = request.GET.get('apartment_id', None)
 
     subs = ApartmentSub.objects.filter(is_valid=True, apartment_id=apartment_id)
-
+    
+    
     if apartment_id is None:
         return HttpResponse("Missing apartment_id parameter", status=400)
 
