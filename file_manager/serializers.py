@@ -46,10 +46,16 @@ class FileSerializer(serializers.ModelSerializer):
 class DirectorySerializerNoChildren(serializers.ModelSerializer):
     worksite = WorksiteStandardSerializer()
     apartment = ApartmentBaseSerializer()
+    files_pending = serializers.SerializerMethodField()
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'type', 'room', 'apartment']  # Aggiungi tutti i campi che vuoi includere
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'type', 'room', 'apartment', 'files_pending']  # Aggiungi tutti i campi che vuoi includere
+    
+    def get_files_pending(self, obj):
+        files = File.objects.filter(directory_id=obj.id, da_visionare=True).count()
+        return files
+
 
 # SERIALIZER FATTO SOLO PER TECNICI VISIBLE IN APP
 class DirectorySerializerChildrenApp(serializers.ModelSerializer):
