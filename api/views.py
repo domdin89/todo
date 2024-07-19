@@ -162,9 +162,9 @@ def worksites(request):
     worksites = None
 
     if profile.type == "TECNICI" or profile.type == "STAFF":
-        worksites = Worksites.objects.filter(collaborations__profile_id=profile_id, collaborations__is_valid=True).distinct()
+        worksites = Worksites.objects.filter(collaborations__profile_id=profile_id, collaborations__is_valid=True).order_by('-date_start').distinct()
     else:
-        worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=profile_id).distinct()
+        worksites = Worksites.objects.filter(apartments__clientapartments__profile_id=profile_id).order_by('-date_start').distinct()
 
     serializer = WorksiteSerializer(worksites, many=True)
 
