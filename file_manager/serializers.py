@@ -15,7 +15,7 @@ class FileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = File
-        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date', 'url', 'visible_in_app']
+        fields = ['id', 'name', 'extension', 'size', 'mime_type', 'date', 'url', 'visible_in_app', 'da_visionare']
 
     def get_url(self, obj):
         # Here you can implement logic similar to your `get_file` function
