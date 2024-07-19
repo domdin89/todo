@@ -591,6 +591,25 @@ def directory_new(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     
+
+@api_view(['POST'])
+@validate_token
+def file_visible(request):
+    profile_id = request.profile_id
+    profile = Profile.objects.get(id=profile_id)
+    file_id = request.data.get('file_id')
+    file_visibility = request.data.get('file_visibility')
+
+
+    if profile.type == 'STAFF':
+        file = File.objects.get(id=file_id)
+        file.visible_in_app = file_visibility == 'true'
+        file.da_visionare = False
+        file.save()
+       
+    return JsonResponse({'message': 'Visibilità modificata con successo'}, status=200)
+    
+    
 @api_view(['POST'])
 @parser_classes([MultiPartParser])
 @validate_token

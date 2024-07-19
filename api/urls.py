@@ -26,6 +26,8 @@ urlpatterns = [
         path('directory_new', views.directory_new),
         path('file_new', views.file_new),
 
+        path('file-visible', views.file_visible),
+
         path('password/reset', views.password_reset_request, name='password_reset_request'),
         path('password/reset/confirm', views.password_reset_confirm, name='password_reset_confirm'),
         ]
