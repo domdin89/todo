@@ -181,7 +181,7 @@ class DirectorySerializerNew(serializers.ModelSerializer):
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files']  # Aggiungi tutti i campi che vuoi includere
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files', 'type']  # Aggiungi tutti i campi che vuoi includere
 
     def get_children(self, obj):
         # Filtra i subdirectories per includere solo quelli senza un apartment associato
@@ -204,7 +204,7 @@ class DirectorySerializerNewStaff(serializers.ModelSerializer):
 
     class Meta:
         model = Directory
-        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files']  # Aggiungi tutti i campi che vuoi includere
+        fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date', 'children', 'apartment', 'files', 'type']  # Aggiungi tutti i campi che vuoi includere
 
     def get_children(self, obj):
         # Filtra i subdirectories per includere solo quelli senza un apartment associato
