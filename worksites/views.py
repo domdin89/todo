@@ -1439,7 +1439,7 @@ def gen_pdf(request):
         c.drawString((width - text_width) / 2, y_position, f"Appartamento: {room.apartment.note}")
 
         y_position -= 40
-        text_width = c.stringWidth(f"Cantiere: {room.apartment.worksite.name}", "Helvetica", 20)
+        text_width = c.stringWidth(f"Cantiere: {room.apartment.worksite.name}, {room.id}", "Helvetica", 20)
         c.drawString((width - text_width) / 2, y_position, f"Cantiere: {room.apartment.worksite.name}")
 
         for sub in subs:
@@ -1450,17 +1450,18 @@ def gen_pdf(request):
 
         y_position -= 40
 
-        #parent_dir = Directory.objects.filter(room=room).first()
-        qr_code_image = create_qr_code(f'myfalone://cartelle/{room.apartment.id}?parent_id={room.id}') # type: ignore
-        temp_buffer = BytesIO()
-        qr_code_image.save(temp_buffer, format="PNG")
-        temp_buffer.seek(0)
-        qr_code_image_reader = ImageReader(temp_buffer)
+        parent_dir = Directory.objects.filter(room=room).first()
+        if parent_dir:
+            qr_code_image = create_qr_code(f'myfalone://cartelle/{room.apartment.id}?parent_id={parent_dir.id}') # type: ignore
+            temp_buffer = BytesIO()
+            qr_code_image.save(temp_buffer, format="PNG")
+            temp_buffer.seek(0)
+            qr_code_image_reader = ImageReader(temp_buffer)
 
-        qr_code_size = 5 * inch
-        c.drawImage(qr_code_image_reader, (width - qr_code_size) / 2, y_position - qr_code_size, qr_code_size, qr_code_size)
+            qr_code_size = 5 * inch
+            c.drawImage(qr_code_image_reader, (width - qr_code_size) / 2, y_position - qr_code_size, qr_code_size, qr_code_size)
 
-        c.showPage()
+            c.showPage()
 
     c.save()
     pdf_file.seek(0)
