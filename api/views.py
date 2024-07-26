@@ -313,25 +313,17 @@ def get_directories_by_apartments(request):
         apartment = Apartments.objects.get(id=apartment_id)
 
     try:
+
         if parent_id:
-            directories = Directory.objects.filter(id=parent_id, apartment_id=apartment_id)
+            directories = Directory.objects.filter(apartment_id=apartment_id, id=parent_id)
         else:
-            directories = Directory.objects.filter(apartment_id=apartment_id)
-            if not directories:
-                parent = Directory.objects.filter(worksite=apartment.worksite, apartment__isnull=True, parent__isnull=True).first()
-                Directory.objects.create(
-                    parent=parent,
-                    apartment_id=apartment_id,
-                    name=apartment.note
-                )
-                directories = Directory.objects.filter(apartment_id=apartment_id)
-                
-
-
+            directories = Directory.objects.filter(apartment_id=apartment_id).distinct()
+        
         if profile.type == 'STAFF':
-            serializer = DirectorySerializerChildrenAppStaff(directories, many=True)
+            serializer = DirectorySerializerNewStaff(directories, many=True)
         else:
-            serializer = DirectorySerializerChildrenApp(directories, many=True)
+            serializer = DirectorySerializerNew(directories, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
