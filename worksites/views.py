@@ -1429,13 +1429,13 @@ def gen_pdf(request):
     for room in rooms:
         y_position = height - 120
 
-        c.setFont("Helvetica-Bold", 40)
-        text_width = c.stringWidth(f"Stanza: {room.nome}", "Helvetica-Bold", 40)
+        c.setFont("Helvetica-Bold", 30)
+        text_width = c.stringWidth(f"Stanza: {room.nome}", "Helvetica-Bold", 30)
         c.drawString((width - text_width) / 2, y_position, f"Stanza: {room.nome}")
 
         y_position -= 60
-        c.setFont("Helvetica", 20)
-        text_width = c.stringWidth(f"Appartamento: {room.apartment.note}", "Helvetica", 20)
+        c.setFont("Helvetica", 15)
+        text_width = c.stringWidth(f"Appartamento: {room.apartment.note}", "Helvetica", 15)
         c.drawString((width - text_width) / 2, y_position, f"Appartamento: {room.apartment.note}")
 
         y_position -= 40
@@ -1450,7 +1450,7 @@ def gen_pdf(request):
 
         y_position -= 40
 
-        qr_code_image = create_qr_code(f'myfalone://directory-room?id={room.id}') # type: ignore
+        qr_code_image = create_qr_code(f'myfalone://cartelle/{room.apartment.id}?parent_id={room.id}') # type: ignore
         temp_buffer = BytesIO()
         qr_code_image.save(temp_buffer, format="PNG")
         temp_buffer.seek(0)
