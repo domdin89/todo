@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apartments.models import WBS, ApartmentSub, Apartments, ApartmentAccessCode, Room, WBSWorksite
+from file_manager.models import Directory, File
 from .models import CollabWorksitesOrder, FoglioParticella, Status, Worksites, CollabWorksites, Contractor, Financier, Categories, WorksitesCategories, WorksitesFoglioParticella, WorksitesProfile, WorksitesStatus
 from accounts.models import Profile
 from accounts.serializers import ProfileSerializer
@@ -81,17 +82,46 @@ class WbsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ApartmentSerializer(serializers.ModelSerializer):
-    #sub = ApartmentSubSerializer(read_only=True, many=True)
-    rooms = serializers.SerializerMethodField()
-    class Meta:
-        model= Apartments
-        fields='__all__'
+# class ApartmentSerializer(serializers.ModelSerializer):
+#     #sub = ApartmentSubSerializer(read_only=True, many=True)
+#     rooms = serializers.SerializerMethodField()
+#     class Meta:
+#         model= Apartments
+#         fields='__all__'
     
+#     def get_rooms(self, obj):
+#         apartment_id = obj.id
+#         room_count = Room.objects.filter(apartment_id=apartment_id).count()
+#         return room_count
+    
+class ApartmentSerializer(serializers.ModelSerializer):
+    rooms = serializers.SerializerMethodField()
+    files_pending = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Apartments
+        fields = '__all__'
+
     def get_rooms(self, obj):
         apartment_id = obj.id
         room_count = Room.objects.filter(apartment_id=apartment_id).count()
         return room_count
+
+    def get_files_pending(self, obj):
+        def get_all_subdirectory_ids(directory):
+            subdirectory_ids = [directory.id]
+            for subdir in directory.subdirectories.all():
+                subdirectory_ids.extend(get_all_subdirectory_ids(subdir))
+            return subdirectory_ids
+
+        apartment_id = obj.id
+        directories = Directory.objects.filter(apartment_id=apartment_id)
+        all_directory_ids = []
+        for directory in directories:
+            all_directory_ids.extend(get_all_subdirectory_ids(directory))
+        
+        files = File.objects.filter(directory_id__in=all_directory_ids, da_visionare=True).count()
+        return files
 
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
