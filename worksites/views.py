@@ -1450,7 +1450,8 @@ def gen_pdf(request):
 
         y_position -= 40
 
-        qr_code_image = create_qr_code(f'myfalone://cartelle/{room.apartment.id}?parent_id={room.id}') # type: ignore
+        parent_dir = Directory.objects.filter(room=room).first()
+        qr_code_image = create_qr_code(f'myfalone://cartelle/{room.apartment.id}?parent_id={parent_dir.id}') # type: ignore
         temp_buffer = BytesIO()
         qr_code_image.save(temp_buffer, format="PNG")
         temp_buffer.seek(0)
