@@ -315,7 +315,7 @@ def get_directories_by_apartments(request):
     try:
 
         if parent_id:
-            directories = Directory.objects.filter(apartment_id=apartment_id, id=parent_id)
+            directories = Directory.objects.filter(id=parent_id)
         else:
             directories = Directory.objects.filter(apartment_id=apartment_id).distinct()
         
