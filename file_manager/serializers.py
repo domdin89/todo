@@ -52,9 +52,21 @@ class DirectorySerializerNoChildren(serializers.ModelSerializer):
         model = Directory
         fields = ['id', 'name', 'parent', 'worksite', 'created_by', 'date',  'type', 'room', 'apartment', 'files_pending']  # Aggiungi tutti i campi che vuoi includere
     
+    # def get_files_pending(self, obj):
+    #     files = File.objects.filter(directory_id=obj.id, da_visionare=True).count()
+    #     return files
+    
     def get_files_pending(self, obj):
-        files = File.objects.filter(directory_id=obj.id, da_visionare=True).count()
+        def get_all_subdirectory_ids(directory):
+            subdirectory_ids = [directory.id]
+            for subdir in directory.subdirectories.all():
+                subdirectory_ids.extend(get_all_subdirectory_ids(subdir))
+            return subdirectory_ids
+
+        all_directory_ids = get_all_subdirectory_ids(obj)
+        files = File.objects.filter(directory_id__in=all_directory_ids, da_visionare=True).count()
         return files
+
 
 
 # SERIALIZER FATTO SOLO PER TECNICI VISIBLE IN APP
