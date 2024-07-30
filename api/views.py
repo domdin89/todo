@@ -254,8 +254,11 @@ def apartments_app(request):
     profile_id = request.profile_id
     worksite_id = request.query_params.get('worksite')
     search_query = request.query_params.get('search')
+    is_dtc = False
 
-    is_dtc = CollabWorksitesOrder.objects.filter(profile_id=profile_id, worksite_id=worksite_id, is_valid=True).order_by('order').first()
+    collab = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id, is_valid=True).order_by('order').first()
+    if collab.profile.id == profile_id: # type: ignore
+        is_dtc = True
 
     query_params = Q() 
 
