@@ -17,6 +17,7 @@ urlpatterns = [
 
         #collabWorkite
         path('collabworksites', views.CollaboratorListView.as_view()),
+        path('collabworksites-ap', views.CollaboratorListApartmentView.as_view()),
         path('collabworksite/new', views.new_collabworksite),
 
         #profiles

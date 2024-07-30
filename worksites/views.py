@@ -222,6 +222,51 @@ class CollaboratorListView(APIView):
     
 
 
+class CollaboratorListApartmentView(APIView):
+    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        apartment_id = request.query_params.get('apartment')
+        search_query = request.query_params.get('search')
+        #profile_count = self.get_profile_count(worksite_id, search_query)
+
+        apartment = get_object_or_404(Apartments, id=apartment_id)
+
+        search_filters = Q()
+
+        if search_query:
+            search_filters |= Q(profile__first_name__icontains=search_query)
+            search_filters |= Q(profile__last_name__icontains=search_query)
+            search_filters |= Q(profile__mobile_number__icontains=search_query)
+            search_filters |= Q(profile__email__icontains=search_query)
+
+
+        collabs = CollabWorksitesOrder.objects.filter(
+            search_filters,
+            worksite=apartment.worksite,
+            is_valid=True
+        ).select_related('profile').distinct()
+
+        collabs = collabs.order_by('order')
+
+        profile_ids = collabs.values_list('profile__id', flat=True)
+
+
+        # Applicare la paginazione agli ID dei profili
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(profile_ids, request)
+
+        if page is not None:
+             serializer = CollabWorksitesOrderSerializer(collabs, many=True)
+
+             return paginator.get_paginated_response(serializer.data)
+           
+
+        return Response({"message": "No data found or invalid page number"})
+    
+
+
 class ApartmentListView(APIView):
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticated]
