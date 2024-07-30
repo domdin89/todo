@@ -273,7 +273,7 @@ def apartments_app(request):
         query_params &= Q(worksite_id=worksite_id,
                             is_active=True,
                             subs__sub__isnull=False,
-                            clientapartment__profile=profile)
+                            clientapartments__profile=profile)
         
     apartments = Apartments.objects.filter(query_params).distinct()
 
