@@ -262,7 +262,8 @@ def apartments_app(request):
     if search_query:
             query_params &= Q(owner__icontains=search_query) | Q(note__icontains=search_query) | Q(subs__sub__icontains=search_query)
     query_params &= Q(worksite_id=worksite_id,
-                            is_active=True)
+                            is_active=True,
+                            subs__sub__isnull=False)
     apartments = Apartments.objects.filter(query_params).distinct()
 
     if is_dtc:
