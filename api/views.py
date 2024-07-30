@@ -248,10 +248,37 @@ class ApartmentListViewApp(APIView):
         return Response({"message": "No data found or invalid page number"})
 
 
+@api_view(['GET'])
+@validate_token
+def apartments_app(request):
+    profile_id = request.profile_id
+    worksite_id = request.query_params.get('worksite')
+    is_dtc = CollabWorksitesOrder.objects.filter(profile_id=profile_id, worksite_id=worksite_id, is_valid=True).exists()
+
+    apartments = Apartments.objects.filter(worksite_id=worksite_id, is_active=True).distinct()
+
+    if is_dtc:
+        apartments_data = []
+        for apartment in apartments:
+            # Utilizza la funzione get_files_pending_count per calcolare il conteggio dei file da visionare
+            file_count = get_files_pending_count(apartment)
+            apartment_serialized = ApartmentAppSerializer(apartment).data
+            apartment_serialized['file_count'] = file_count # type: ignore
+            apartments_data.append(apartment_serialized)
+
+        # Ordina gli appartamenti per il numero di file da visionare in ordine decrescente
+        apartments_data.sort(key=lambda x: x['file_count'], reverse=True)
+    else:
+        apartments_data = [ApartmentAppSerializer(apartment).data for apartment in apartments]
+
+    return JsonResponse({
+        'results': apartments_data
+    })
+
 def get_files_pending_count(apartment):
     # Calcola il numero di file da visionare per un appartamento
     file_count = 0
-    directories = Directory.objects.filter(apartment_id=apartment.id)
+    directories = Directory.objects.filter(apartment=apartment)
     for directory in directories:
         subdirectory_ids = get_all_subdirectory_ids(directory)
         file_count += File.objects.filter(directory_id__in=subdirectory_ids, da_visionare=True).count()
@@ -263,34 +290,6 @@ def get_all_subdirectory_ids(directory):
     for subdir in directory.subdirectories.all():
         subdirectory_ids.extend(get_all_subdirectory_ids(subdir))
     return subdirectory_ids
-
-
-
-@api_view(['GET'])
-@validate_token
-def apartments_app(request):
-    profile_id = request.profile_id
-    worksite_id = request.query_params.get('worksite')
-    is_dtc = CollabWorksitesOrder.objects.filter(profile_id=profile_id, worksite_id=worksite_id, is_valid=True).exists()
-
-    apartments = Apartments.objects.filter(worksite_id=worksite_id, is_active=True).distinct()
-
-    if is_dtc:
-        # Pre-calcoliamo il conteggio dei file per ogni appartamento usando annotate
-        apartments = apartments.annotate(
-            file_count=Count('directory__subdirectories__files', filter=Q(directory__subdirectories__files__da_visionare=True))
-        ).prefetch_related(
-            Prefetch('directory_set', queryset=Directory.objects.prefetch_related('subdirectories__files'))
-        )
-
-    
-        apartments = apartments.order_by('-file_count')
-
-    apartments_data = [ApartmentAppSerializer(apartment).data for apartment in apartments]
-
-    return JsonResponse({
-        'results': apartments_data
-    })
    
 
 @api_view(['GET'])

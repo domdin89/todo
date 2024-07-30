@@ -119,7 +119,7 @@ class ApartmentAppSerializer(serializers.ModelSerializer):
         room_count = Room.objects.filter(apartment_id=apartment_id).count()
         return room_count
 
-
+   
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     
