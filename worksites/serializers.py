@@ -108,7 +108,7 @@ class ApartmentSerializer(serializers.ModelSerializer):
 
 class ApartmentAppSerializer(serializers.ModelSerializer):
     rooms = serializers.SerializerMethodField()
-    files_pending = serializers.SerializerMethodField()
+    file_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Apartments
@@ -119,21 +119,6 @@ class ApartmentAppSerializer(serializers.ModelSerializer):
         room_count = Room.objects.filter(apartment_id=apartment_id).count()
         return room_count
 
-    def get_files_pending(self, obj):
-        def get_all_subdirectory_ids(directory):
-            subdirectory_ids = [directory.id]
-            for subdir in directory.subdirectories.all():
-                subdirectory_ids.extend(get_all_subdirectory_ids(subdir))
-            return subdirectory_ids
-
-        apartment_id = obj.id
-        directories = Directory.objects.filter(apartment_id=apartment_id)
-        all_directory_ids = []
-        for directory in directories:
-            all_directory_ids.extend(get_all_subdirectory_ids(directory))
-        
-        files = File.objects.filter(directory_id__in=all_directory_ids, da_visionare=True).count()
-        return files
 
 class WorksiteProfileSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)

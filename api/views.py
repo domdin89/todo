@@ -286,7 +286,7 @@ def apartments_app(request):
     
         apartments = apartments.order_by('-file_count')
 
-    apartments_data = [ApartmentSerializer(apartment).data for apartment in apartments]
+    apartments_data = [ApartmentAppSerializer(apartment).data for apartment in apartments]
 
     return JsonResponse({
         'results': apartments_data
