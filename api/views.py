@@ -8,7 +8,7 @@ from accounts.models import Privacy, Profile
 from accounts.serializers import PrivacySerializer
 from accounts.views import login_without_password
 from apartments.serializers import ApartmentBaseSerializer
-from worksites.serializers import WbsSerializer, WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
+from worksites.serializers import ApartmentAppSerializer, WbsSerializer, WorksiteSerializer, WorksiteDetailSerializer, ApartmentSubSerializer, ApartmentSerializer
 from worksites.views import is_valid_date
 from .decorators import validate_token
 from rest_framework.response import Response
@@ -25,9 +25,10 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes, force_str
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
+from django.db.models import Count
 
 from django.contrib.auth.models import User
-from worksites.models import CollabWorksites, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
+from worksites.models import CollabWorksites, CollabWorksitesOrder, Contractor, Financier, FoglioParticella, Worksites, WorksitesFoglioParticella
 from file_manager.models import Directory, File
 from file_manager.serializers import DirectorySerializer, DirectorySerializerChildrenAppStaff,DirectorySerializerNew, DirectorySerializerChildrenApp, DirectorySerializerNewStaff
 from apartments.models import WBS, ApartmentAccessCode, ApartmentSub, Apartments, ClientApartments
@@ -245,6 +246,52 @@ class ApartmentListViewApp(APIView):
             return paginator.get_paginated_response(response_data)
 
         return Response({"message": "No data found or invalid page number"})
+
+
+def get_files_pending_count(apartment):
+    # Calcola il numero di file da visionare per un appartamento
+    file_count = 0
+    directories = Directory.objects.filter(apartment_id=apartment.id)
+    for directory in directories:
+        subdirectory_ids = get_all_subdirectory_ids(directory)
+        file_count += File.objects.filter(directory_id__in=subdirectory_ids, da_visionare=True).count()
+    return file_count
+
+def get_all_subdirectory_ids(directory):
+    # Ricorsivamente ottiene tutti gli ID delle sottodirectory
+    subdirectory_ids = [directory.id]
+    for subdir in directory.subdirectories.all():
+        subdirectory_ids.extend(get_all_subdirectory_ids(subdir))
+    return subdirectory_ids
+
+
+
+@api_view(['GET'])
+@validate_token
+def apartments_app(request):
+    profile_id = request.profile_id
+    worksite_id = request.query_params.get('worksite')
+    is_dtc = CollabWorksitesOrder.objects.filter(profile_id=profile_id, worksite_id=worksite_id, is_valid=True).exists()
+
+    apartments = Apartments.objects.filter(worksite_id=worksite_id, is_active=True).distinct()
+
+    if is_dtc:
+        # Pre-calcoliamo il conteggio dei file per ogni appartamento usando annotate
+        apartments = apartments.annotate(
+            file_count=Count('directory__subdirectories__files', filter=Q(directory__subdirectories__files__da_visionare=True))
+        ).prefetch_related(
+            Prefetch('directory_set', queryset=Directory.objects.prefetch_related('subdirectories__files'))
+        )
+
+    
+        apartments = apartments.order_by('-file_count')
+
+    apartments_data = [ApartmentSerializer(apartment).data for apartment in apartments]
+
+    return JsonResponse({
+        'results': apartments_data
+    })
+   
 
 @api_view(['GET'])
 @validate_token

@@ -96,6 +96,18 @@ class WbsSerializer(serializers.ModelSerializer):
     
 class ApartmentSerializer(serializers.ModelSerializer):
     rooms = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Apartments
+        fields = '__all__'
+
+    def get_rooms(self, obj):
+        apartment_id = obj.id
+        room_count = Room.objects.filter(apartment_id=apartment_id).count()
+        return room_count
+
+class ApartmentAppSerializer(serializers.ModelSerializer):
+    rooms = serializers.SerializerMethodField()
     files_pending = serializers.SerializerMethodField()
 
     class Meta:
