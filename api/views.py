@@ -255,6 +255,7 @@ def apartments_app(request):
     worksite_id = request.query_params.get('worksite')
     search_query = request.query_params.get('search')
     is_dtc = False
+    profile = get_object_or_404(Profile, id=profile_id)
 
     collab = CollabWorksitesOrder.objects.filter(worksite_id=worksite_id, is_valid=True).order_by('order').first()
     if collab.profile.id == profile_id: # type: ignore
@@ -267,6 +268,13 @@ def apartments_app(request):
     query_params &= Q(worksite_id=worksite_id,
                             is_active=True,
                             subs__sub__isnull=False)
+    
+    if profile.type == 'USER':
+        query_params &= Q(worksite_id=worksite_id,
+                            is_active=True,
+                            subs__sub__isnull=False,
+                            clientapartment__profile=profile)
+        
     apartments = Apartments.objects.filter(query_params).distinct()
 
     if is_dtc:
