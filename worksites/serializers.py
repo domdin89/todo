@@ -107,17 +107,20 @@ class ApartmentSerializer(serializers.ModelSerializer):
         return room_count
 
 class ApartmentAppSerializer(serializers.ModelSerializer):
-    rooms = serializers.SerializerMethodField()
     file_count = serializers.IntegerField(read_only=True)
+    subs = serializers.SerializerMethodField()
 
     class Meta:
         model = Apartments
-        fields = '__all__'
+        fields = ['id','floor', 'note', 'owner', 'file_count', 'subs']
 
-    def get_rooms(self, obj):
-        apartment_id = obj.id
-        room_count = Room.objects.filter(apartment_id=apartment_id).count()
-        return room_count
+    def get_subs(self, obj):
+        subs = ApartmentSub.objects.filter(apartment_id=obj.id, is_valid=True)
+        serializer = ApartmentSubSerializer(subs, many=True)
+        return serializer.data
+    
+
+   
 
    
 class WorksiteProfileSerializer(serializers.ModelSerializer):
