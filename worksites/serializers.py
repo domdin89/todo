@@ -112,7 +112,7 @@ class ApartmentAppSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Apartments
-        fields = ['id','floor', 'note', 'owner', 'file_count', 'subs']
+        fields = '__all__'
 
     def get_subs(self, obj):
         subs = ApartmentSub.objects.filter(apartment_id=obj.id, is_valid=True)

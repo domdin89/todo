@@ -253,9 +253,17 @@ class ApartmentListViewApp(APIView):
 def apartments_app(request):
     profile_id = request.profile_id
     worksite_id = request.query_params.get('worksite')
+    search_query = request.query_params.get('search')
+
     is_dtc = CollabWorksitesOrder.objects.filter(profile_id=profile_id, worksite_id=worksite_id, is_valid=True).exists()
 
-    apartments = Apartments.objects.filter(worksite_id=worksite_id, is_active=True).distinct()
+    query_params = Q() 
+
+    if search_query:
+            query_params &= Q(owner__icontains=search_query) | Q(note__icontains=search_query) | Q(subs__sub__icontains=search_query)
+    query_params &= Q(worksite_id=worksite_id,
+                            is_active=True)
+    apartments = Apartments.objects.filter(query_params).distinct()
 
     if is_dtc:
         apartments_data = []
@@ -274,6 +282,7 @@ def apartments_app(request):
     return JsonResponse({
         'results': apartments_data
     })
+
 
 def get_files_pending_count(apartment):
     # Calcola il numero di file da visionare per un appartamento
