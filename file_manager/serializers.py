@@ -208,7 +208,7 @@ class DirectorySerializerNew(serializers.ModelSerializer):
         return []
 
     def get_files(self, obj):
-        files = File.objects.filter(directory_id=obj.id, visible_in_app=True)
+        files = File.objects.filter(directory_id=obj.id, visible_in_app=True).order_by('-id')
         serializer = FileSerializer(files, many=True)
         return serializer.data
 
@@ -231,6 +231,6 @@ class DirectorySerializerNewStaff(serializers.ModelSerializer):
         return []
 
     def get_files(self, obj):
-        files = File.objects.filter(directory_id=obj.id)
+        files = File.objects.filter(directory_id=obj.id).order_by('-id')
         serializer = FileSerializer(files, many=True)
         return serializer.data

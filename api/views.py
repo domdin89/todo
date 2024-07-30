@@ -382,9 +382,9 @@ def get_directories_by_apartments(request):
     try:
 
         if parent_id:
-            directories = Directory.objects.filter(id=parent_id).order_by('-date')
+            directories = Directory.objects.filter(id=parent_id)
         else:
-            directories = Directory.objects.filter(apartment_id=apartment_id).order_by('-date').distinct()
+            directories = Directory.objects.filter(apartment_id=apartment_id).distinct()
         
         if profile.type == 'STAFF':
             serializer = DirectorySerializerNewStaff(directories, many=True)
@@ -412,9 +412,9 @@ def get_directories(request):
 
     try:
         if parent_id:
-            directories = Directory.objects.filter(worksite_id=worksite_id, id=parent_id, apartment__isnull=True).order_by('-date')
+            directories = Directory.objects.filter(worksite_id=worksite_id, id=parent_id, apartment__isnull=True)
         else:
-            directories = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True).order_by('-date').distinct()
+            directories = Directory.objects.filter(worksite_id=worksite_id, apartment__isnull=True).distinct()
         
         if profile.type == 'STAFF':
             serializer = DirectorySerializerNewStaff(directories, many=True)
