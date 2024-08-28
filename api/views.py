@@ -729,7 +729,7 @@ def password_reset_request(request):
     reset_token = default_token_generator.make_token(profile.user)
     uid = urlsafe_base64_encode(force_bytes(profile.pk))
 
-    reset_link = f'https://falone-test.falone.madstudio.it/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
+    reset_link = f'https://todo-test.todo.madstudio.it/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
     #reset_link = f'http://localhost:8080/auth/amplify/forgot-password?uid={uid}&reset_token={reset_token}'
 
 

@@ -6,7 +6,7 @@ def apple_app_site_association(request):
             "apps": [],
             "details": [
                 {
-                    "appID": "8MD582JM2N.com.falone.app",
+                    "appID": "8MD582JM2N.com.todo.app",
                     "paths": ["*"]
                 }
             ]

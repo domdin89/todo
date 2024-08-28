@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Falone API
-  description: Documentazione falone api v1.
+  description: Documentazione todo api v1.
   version: 1.0.0
 servers:
-  - url: https://falone.falone.madstudio.it
+  - url: https://todo.todo.madstudio.it
   - url: http://127.0.0.1:8000
 paths: 
   /login:
@@ -151,7 +151,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/worksites?page=2&status=1'
+                    example: 'https://be.todo.madstudio.it/api/worksites?page=2&status=1'
                   previous:
                     type: string
                     nullable: true
@@ -611,7 +611,7 @@ paths:
                     example: 100
                   next:
                     type: string
-                    example: 'https://be.falone.madstudio.it/api/collaborators?page=2'
+                    example: 'https://be.todo.madstudio.it/api/collaborators?page=2'
                   previous:
                     type: string
                     example: null
@@ -765,7 +765,7 @@ paths:
                     example: 100
                   next:
                     type: string
-                    example: 'https://be.falone.madstudio.it/api/collabworksites?page=2'
+                    example: 'https://be.todo.madstudio.it/api/collabworksites?page=2'
                   previous:
                     type: string
                     example: null
@@ -1005,7 +1005,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                    example: 'https://be.todo.madstudio.it/api/worksitesprofile?page=2'
                   previous:
                     type: string
                     nullable: true
@@ -1072,7 +1072,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                    example: 'https://be.todo.madstudio.it/api/worksitesprofile?page=2'
                   previous:
                     type: string
                     nullable: true
@@ -1138,7 +1138,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://api.falone.example.com/apartments?page=2'
+                    example: 'https://api.todo.example.com/apartments?page=2'
                   previous:
                     type: string
                     nullable: true
@@ -1340,7 +1340,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/clientapartments?page=2'
+                    example: 'https://be.todo.madstudio.it/api/clientapartments?page=2'
                   previous:
                     type: string
                     nullable: true
@@ -1420,7 +1420,7 @@ paths:
                   successivo:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/boards?pagina=2'
+                    example: 'https://be.todo.madstudio.it/api/boards?pagina=2'
                   precedente:
                     type: string
                     nullable: true
@@ -1517,7 +1517,7 @@ paths:
                   next:
                     type: string
                     nullable: true
-                    example: 'https://be.falone.madstudio.it/api/worksitesprofile?page=2'
+                    example: 'https://be.todo.madstudio.it/api/worksitesprofile?page=2'
                   previous:
                     type: string
                     nullable: true
