@@ -131,19 +131,25 @@ WSGI_APPLICATION = 'todo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': env('DB_ENGINE'),
+#         'NAME': env('DB_NAME'),
+#         'USER': env("DB_USER"),
+#         'PASSWORD': env("DB_PASSWORD"),
+#         'HOST': env("DB_HOST"),
+#         'PORT': env("DB_PORT"),
+#         'TIME_ZONE': 'Europe/Rome',
+#         # 'OPTIONS': {
+#         #     'charset': 'utf8mb4',
+#         #     'init_command': "SET collation_connection = utf8mb4_unicode_ci",
+#         # },
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': env('DB_ENGINE'),
-        'NAME': env('DB_NAME'),
-        'USER': env("DB_USER"),
-        'PASSWORD': env("DB_PASSWORD"),
-        'HOST': env("DB_HOST"),
-        'PORT': env("DB_PORT"),
-        'TIME_ZONE': 'Europe/Rome',
-        # 'OPTIONS': {
-        #     'charset': 'utf8mb4',
-        #     'init_command': "SET collation_connection = utf8mb4_unicode_ci",
-        # },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
 
