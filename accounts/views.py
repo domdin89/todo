@@ -4,11 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from worksites.filters import WorksitesFilter, WorksitesFilter2
-from worksites.models import CollabWorksitesOrder, Worksites
-from worksites.serializers import CollabWorksitesOrderSerializer, WorksiteSerializer
 from .models import Profile
-from .serializers import CustomTokenObtainPairSerializer, ProfileSerializer
+from .serializers import CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from rest_framework.pagination import PageNumberPagination
@@ -53,7 +50,6 @@ def login_without_password(profile):
 class TecniciProfileListCreate(ListCreateAPIView):
     queryset = Profile.objects.filter(type='TECNICI')
     permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer
 
     def perform_create(self, serializer):
         serializer.save(type='TECNICI')
@@ -64,7 +60,6 @@ class CustomPagination(PageNumberPagination):
 class ProfileListCreateAPIView(ListCreateAPIView):
     queryset = Profile.objects.all()
     #permission_classes = [IsAuthenticated]
-    serializer_class = ProfileSerializer
     filter_backends = [filters.SearchFilter]
     pagination_class = CustomPagination
     search_fields = ['first_name', 'last_name', 'email']  # Aggiusta questi campi in base alle tue necessità di ricerca

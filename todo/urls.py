@@ -6,14 +6,9 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('apartments.urls')),
-    path('', include('worksites.urls')),
     path('', include('accounts.urls')),
-    path('', include('file_manager.urls')),
-    path('', include('board.urls')),
-    path('', include('firebase.urls')),
-    path('api/v1/', include('api.urls')),
-    path('.well-known/apple-app-site-association', views.apple_app_site_association, name='apple_app_site_association'),
+    path('', include('api.urls')),
+    #path('.well-known/apple-app-site-association', views.apple_app_site_association, name='apple_app_site_association'),
 
 
 ]

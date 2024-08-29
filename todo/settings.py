@@ -17,7 +17,6 @@ import pymysql
 import os
 from .storage_backends import StaticStorage, PublicMediaStorage
 from datetime import timedelta
-from nacl.secret import SecretBox
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -41,6 +40,9 @@ DEBUG = os.getenv('DEBUG') == 'True'
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "127.0.0.1:8000",
+    "127.0.0.1:4000",
+    'localhost:4000',
+    "127.0.0.1:4200",
     "127.0.0.1:8100",
     "todo.todo.madstudio.it"
 ]
@@ -62,9 +64,6 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     'accounts',
-    'apartments',
-    'worksites',
-    'board',
     'api',
 ]
 
@@ -101,6 +100,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8000',
     'http://127.0.0.1:8100',
+    'http://127.0.0.1:4000',
+    'http://localhost:4000',
+    'http://127.0.0.1:4200',
     'https://todo.todo.madstudio.it',
     'https://todo-test.todo.madstudio.it',
     'https://todo-gui.todo.madstudio.it'
@@ -111,7 +113,10 @@ CORS_ORIGIN_WHITELIST = [
 
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000/',
-     'http://127.0.0.1:8100/',
+    'http://127.0.0.1:8100/',
+    'http://127.0.0.1:4000/',
+    'http://localhost:4000/',
+    'http://127.0.0.1:4200/',
     'https://todo.todo.madstudio.it',
     'https://todo-test.todo.madstudio.it',
     'https://todo-gui.todo.madstudio.it'
