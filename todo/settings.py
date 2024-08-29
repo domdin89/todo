@@ -38,6 +38,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = [
+    '.vercel.app'
     "127.0.0.1",
     "127.0.0.1:8000",
     "127.0.0.1:4000",
