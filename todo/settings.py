@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import environ
-import boto3
 #import pymysql
 import os
 from .storage_backends import StaticStorage, PublicMediaStorage
@@ -38,7 +37,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = [
-    '.vercel.app',
     "127.0.0.1",
     "127.0.0.1:8000",
     "127.0.0.1:4000",
@@ -191,7 +189,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-USE_S3 = os.getenv('USE_S3') == 'True'
+# USE_S3 = os.getenv('USE_S3') == 'True'
 
 # if USE_S3:
 #     AWS_ACCESS_KEY_ID = 'SCW6M8PNVKP4SEZQYGS3'
@@ -239,20 +237,20 @@ GUNICORN_CONF='./gunicorn.conf.py'
 
 
 #SITE_URL = "https://acf.abruzzocosafare.it"
-SITE_URL = os.getenv("DEFAULT_URL")
-DEBUG_EMAIL = "info@madstudio.it"
+# SITE_URL = os.getenv("DEFAULT_URL")
+# DEBUG_EMAIL = "info@madstudio.it"
 
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+# SECRET_KEY = os.getenv("SECRET_KEY")
 
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-EMAIL_SENDER = os.getenv("DEFAULT_FROM_EMAIL")
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
-#EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
+# EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+# EMAIL_SENDER = os.getenv("DEFAULT_FROM_EMAIL")
+# EMAIL_HOST = os.getenv("EMAIL_HOST")
+# EMAIL_PORT = os.getenv("EMAIL_PORT")
+# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+# #EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
 
 
 SHORT_URL_PREFIX = os.getenv("DEFAULT_URL")
