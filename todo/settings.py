@@ -197,39 +197,39 @@ USE_TZ = True
 
 USE_S3 = os.getenv('USE_S3') == 'True'
 
-if USE_S3:
-    AWS_ACCESS_KEY_ID = 'SCW6M8PNVKP4SEZQYGS3'
-    AWS_SECRET_ACCESS_KEY = '50d914ce-6805-4d83-91d3-ebc6fd4ad261'
-    AWS_STORAGE_BUCKET_NAME = 'todo'
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_S3_REGION_NAME = 'nl-ams'
-    AWS_S3_ENDPOINT_URL = 'https://s3.nl-ams.scw.cloud'
+# if USE_S3:
+#     AWS_ACCESS_KEY_ID = 'SCW6M8PNVKP4SEZQYGS3'
+#     AWS_SECRET_ACCESS_KEY = '50d914ce-6805-4d83-91d3-ebc6fd4ad261'
+#     AWS_STORAGE_BUCKET_NAME = 'todo'
+#     AWS_DEFAULT_ACL = 'public-read'
+#     AWS_S3_REGION_NAME = 'nl-ams'
+#     AWS_S3_ENDPOINT_URL = 'https://s3.nl-ams.scw.cloud'
 
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.nl-ams.scw.cloud'
-    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+#     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.nl-ams.scw.cloud'
+#     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 
-    s3 = boto3.client('s3',
-                      region_name=AWS_S3_REGION_NAME,
-                      endpoint_url=AWS_S3_ENDPOINT_URL,
-                      aws_access_key_id=AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-                      )
+#     s3 = boto3.client('s3',
+#                       region_name=AWS_S3_REGION_NAME,
+#                       endpoint_url=AWS_S3_ENDPOINT_URL,
+#                       aws_access_key_id=AWS_ACCESS_KEY_ID,
+#                       aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+#                       )
 
-    # s3 static settings
-    STATIC_LOCATION = 'static'
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-    STATICFILES_STORAGE = 'todo.storage_backends.StaticStorage'
+#     # s3 static settings
+#     STATIC_LOCATION = 'static'
+#     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
+#     STATICFILES_STORAGE = 'todo.storage_backends.StaticStorage'
 
-    # s3 public media settings
-    PUBLIC_MEDIA_LOCATION = 'media'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
-    DEFAULT_FILE_STORAGE = 'todo.storage_backends.PublicMediaStorage'
+#     # s3 public media settings
+#     PUBLIC_MEDIA_LOCATION = 'media'
+#     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
+#     DEFAULT_FILE_STORAGE = 'todo.storage_backends.PublicMediaStorage'
 
-else:
-    STATIC_URL = '/static/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'site_static')
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# else:
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'site_static')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
 
