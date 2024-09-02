@@ -39,13 +39,18 @@ def new_task(request):
     serializer = TaskSerializer(task)
     return Response(serializer.data, status=200)
 
-@api_view(['PUT'])
+@api_view(['POST'])
 def delete_tasks(request):
-    task_id = request.query_params.get('id')
-    task = Task.objects.get(id=task_id)
+    task_id = request.data.get('id')
+    
+    if not task_id:
+        return Response({'error': 'ID non fornito'}, status=400)
 
-    task.is_deleted = True
-    task.checked = True
-    task.save()
-
-    return Response({'message': 'Task eliminato con successo'}, status=200)
+    try:
+        task = Task.objects.get(id=task_id)
+        task.is_deleted = True
+        task.checked = True
+        task.save()
+        return Response({'message': 'Task eliminato con successo'}, status=200)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task non trovato'}, status=404)
