@@ -38,8 +38,7 @@ def new_task(request):
     if name:
         task = Task.objects.create(name=name)
 
-    serializer = TaskSerializer(task)
-    return Response(serializer.data, status=200)
+    return Response({'message': 'Task aggiunto con successo'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def delete_tasks(request):
