@@ -14,7 +14,7 @@ urlpatterns = [
         path('task', views.update_tasks),
 
         #DELETE
-        path('task', views.delete_tasks)
+        path('task-delete', views.delete_tasks)
         ]
 
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
